@@ -1,0 +1,5 @@
+Currently All Rights Reserved, but we'll probably go with BSD.
+
+
+The very initial plugin code was from Stata: http://www.stata.com/plugins/hello.c
+They do not specify a license, but it is presumably public domain, or at least not something they are going to sue over.

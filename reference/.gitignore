@@ -1,0 +1,5 @@
+# it's useful to keep relevant papers nearby, but I don't have copyright clearance to post them, so they get their own, hidden, subdirectory.
+# Every paper that turned out to be useful should be cited in one of the other pages here, so if you have access you can look them up for yourself.
+# Also, papers which are open access *can* and should be included with `git add -f`, but this is not a priority. If you find that one of our citations is open access, file a bug report!
+papers/
+software/

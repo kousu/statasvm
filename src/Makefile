@@ -58,20 +58,31 @@ all: plugin
 plugin: svm.plugin
 
 # strange, make comes with .LIBPATTERNS yet doesn't come with rules for actually making .so files
-ifeq ($(OS),Linux)
 %.so:
-	$(CC) $(SHARED_FLAGS) $(CFLAGS) $^ -o $@
-endif
+	$(CC) -shared $(CFLAGS) $^ -o $@
+%.dylib:
+	$(CC) -bundle $(CFLAGS) $^ -o $@ #or should this be -dynamiclib? it gives a different filetype, but still works
+%.dll:
+	# MinGW: gcc -shared -mno-cygwin $^ -o $@
+	# Visual Studio: cl /DLL somethingsomething #the proper command line is listed in the Visual Studio C/C++ configuration pane if you go to the verrrry last page in a DLL project
+	# Borland: ....
+	# Intel: ???
 
-svm.so: svm.o stata/stplugin.o
+OBJECTS = svm.o stata/stplugin.o
+
 
 ifeq ($(OS),Linux)
-svm.plugin: svm.so
+PLUGIN_OBJECT=svm.so
 else ifeq ($(OS),Darwin)
-svm.plugin: svm.dylib #or is this .so??
+PLUGIN_OBJECT=svm.dylib
 else ifeq ($(OS),Windows_NT)
-svm.plugin: svm.dll
+PLUGIN_OBJECT=svm.dll
 endif
+
+$(PLUGIN_OBJECT): $(OBJECTS)
+
+# Stata uses consistent naming across platforms for library files, even if the platforms don't
+svm.plugin: $(PLUGIN_OBJECT)
 
 svm.plugin:
 	cp $< $@

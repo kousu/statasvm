@@ -15,11 +15,15 @@
 
 #TODO: is there any way to get make to catch instead of ignore empty $(STATA)s? one way: generate a filename that definitely doesn't exist (super flakey); two way: write an explicit if that catches this cases 
 
-OS=$(shell uname)
-ifeq ($(OS),"")
+OS:=$(shell uname)
+
+ifeq ($(OS),)
   # if uname fails, try to guess if we're on Windows
   ifdef SystemRoot
-    OS=Windows_NT #this is what mingw's uname gives; be consistent with it to make things simple
+    OS:=Windows_NT
+    #this is what mingw's uname gives; be consistent with it to make things simple
+  else
+    $(warning "Unable to determine OS.")
   endif
 endif
 

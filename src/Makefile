@@ -1,8 +1,11 @@
 
+# This is a cross-platform makefile
+#
+
 OS=$(shell uname)
 
 ifeq ($(OS),Linux)
-  STATA=/usr/local/stata
+  STATA=/usr/local/stata/stata
   SHARED_FLAGS=-shared -fPIC   # Note: the stata docs (http://www.stata.com/plugins/) do not mention -fPIC, but they probably haven't used a recent GCC: GCC demands it
   SPI_SYSTEM=OPUNIX	#the Stata Programming Interface (i.e. stplugin.h) name for what OS we're on: because Stata isn't cross-platform enough to just use the standard OS defines.
 else ifeq ($(OS),Darwin)
@@ -36,5 +39,6 @@ test: svmtest.do svm.plugin $(STATA)
 	cat svmtest.log
 
 .PHONY: clean
+# Or, instead of 'rm', 'git clean' can be used. It's much more thorough. However, it also demands you use git with this system, and might be overzealous; an interactive one would be better.
 clean:
 	$(RM) *.plugin *.o *.log

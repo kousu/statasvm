@@ -1,13 +1,24 @@
+# hide backup files
 *~
 
-*.o
+# avoid committing build products
 *.plugin
+
+*.o
+*.obj
 
 #note: some dlls might end up getting committed (git add -f!), at least temporarily, just to make progress on OS X and Windows faster
 # in the long run, we should be dynamically building or at least retrieving libraries, not keeping personal copies around.
 *.so
+*.dylib
 *.dll
 
+*.lib
+*.exp
+
+*.log
+
+# hide private files (copyrighted journal articles for reference, etc)
 deps/
 software/
 devlog/

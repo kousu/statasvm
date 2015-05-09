@@ -13,30 +13,90 @@
 # and of course, the canonical reference
 # - http://www.stata.com/plugins/#sect5
 
+# TODO:
+# [ ] Turn up the warning level (-Wall or /Wall) and make warnings into errors (-Werror or /WX): this forces the code to be high quality, by nagging you at every single build until you get it right
+# [ ] 
+
+# Cross-platform nits:
+# be careful: Windows's cmd uses ';' to separate parameters, not commands, so you can's say `cmd1; cmd2` . For most cases, we can get away with `cmd1 && cmd2` which works on both POSIX and Windows.
+
 #TODO: is there any way to get make to catch instead of ignore empty $(STATA)s? one way: generate a filename that definitely doesn't exist (super flakey); two way: write an explicit if that catches this cases 
 
-OS:=$(shell uname)
 
-ifeq ($(OS),)
-  # if uname fails, try to guess if we're on Windows
-  ifdef SystemRoot
-    OS:=Windows_NT
-    #this is what mingw's uname gives; be consistent with it to make things simple
-  else
-    $(warning "Unable to determine OS.")
-  endif
+# first check for Windows; Windows defines the OS
+ifneq ($(OS),Windows_NT)
+  # assume everywhere except for Windows has uname
+  # XXX this might break on e.g. Windows 2000... but that's probably alright.
+  OS:=$(shell uname)
 endif
 
+ifeq ($(OS),)
+  $(warning "Unable to determine OS.")
+endif
+
+# extend the list of $(CC), $(YACC), ... with extra standard programs variables
+# so that we can tolerate the POSIX incompatible parts of Windows by override.
+WHICH=which
+NULL=/dev/null
+CP=cp
+CAT=cat
+
+
+# this is a subroutine; it has the same name as the string 'which' used above,
+# which is confusing, but it is not the same thing.
+# use it like 
+which=$(shell $(WHICH) $(1) 2>$(NULL))
+
 ifeq ($(OS),Linux)
-  STATA=/usr/local/stata/stata
+  STATA:=$(call which,stata)
   SHARED_FLAGS=-shared
   CFLAGS+=-fPIC   # Note: the stata docs (http://www.stata.com/plugins/) do not mention -fPIC, but they probably haven't used a recent GCC: GCC demands it
   SPI_SYSTEM=OPUNIX	#the Stata Programming Interface (i.e. stplugin.h) name for what OS we're on: because Stata isn't cross-platform enough to just use the standard OS defines.
 else ifeq ($(OS),Darwin)
-  STATA=/Applications/Stata/Stata.app/Contents/MacOS/Stata
+  # it should be safe to hardcode the path to Stata on OS X, because it has an installer which doesn't give you much choice
+  # though admittedly there *is* going to be the rare user that gets bit by this
+  STATA:=/Applications/Stata/Stata.app/Contents/MacOS/Stata
   SHARED_FLAGS=-bundle
   SPI_SYSTEM=APPLEMAC
 else ifeq ($(OS),Windows_NT)
+  WHICH:=where
+  NULL:=NUL #this is a magic pseudo-device, like CON or PRN, known to Windows
+
+  # these are builtins and, unlike POSIX, they are *only builtins* (there is no /bin/[ on Windows),
+  # so we need to prefix them with `cmd /c` . We also silence their stderrs to be consistent with POSIX in the common case (XXX this might bite later on!).
+  CAT=cmd /c type 2>NUL
+  RM=cmd /c del /F /Q 2>NUL
+  CP=cmd /c copy /Y 2>NUL
+  
+  # subtlety: make is always forward-slashes for directories and backslashes for escapes, even on Windows.
+  STATA:=$(wildcard c:/Program\ Files*/Stata*/Stata*.exe)
+
+  # stplugin.h *defaults* to Windows if not given, and this is exactly what happens under the official instructions which tell you to use Visual Studio in its default configuration
+  SPI_SYSTEM=
+  
+  # look for Make's default C compiler (usually 'cc')
+  # if this is found, it's probably MinGW; and if it is MinGW, this is the proper way to find it.
+  CC:=$(call which $(CC))
+  ifeq ($(CC),)
+    # but if it's not found,
+    # look for MSVC in the path
+    # TODO: we can tell VS is installed by looking for VS120COMNTOOLS, VS110COMNTOOLS, VS100COMNTOOLS, VS90COMNTOOLS, ... We can exploit this to maybe auto-run vcvarsall.bat, or at least to give a better error message.
+    CC:=$(call which,cl)
+  else
+    # assume MinGW without checking
+    CFLAGS+=-mno-cygwin
+  endif
+  
+  ifeq ($(CC),)
+    # if it's still not found, bail
+    
+    # it is too hard to do multiline strings in make (http://stackoverflow.com/questions/649246/is-it-possible-to-create-a-multi-line-string-variable-in-a-makefile), so I'm misusing $(warning) instead: 
+    $(warning If you have MinGW, you should ensure it is on your %PATH%.)
+    $(warning If you have Visual Studio installed, add it to your %PATH% with vcvarsall.bat. Relaunch this command prompt from the system-appropriate VS Tools Command Prompt shortcut in your Start Menu, or just invoke it manually (see https://msdn.microsoft.com/en-us/library/x4d2c09s.aspx))
+    $(error Unable to find a C compiler for your Windows machine.)
+  endif
+  
+
   #TODO
   # - set flags
   # - *detect whether we have MinGW or VS*
@@ -46,14 +106,25 @@ else
 endif
 
 
-ifeq ($(OS),Windows_NT)
-  CAT=read
-else
-  CAT=cat
-endif
+
+# make really makes spaces difficult, and Windows loves spaces
+# A particularly obvious bug of this design is that $(wildcard) is *not* idempotent when spaces are involved: the second time around, in a moment painfully reminiscent of bash, the spaces get interpreted as argument delimiteters.
+# but unlike bash, as far as I know you can't use quotes to keep the arguments together: make just sticks the quotes into your string.
+# So we degenerate to *re-escaping*, just this trick:
+# http://blog.jgc.org/2007/06/escaping-comma-and-space-in-gnu-make.html
+empty:=
+space:= $(empty) $(empty)
+STATA:=$(subst $(space),\$(space),$(STATA))
+
+# --- generic build variables here ---
 
 CFLAGS+="-DSYSTEM=$(SPI_SYSTEM)" #required by stplugin.h; if you get weird errors about STDLL, this is what you're missing
 
+OBJECTS := svm.o stata/stplugin.o
+
+
+
+# --- rules begin here ---
 
 .PHONY: all
 all: plugin
@@ -66,21 +137,30 @@ plugin: svm.plugin
 	$(CC) -shared $(CFLAGS) $^ -o $@
 %.dylib:
 	$(CC) -bundle $(CFLAGS) $^ -o $@ #or should this be -dynamiclib? it gives a different filetype, but still works
-%.dll:
-	# MinGW: gcc -shared -mno-cygwin $^ -o $@
-	# Visual Studio: cl /DLL somethingsomething #the proper command line is listed in the Visual Studio C/C++ configuration pane if you go to the verrrry last page in a DLL project
+
+
 	# Borland: ....
 	# Intel: ???
+	# MinGW: gcc -shared -mno-cygwin $^ -o $@
+	# Visual Studio: cl /DLL somethingsomething #the proper command line is listed in the Visual Studio C/C++ configuration pane if you go to the verrrry last page in a DLL project
+	# from http://stackoverflow.com/questions/1130479/how-to-build-a-dll-from-the-command-line-in-windows-using-msvccl 
+%.dll:
+	cl /nologo /D_USRDLL /D_WINDLL $^ /link /LTCG /DLL /OUT:$@
 
-OBJECTS = svm.o stata/stplugin.o
+%.obj: %.c
+	cl /nologo /W3 /WX /GL /c $< /Fo$@
 
+
+ifeq ($(OS),Windows_NT)
+  OBJECTS := $(patsubst %.o,%.obj,$(OBJECTS))
+endif
 
 ifeq ($(OS),Linux)
-PLUGIN_OBJECT=svm.so
+  PLUGIN_OBJECT=svm.so
 else ifeq ($(OS),Darwin)
-PLUGIN_OBJECT=svm.dylib
+  PLUGIN_OBJECT=svm.dylib
 else ifeq ($(OS),Windows_NT)
-PLUGIN_OBJECT=svm.dll
+  PLUGIN_OBJECT=svm.dll
 endif
 
 $(PLUGIN_OBJECT): $(OBJECTS)
@@ -89,11 +169,12 @@ $(PLUGIN_OBJECT): $(OBJECTS)
 svm.plugin: $(PLUGIN_OBJECT)
 
 svm.plugin:
-	cp $< $@
+	$(CP) $< $@
+
 
 ifeq ($(wildcard $(STATA)),)
   # TODO: make this more robust, e.g. by trying different paths.
-  # make doesn't let you reassign variables, even if you try to do a swaperoo, because it's super declarative (they are 'recursive' variables and disallowed)
+  # you will need to use := instead of = for this, because = makes 'recursive' variables
   $(warning "Unable to locate Stata. You will not be able to run tests.")
 else
 #notice: $< means 'the first prerequisite' and is basically a super-special case meant for exactly this sort of usage
@@ -103,8 +184,20 @@ test: svmtest.do plugin $(STATA)
 	$(CAT) svmtest.log
 endif
 
+
+ifeq ($(OS),Windows_NT)
+  BUILD_CRUFT+=*.dll *.obj *.exp *.lib
+else
+  BUILD_CRUFT+=*.o
+  ifeq ($(OS),Darwin)
+    BUILD_CRUFT+=*.dylib
+  else
+    BUILD_CRUFT+=*.so
+  endif
+endif
+
 .PHONY: clean
 # Or, instead of 'rm', 'git clean' can be used. It's much more thorough. However, it also demands you use git with this system, and might be overzealous; an interactive one would be better.
 clean:
-	$(RM) *.plugin *.o *.so *.dll *.log
-	cd stata; $(RM) *.plugin *.o *.so *.dll *.log
+	$(RM) *.plugin $(BUILD_CRUFT) *.log
+	cd stata && $(RM) $(BUILD_CRUFT) #this would be better done with patsubst. or better yet, something fully recursive like 'find'. but Windows doesn't have find and BSD and Linux can't agree on its syntax...

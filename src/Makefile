@@ -236,8 +236,7 @@ test: $(TESTS)
 test_%: %.log plugin
 	$(CAT) $<
 
-#.INTERMEDIATE: $(patsubst test_%,%.log,$(TESTS))
-	
+#.INTERMEDIATE: $(patsubst test_%,%.log,$(TESTS)) # this is commented out because it breaks under Win32 gmake, causing the files to *not* be deleted at finish.
 endif
 
 

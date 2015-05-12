@@ -125,7 +125,7 @@ endif
 # http://blog.jgc.org/2007/06/escaping-comma-and-space-in-gnu-make.html
 empty:=
 space:= $(empty) $(empty)
-STATA:=$(subst $(space),\$(space),$(STATA))
+EscapeSpace=$(subst $(space),\$(space),$(1))
 
 # --- generic build variables here ---
 
@@ -183,7 +183,7 @@ svm.plugin: $(PLUGIN_OBJECT)
 svm.plugin:
 	$(CP) $< $@
 
-ifeq ($(wildcard $(STATA)),)
+ifeq ($(wildcard $(call EscapeSpace,$(STATA))),)
   # TODO: make this more robust, e.g. by trying different paths.
   # you will need to use := instead of = for this, because = makes 'recursive' variables
   $(warning "Unable to locate Stata. You will not be able to run tests.")
@@ -192,7 +192,7 @@ else
 #notice: $< means 'the first prerequisite' and is basically a super-special case meant for exactly this sort of usage
 .PHONY: test
 test: svmtest.do plugin
-	$(STATA) -e $<
+	"$(STATA)" -e $<
 	$(CAT) svmtest.log
 endif
 

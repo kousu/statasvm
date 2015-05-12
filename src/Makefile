@@ -7,6 +7,8 @@
 # - http://stackoverflow.com/questions/7876876/tell-if-make-is-running-on-windows-or-linux
 # - http://make.mad-scientist.net/papers/rules-of-makefiles/
 # - http://make.mad-scientist.net/papers/how-not-to-use-vpath/
+# http://stackoverflow.com/questions/8937500/how-to-generate-list-of-make-targets-automatically-by-globbing-subdirectories
+#   which demonstrates that to "generate" targets, you instead use wildcard + patsubst to generate *dependencies*, and then use pattern rules (% signs) that match the format of the dependencies.
 # - and  by digging through `make -p`, which shows all defined rules, including the huge spate of implicit rules, on different platforms
 # - http://stackoverflow.com/questions/1077676/how-to-conditional-set-up-a-makefile-variable-by-testing-if-a-file-exists
 # though they aren't all totally relevant to what we're doing her
@@ -200,6 +202,8 @@ svm.plugin: $(PLUGIN_OBJECT)
 svm.plugin:
 	$(CP) $< $@
 
+# --- Testing ----
+	
 ifeq ($(wildcard $(call EscapeSpace,$(STATA))),)
   # TODO: make this more robust, e.g. by trying different paths.
   # you will need to use := instead of = for this, because = makes 'recursive' variables
@@ -207,10 +211,33 @@ ifeq ($(wildcard $(call EscapeSpace,$(STATA))),)
 else
 
 #notice: $< means 'the first prerequisite' and is basically a super-special case meant for exactly this sort of usage
+
+
+# for each .do file in tests/, make a .PHONY test_<testname> target which runs Stata and prints the output
+# the meta-target test runs all tests
+# TODO: catch errors using Stata's "capture" command and actually fail the build
+
+TESTS:=$(patsubst tests/%.do,test_%,$(wildcard tests/*.do))
+
 .PHONY: test
-test: svmtest.do plugin
+test: $(TESTS)
+
+# stata -b is 'batch mode', i.e. it's the closest Stata has to running "Rscript" or "ruby" or "python"
+# -e is identical to -b, except it suppresses the completion notification message
+# If this seems absurd, remember that Stata is targeted at GUI-heavy Windows users,
+# and that the most scripting they are likely to do is to run a big computation overnight.
+
+#  because Stata doesn't have a tty mode, to fake having stdout we cat Stata's <testname>.log (note that this is in the current directory, not the directory the .do file is in!),
+#  which it generates when run in batch mode, and we mark this .INTERMEDIATE so that make knows to delete it immediately
+%.log: tests/%.do
 	"$(STATA)" -e $<
-	$(CAT) svmtest.log
+
+#.PHONY: $(TESTS) #	" Make does not consider implicit rules for PHONY targets" ?? In other words: there is no way to autogenerate .PHONY targets. whyyyyy.
+test_%: %.log plugin
+	$(CAT) $<
+	-$(RM) $< #XXX this cleanup *should* be handled by .INTERMEDIATE, but it's not working for no obvious reason. argh.
+.INTERMEDIATE: $(patsubst test_%,%.log,$(TESTS))
+	
 endif
 
 

@@ -241,22 +241,34 @@ test_%: %.log plugin
 endif
 
 
+# --- Cleaning ---
 
-# --- clean begins here ---
+# Tip: consider replacing 'rm' with 'git clean -f', if you are using git. It might be dangerously overzealous but if you've used git right,
+# it's much more thorough and reliable about getting your state back to scratch, because it by definition puts the state back to what's checked in.
 
 ifeq ($(OS),Windows_NT)
-  BUILD_CRUFT+=*.dll *.obj *.exp *.lib
+  clean: clean-windows
+else ifeq ($(OS),Darwin)
+  clean: clean-darwin
 else
-  BUILD_CRUFT+=*.o
-  ifeq ($(OS),Darwin)
-    BUILD_CRUFT+=*.dylib
-  else
-    BUILD_CRUFT+=*.so
-  endif
+  clean: clean-linux
 endif
 
+.PHONY: clean-windows
+clean-windows: 
+	-$(RM) *.dll *.lib *.exp
+
+.PHONY: clean-darwin
+clean-darwin:  clean-posix
+	-$(RM) *.dylib
+	
+.PHONY: clean-linux
+clean-linux: clean-posix
+	
+.PHONY: clean-posix
+clean-posix:
+	-$(RM) *.so
+	
 .PHONY: clean
-# Or, instead of 'rm', 'git clean' can be used. It's much more thorough. However, it also demands you use git with this system, and might be overzealous; an interactive one would be better.
 clean:
-	-$(RM) *.plugin $(BUILD_CRUFT) *.log
-	-cd stata && $(RM) $(BUILD_CRUFT) #this would be better done with patsubst. or better yet, something fully recursive like 'find'. but Windows doesn't have find and BSD and Linux can't agree on its syntax...
+	-$(RM) $(foreach o,$(OBJECTS),$(wildcard $(o))) *.plugin

@@ -236,9 +236,7 @@ test: $(TESTS)
 test_%: %.log plugin
 	$(CAT) $<
 
-##-$(fdsioufjhdsRM) $< #XXX this cleanup *should* be handled by .INTERMEDIATE, but it's not working for no obvious reason. argh.
-
-#dsfjdoisfjdsoifj.fdsfIfifififNTERMEDIATE: $(patsubst test_%,%.log,$(TESTS))
+#.INTERMEDIATE: $(patsubst test_%,%.log,$(TESTS))
 	
 endif
 
@@ -272,5 +270,6 @@ clean-posix:
 	-$(RM) *.so
 	
 .PHONY: clean
+# *.log *should* get cleaned up by the testing recipe, but in case it doesn't or you have made some manually we clean it again here
 clean:
-	-$(RM) $(foreach o,$(OBJECTS),$(wildcard $(o))) *.plugin
+	-$(RM) $(foreach o,$(OBJECTS),$(wildcard $(o))) *.plugin *.log

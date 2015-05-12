@@ -23,15 +23,36 @@
 #TODO: is there any way to get make to catch instead of ignore empty $(STATA)s? one way: generate a filename that definitely doesn't exist (super flakey); two way: write an explicit if that catches this cases 
 
 
+# --- subroutines (i.e. make macros, for use with $(call ...)) ----
+
+# make really makes spaces difficult, and Windows loves spaces
+# A particularly obvious bug of this design is that $(wildcard) is *not* idempotent when spaces are involved: the second time around, in a moment painfully reminiscent of bash, the spaces get interpreted as argument delimiteters.
+# but unlike bash, as far as I know you can't use quotes to keep the arguments together: make just sticks the quotes into your string.
+# So we degenerate to *re-escaping*, just this trick:
+# http://blog.jgc.org/2007/06/escaping-comma-and-space-in-gnu-make.html
+empty:=
+space:= $(empty) $(empty)
+EscapeSpace=$(subst $(space),\$(space),$(1))
+
+
+# Make does not offer a recursive wildcard function, so here's one:
+# (from LightStruk @ http://stackoverflow.com/questions/3774568/makefile-issue-smart-way-to-scan-directory-tree-for-c-files)
+rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
+
+# --- build declarations  ---
+
+# Compiled but unlinked object files
+# These 
+CODE := $(call rwildcard,./,*.c)
+OBJECTS := $(patsubst %.c,%.o,$(CODE))
+
+# --- platform detection ---
 
 # first check for Windows; Windows defines the OS
 ifneq ($(OS),Windows_NT)
   # assume everywhere except for Windows has uname
   # XXX this might break on e.g. Windows 2000... but that's probably alright.
   OS:=$(shell uname)
-endif
-ifeq ($(OS),) #and then if OS is still undefined after uname, bail
-  $(error "Unable to determine OS.")
 endif
 
 ifeq ($(OS),Windows_NT)
@@ -112,26 +133,19 @@ else ifeq ($(OS),Windows_NT)
   # - set flags
   # - *detect whether we have MinGW or VS*
 else
-  # TODO: this is only an error for testing, so it shouldn't trigger a problem unless we're doing that.
   $(error "Unsupported OS '$(OS)'")
 endif
 
 
 
-# make really makes spaces difficult, and Windows loves spaces
-# A particularly obvious bug of this design is that $(wildcard) is *not* idempotent when spaces are involved: the second time around, in a moment painfully reminiscent of bash, the spaces get interpreted as argument delimiteters.
-# but unlike bash, as far as I know you can't use quotes to keep the arguments together: make just sticks the quotes into your string.
-# So we degenerate to *re-escaping*, just this trick:
-# http://blog.jgc.org/2007/06/escaping-comma-and-space-in-gnu-make.html
-empty:=
-space:= $(empty) $(empty)
-EscapeSpace=$(subst $(space),\$(space),$(1))
-
 # --- generic build variables here ---
 
 CFLAGS+="-DSYSTEM=$(SPI_SYSTEM)" #required by stplugin.h; if you get weird errors about STDLL, this is what you're missing
 
-OBJECTS := svm.o stata/stplugin.o
+
+ifeq ($(OS),Windows_NT)
+  OBJECTS := $(patsubst %.o,%.obj,$(OBJECTS))
+endif
 
 
 
@@ -146,6 +160,7 @@ plugin: svm.plugin
 # strange, make comes with .LIBPATTERNS yet doesn't come with rules for actually making .so files
 %.so:
 	$(CC) -shared $(CFLAGS) $^ -o $@
+	
 %.dylib:
 	$(CC) -bundle $(CFLAGS) $^ -o $@ #or should this be -dynamiclib? it gives a different filetype, but still works
 
@@ -163,7 +178,9 @@ plugin: svm.plugin
 
 
 ifeq ($(OS),Windows_NT)
+  FixPath = $(subst /,\,$1)
   OBJECTS := $(patsubst %.o,%.obj,$(OBJECTS))
+  OBJECTS := $(call FixPath,$(OBJECTS))
 endif
 
 ifeq ($(OS),Linux)

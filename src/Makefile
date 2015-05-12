@@ -23,15 +23,26 @@
 #TODO: is there any way to get make to catch instead of ignore empty $(STATA)s? one way: generate a filename that definitely doesn't exist (super flakey); two way: write an explicit if that catches this cases 
 
 
+
 # first check for Windows; Windows defines the OS
 ifneq ($(OS),Windows_NT)
   # assume everywhere except for Windows has uname
   # XXX this might break on e.g. Windows 2000... but that's probably alright.
   OS:=$(shell uname)
 endif
+ifeq ($(OS),) #and then if OS is still undefined after uname, bail
+  $(error "Unable to determine OS.")
+endif
 
-ifeq ($(OS),)
-  $(warning "Unable to determine OS.")
+ifeq ($(OS),Windows_NT)
+  # 'del', 'type' and so on are are DOS builtins and, unlike POSIX, they are *only builtins* (there is no /bin/[ on Windows),
+  # so we must run them via cmd, either by prefixing them with `cmd /c` or, more simply, enforcing which shell make uses.
+  # forcing the shell also gets around the problem that bash, which comes with Cygwin/Cmder, gets confused on spaces in program paths
+  #  (i.e. in Stata's path), a problem made worse by backslash escaping getting confused for path separators
+
+  # "However, on MS-DOS and MS-Windows the value of SHELL in the environment is used, since on those systems most users do not set this variable, and therefore it is most likely set specifically to be used by make. On MS-DOS, if the setting of SHELL is not suitable for make, you can set the variable MAKESHELL to the shell that make should use; if set it will be used as the shell instead of the value of SHELL."
+  # -http://www.gnu.org/software/make/manual/make.html#Choosing-the-Shell:
+  SHELL := cmd
 endif
 
 # extend the list of $(CC), $(YACC), ... with extra standard programs variables
@@ -62,11 +73,9 @@ else ifeq ($(OS),Windows_NT)
   WHICH:=where
   NULL:=NUL #this is a magic pseudo-device, like CON or PRN, known to Windows
 
-  # these are builtins and, unlike POSIX, they are *only builtins* (there is no /bin/[ on Windows),
-  # so we need to prefix them with `cmd /c` . We also silence their stderrs to be consistent with POSIX in the common case (XXX this might bite later on!).
-  CAT=cmd /c type 2>NUL
-  RM=cmd /c del /F /Q 2>NUL
-  CP=cmd /c copy /Y 2>NUL
+  CAT=type 2>NUL
+  RM=del /F /Q 2>NUL
+  CP=copy /Y 2>NUL
   
   # subtlety: make is always forward-slashes for directories and backslashes for escapes, even on Windows.
   STATA:=$(wildcard c:/Program\ Files*/Stata*/Stata*.exe)
@@ -90,10 +99,12 @@ else ifeq ($(OS),Windows_NT)
   ifeq ($(CC),)
     # if it's still not found, bail
     
-    # it is too hard to do multiline strings in make (http://stackoverflow.com/questions/649246/is-it-possible-to-create-a-multi-line-string-variable-in-a-makefile), so I'm misusing $(warning) instead: 
-    $(warning If you have MinGW, you should ensure it is on your %PATH%.)
-    $(warning If you have Visual Studio installed, add it to your %PATH% with vcvarsall.bat. Relaunch this command prompt from the system-appropriate VS Tools Command Prompt shortcut in your Start Menu, or just invoke it manually (see https://msdn.microsoft.com/en-us/library/x4d2c09s.aspx))
-    $(error Unable to find a C compiler for your Windows machine.)
+    # it is too hard to do multiline error strings in make (http://stackoverflow.com/questions/649246/is-it-possible-to-create-a-multi-line-string-variable-in-a-makefile), so I'm misusing $(warning) instead: 
+    $(warning Unable to find a C compiler for your Windows machine)
+    $(warning - If you have MinGW, you should ensure it is on your %PATH%)
+    $(warning - If you have Visual Studio installed, add it to your %PATH%:)
+    $(warning i. Relaunch this command prompt from the system-appropriate VS Tools Command Prompt shortcut in your Start Menu,)
+    $(warning ii. or invoke vcvarsall.bat manually (see https://msdn.microsoft.com/en-us/library/x4d2c09s.aspx))
   endif
   
 
@@ -165,21 +176,22 @@ endif
 
 $(PLUGIN_OBJECT): $(OBJECTS)
 
-# Stata uses consistent naming across platforms for library files, even if the platforms don't
+# Stata uses consistent naming across platforms for library files,
+# even if the platforms don't, so we can have a shared target
 svm.plugin: $(PLUGIN_OBJECT)
 
 svm.plugin:
 	$(CP) $< $@
-
 
 ifeq ($(wildcard $(STATA)),)
   # TODO: make this more robust, e.g. by trying different paths.
   # you will need to use := instead of = for this, because = makes 'recursive' variables
   $(warning "Unable to locate Stata. You will not be able to run tests.")
 else
+
 #notice: $< means 'the first prerequisite' and is basically a super-special case meant for exactly this sort of usage
 .PHONY: test
-test: svmtest.do plugin $(STATA)
+test: svmtest.do plugin
 	$(STATA) -e $<
 	$(CAT) svmtest.log
 endif

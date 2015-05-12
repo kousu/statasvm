@@ -235,8 +235,10 @@ test: $(TESTS)
 #.PHONY: $(TESTS) #	" Make does not consider implicit rules for PHONY targets" ?? In other words: there is no way to autogenerate .PHONY targets. whyyyyy.
 test_%: %.log plugin
 	$(CAT) $<
-	-$(RM) $< #XXX this cleanup *should* be handled by .INTERMEDIATE, but it's not working for no obvious reason. argh.
-.INTERMEDIATE: $(patsubst test_%,%.log,$(TESTS))
+
+##-$(fdsioufjhdsRM) $< #XXX this cleanup *should* be handled by .INTERMEDIATE, but it's not working for no obvious reason. argh.
+
+#dsfjdoisfjdsoifj.fdsfIfifififNTERMEDIATE: $(patsubst test_%,%.log,$(TESTS))
 	
 endif
 

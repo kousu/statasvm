@@ -185,6 +185,9 @@ test: svmtest.do plugin $(STATA)
 endif
 
 
+
+# --- clean begins here ---
+
 ifeq ($(OS),Windows_NT)
   BUILD_CRUFT+=*.dll *.obj *.exp *.lib
 else
@@ -199,5 +202,5 @@ endif
 .PHONY: clean
 # Or, instead of 'rm', 'git clean' can be used. It's much more thorough. However, it also demands you use git with this system, and might be overzealous; an interactive one would be better.
 clean:
-	$(RM) *.plugin $(BUILD_CRUFT) *.log
-	cd stata && $(RM) $(BUILD_CRUFT) #this would be better done with patsubst. or better yet, something fully recursive like 'find'. but Windows doesn't have find and BSD and Linux can't agree on its syntax...
+	-$(RM) *.plugin $(BUILD_CRUFT) *.log
+	-cd stata && $(RM) $(BUILD_CRUFT) #this would be better done with patsubst. or better yet, something fully recursive like 'find'. but Windows doesn't have find and BSD and Linux can't agree on its syntax...

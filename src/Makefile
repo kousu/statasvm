@@ -88,10 +88,10 @@ svm.$(DLLEXT): $(OBJECTS)
 # Stata uses consistent naming across platforms for library files,
 # even if the platforms don't, so we can have a shared target
 $(OS)/$(ARCH)/svm.plugin: svm.$(DLLEXT)
-	$(MKDIR) $(OS)/$(ARCH) &&	$(CP) $< $@
+	$(MKDIR) $(call FixPath,$(OS)/$(ARCH)) &&	$(CP) $(call FixPath,$<) $(call FixPath,$@)
 
 svm.plugin: $(OS)/$(ARCH)/svm.plugin
-	$(CP) $< $@
+	$(CP) $(call FixPath,$<) $(call FixPath,$@)
 
 # --- Testing ----
 ifeq ($(wildcard $(call EscapeSpace,$(STATA))),)

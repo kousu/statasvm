@@ -11,6 +11,8 @@ CFLAGS+=-fPIC   # Note: the stata docs (http://www.stata.com/plugins/) do not me
 	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@
 
 
+svm.plugin: $(OS)/$(ARCH)/svm.plugin
+
 # --- testing ---
 
 STATA := $(shell which stata)

@@ -9,6 +9,10 @@ empty:=
 space:= $(empty) $(empty)
 EscapeSpace=$(subst $(space),\$(space),$(1))
 
+# 
+# this gets overridden by the Windows branch
+# from <TODO>
+FixPath = $1
 
 # Make does not offer a recursive wildcard function, so here's one:
 # (from LightStruk @ http://stackoverflow.com/questions/3774568/makefile-issue-smart-way-to-scan-directory-tree-for-c-files)

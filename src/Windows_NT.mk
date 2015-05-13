@@ -65,6 +65,11 @@ endif
 # MinGW: gcc -shared -mno-cygwin $^ -o $@
 # TODO
 
+
+
+svm.plugin: $(OS)/$(ARCH)/svm.plugin
+	$(CP) $(call FixPath,$<)
+
 # --- testing ---
 
 # subtlety: make is always forward-slashes for directories and backslashes for escapes, even on Windows.

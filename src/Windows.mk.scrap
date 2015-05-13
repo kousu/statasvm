@@ -1,0 +1,24 @@
+
+  
+  ## TODO: we can tell VS is installed by looking for VS120COMNTOOLS, VS110COMNTOOLS, VS100COMNTOOLS, VS90COMNTOOLS, ... We can exploit this to maybe auto-run vcvarsall.bat, or at least to give a better error message.
+  ## the goal here is to locate VCVARS
+  #ifdef VS120COMNTOOLS
+  #  VCVARS:=$(VS120COMNTOOLS)
+  #else ifdef VS110COMNTOOLS
+  #  VCVARS:=$(VS110COMNTOOLS)
+  #else ifdef VS100COMNTOOLS
+  #  VCVARS:=$(VS100COMNTOOLS)
+  #else ifdef VS90COMNTOOLS
+  #  VCVARS:=$(VS90COMNTOOLS)
+  #endif
+  # 
+  #ifdef VCVARS
+  #  VCVARS:=$(wildcard $(VS)/../../VC/vcvarsall.bat)
+  #endif
+  #
+  ## 
+  #ifeq ($(ARCH),x86_64)
+  #  VCVARS:=$(VCVARS) amd64
+  #else
+  #  # assumption: vcvarsall.bat defaults to 32 bit
+  #endif

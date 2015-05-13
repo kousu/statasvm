@@ -90,7 +90,7 @@ svm.$(DLLEXT): $(OBJECTS)
 # TODO: do platform-specific builds under build/$(OS)/$(ARCH)/ (and then link or copy the final result to ./svm.plugin)
 #       we will ultimately distribute all of $(OS)/$(ARCH)/svm.plugin to everyone, since that's about the best we can do given Stata's simplistic package management system.
 svm.plugin: svm.$(DLLEXT)
-	$(MKDIR) $(call FixPath,$(OS)/$(ARCH)) &&	$(CP) $(call FixPath,$<	) $(call FixPath,$@)
+	$(CP) $(call FixPath,$<	) $(call FixPath,$@)
 
 # (this would do the 'and then link' step)
 #svm.plugin: $(OS)/$(ARCH)/svm.plugin

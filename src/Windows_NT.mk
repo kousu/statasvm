@@ -18,6 +18,7 @@ OBJECTS := $(call FixPath,$(patsubst %.o,%.obj,$(OBJECTS)))
 CAT=type 2>NUL
 RM=del /F /Q 2>NUL
 CP=copy /Y 2>NUL
+MKDIR=mkdir
 
 # 'del', 'type' and so on are are DOS builtins and, unlike POSIX, they are *only builtins* (there is no /bin/[ on Windows),
 # so we must run them via cmd, either by prefixing them with `cmd /c` or, more simply, enforcing which shell make uses.

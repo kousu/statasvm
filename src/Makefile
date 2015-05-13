@@ -46,6 +46,9 @@ WHICH=which
 NULL=/dev/null
 CP=cp
 CAT=cat
+MKDIR=mkdir -p
+
+
 
 
 # --- build declarations  ---
@@ -55,11 +58,17 @@ CAT=cat
 CODE := $(call rwildcard,./,*.c)
 OBJECTS := $(patsubst %.c,%.o,$(CODE))
 
+
 # --- platform detection ---
+
+
+.PHONY: all #this has to come before we include <OS>.mk, because it has to be the first rule
+all: plugin
 
 # Windows defines the OS variable, everywhere else has uname, so check for Windows first
 ifneq ($(OS),Windows_NT)
   OS:=$(shell uname -s)
+  ARCH:=$(shell uname -m)
 endif
 
 ifeq ($(wildcard $(OS).mk),)
@@ -70,8 +79,6 @@ endif
 
 # --- rules ---
 
-.PHONY: all
-all: plugin
 
 .PHONY: plugin
 plugin: svm.plugin
@@ -80,7 +87,10 @@ svm.$(DLLEXT): $(OBJECTS)
 
 # Stata uses consistent naming across platforms for library files,
 # even if the platforms don't, so we can have a shared target
-svm.plugin: svm.$(DLLEXT)
+$(OS)/$(ARCH)/svm.plugin: svm.$(DLLEXT)
+	$(MKDIR) $(OS)/$(ARCH) &&	$(CP) $< $@
+
+svm.plugin: $(OS)/$(ARCH)/svm.plugin
 	$(CP) $< $@
 
 # --- Testing ----
@@ -130,3 +140,4 @@ endif
 clean:
 	-$(RM) $(foreach o,$(OBJECTS),$(wildcard $(o))) *.plugin *.log
 	-$(RM) -r build/
+

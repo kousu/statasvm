@@ -87,11 +87,14 @@ svm.$(DLLEXT): $(OBJECTS)
 
 # Stata uses consistent naming across platforms for library files,
 # even if the platforms don't, so we can have a shared target
-$(OS)/$(ARCH)/svm.plugin: svm.$(DLLEXT)
-	$(MKDIR) $(call FixPath,$(OS)/$(ARCH)) &&	$(CP) $(call FixPath,$<) $(call FixPath,$@)
+# TODO: do platform-specific builds under build/$(OS)/$(ARCH)/ (and then link or copy the final result to ./svm.plugin)
+#       we will ultimately distribute all of $(OS)/$(ARCH)/svm.plugin to everyone, since that's about the best we can do given Stata's simplistic package management system.
+svm.plugin: svm.$(DLLEXT)
+	$(MKDIR) $(call FixPath,$(OS)/$(ARCH)) &&	$(CP) $(call FixPath,$<	) $(call FixPath,$@)
 
-svm.plugin: $(OS)/$(ARCH)/svm.plugin
-	$(CP) $(call FixPath,$<) $(call FixPath,$@)
+# (this would do the 'and then link' step)
+#svm.plugin: $(OS)/$(ARCH)/svm.plugin
+#	$(CP) $(call FixPath,$<) $(call FixPath,$@)
 
 # --- Testing ----
 ifeq ($(wildcard $(call EscapeSpace,$(STATA))),)

@@ -16,7 +16,7 @@ CFLAGS+=/W3 /WX #turn up warnings, and make them crash the compile
 LDFLAGS+=/DLL    #build a DLL instead of an EXE
 LDFLAGS+=/LTCG   #causes whole-DLL optimization 
 
-ifeq ($(Platform),"X64")
+ifeq ($(Platform),X64)
   ARCH:=x86_64
 else
   ARCH:=i386

@@ -1,4 +1,8 @@
 
+# Windows-specific build instructions
+# There is more than one common compiler for Windows, so this just figures out
+# which compiler is in use and calls a further subfile Windows.<compiler>.mk.
+# Look there for the meat.
 
 # this is a subroutine to convert Unix(and GNU-make)-style paths to Windows paths, which has to happen before they get passed to the shell
 FixPath = $(subst /,\,$1)
@@ -6,9 +10,8 @@ FixPath = $(subst /,\,$1)
 # platform config
 DLLEXT:=dll
 
-# 
-OBJECTS := $(patsubst %.o,%.obj,$(OBJECTS))
-OBJECTS := $(call FixPath,$(OBJECTS))
+# rewrite $OBJECTS to be Windows-style
+OBJECTS := $(call FixPath,$(patsubst %.o,%.obj,$(OBJECTS)))
 
 
 # the common testing code is written POSIXey; these variables glue POSIX shell into the DOS shell, more or less.

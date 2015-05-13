@@ -1,4 +1,6 @@
 
+# The
+
 # VC++ reference:
 # from http://stackoverflow.com/questions/1130479/how-to-build-a-dll-from-the-command-line-in-windows-using-msvccl tells how to build a DLL
 # http://blog.nuclex-games.com/2012/03/how-to-consume-dlls-in-visual-cxx/ tells how to link against other libraries
@@ -11,12 +13,10 @@ CFLAGS+=/D_USRDLL /D_WINDLL #defines
 CFLAGS+=/O2 #optimizations
 CFLAGS+=/W3 /WX #turn up warnings, and make them crash the compile
 
-LDFLAGS+=/LTCG /DLL  #copied from VC
+LDFLAGS+=/DLL    #build a DLL instead of an EXE
+LDFLAGS+=/LTCG   #causes whole-DLL optimization 
 
-# these build recipes are 
 
-#NB: this template rule doesn't have any dependencies specified, but is uses them ($^).
-#    this means you need to give them, by saying, e.g. `mylib.dll: mymain.obj myutil.obj`
 %.dll:
 	cl /nologo $^ /link $(LDFLAGS) /OUT:$@
 

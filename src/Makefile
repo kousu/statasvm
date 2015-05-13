@@ -16,17 +16,25 @@
 # - http://www.stata.com/plugins/#sect5
 
 # idioms:
+# - for each OS (as defined by the strings the OSes use to name themselves: i.e. whatever `uname -s` gives or %OS% for Windows), there should be a <OS>.mk file for platform-specific values and build rules.
+#    - posix.mk is provided for the POSIX OSes (i.e. most of them) to include, saving duplication.
 # - $(wildcard <path>) can be used to ensure that the path exists, and this is the more common use of it in this makefile
 # - `ifdef VAR` is the same as `ifeq ($(VAR),)` (that is, there's no such thing as undefined values: a variable either has text or it doesn't exist)
 # - Windows's cmd uses ';' to separate parameters, not commands, so you can't say `cmd1; cmd2`.
 #    Instead, anytime we would use that instead we use `cmd1 && cmd2` which works on both POSIX and Windows
 #    or use two recipe lines, where the first one is prefixed with '-' to mean 'ignore failure'
 # - remember that = makes a 'recursive' variable, which really means one that gets lazily-evaluated, whereas := makes an eagerly-evaluated variable; for branching to work as expected := is necessary
+# - %.ext2:
+#      <recipe> $^
+#   defines a templated way to build .ext files without specifying which ones to build. It is meant to be used with a recipeless 'target.ext2: fileA.ext1 fileB.ext1'
+
+#NB: this template rule doesn't have any dependencies specified, but is uses them ($^).
+#    this means you need to give them, by saying, e.g. `mylib.dll: mymain.obj myutil.obj`
 
 # TODO:
-# [ ] Turn up the warning level (-Wall or /Wall) and make warnings into errors (-Werror or /WX): this forces the code to be high quality, by nagging you at every single build until you get it right
 # [ ] document clearly how much this depends on your environment variables
 
+# --- includes ---
 
 include util.mk
 
@@ -43,26 +51,24 @@ CAT=cat
 # --- build declarations  ---
 
 # Compiled but unlinked object files
-# These 
+# These assume POSIX (XXX maybe we should `include posix.mk` unconditionally, and then override it, since most of the builds are basically posix)
 CODE := $(call rwildcard,./,*.c)
 OBJECTS := $(patsubst %.c,%.o,$(CODE))
 
 # --- platform detection ---
 
-# first check for Windows; Windows defines the OS
+# Windows defines the OS variable, everywhere else has uname, so check for Windows first
 ifneq ($(OS),Windows_NT)
-  # assume everywhere except for Windows has uname
-  # XXX this might break on e.g. Windows 2000... but that's probably alright.
-  OS:=$(shell uname)
+  OS:=$(shell uname -s)
 endif
 
 ifeq ($(wildcard $(OS).mk),)
   $(error "Unsupported OS '$(OS)'")
+else
+  include $(OS).mk
 endif
 
-include $(OS).mk
-
-# --- rules begin here ---
+# --- rules ---
 
 .PHONY: all
 all: plugin
@@ -123,3 +129,4 @@ endif
 # *.log *should* get cleaned up by the testing recipe, but in case it doesn't or you have made some manually we clean it again here
 clean:
 	-$(RM) $(foreach o,$(OBJECTS),$(wildcard $(o))) *.plugin *.log
+	-$(RM) -r build/

@@ -1,6 +1,6 @@
 
   
-  ## TODO: we can tell VS is installed by looking for VS120COMNTOOLS, VS110COMNTOOLS, VS100COMNTOOLS, VS90COMNTOOLS, ... We can exploit this to maybe auto-run vcvarsall.bat, or at least to give a better error message.
+  ## TODO: rather than make the user choose, find where VS is installed by looking for VS120COMNTOOLS, VS110COMNTOOLS, VS100COMNTOOLS, VS90COMNTOOLS, ... We can exploit this to maybe auto-run vcvarsall.bat, or at least to give a better error message.
   ## the goal here is to locate VCVARS
   #ifdef VS120COMNTOOLS
   #  VCVARS:=$(VS120COMNTOOLS)
@@ -22,3 +22,6 @@
   #else
   #  # assumption: vcvarsall.bat defaults to 32 bit
   #endif
+  
+  # ^ the main trouble with this is that you cannot source variables into a makefile, and vcvarsall.bat is precisely a script that needs sourcing. The best you can do is a recursive make prefixed by the script to source.
+  # though the adventerous have invented some (POSIX-only) solutions: http://stackoverflow.com/questions/7507810/howto-source-a-script-from-makefile

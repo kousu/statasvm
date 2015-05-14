@@ -53,6 +53,8 @@ MKDIR=mkdir -p
 
 # --- build declarations  ---
 
+NAME:=_svm
+
 # Compiled but unlinked object files
 # These assume POSIX (XXX maybe we should `include posix.mk` unconditionally, and then override it, since most of the builds are basically posix)
 CODE := $(call rwildcard,./,*.c)
@@ -83,28 +85,31 @@ endif
 
 
 .PHONY: plugin
-plugin: svm.plugin
+plugin: $(NAME).plugin
 
-
-# debugging tool: show the DLL dependencies as recorded in the DLL's metadata
-# the platform-specific subfiles should have defined a working recipe; we just define the target
-# BEWARE: this must be *before* the recipes are defined (in contrast to the implicit rules and(?) in contrast to pattern rules)
-#         or else you get "warning: overriding commands for target `printdeps'"
-.PHONY: printdeps
-printdeps: svm.plugin
-
-svm.$(DLLEXT): $(OBJECTS)
+$(NAME).$(DLLEXT): $(OBJECTS)
 
 # Stata uses consistent naming across platforms for library files,
 # even if the platforms don't, so we can have a shared target
 # TODO: do platform-specific builds under build/$(OS)/$(ARCH)/ (and then link or copy the final result to ./svm.plugin)
 #       we will ultimately distribute all of $(OS)/$(ARCH)/svm.plugin to everyone, since that's about the best we can do given Stata's simplistic package management system.
-svm.plugin: svm.$(DLLEXT)
+$(NAME).plugin: $(NAME).$(DLLEXT)
 	$(CP) $(call FixPath,$<	) $(call FixPath,$@)
 
 # (this would do the 'and then link' step)
-#svm.plugin: $(OS)/$(ARCH)/svm.plugin
+#$(NAME).plugin: $(OS)/$(ARCH)/$(NAME).plugin
 #	$(CP) $(call FixPath,$<) $(call FixPath,$@)
+
+
+
+
+# debugging tool: show the DLL dependencies as recorded in the DLL's metadata
+# the platform-specific subfiles should have defined a working platform-specific recipe to actually carry this out; we just define the target here.
+# BEWARE: this must be *before* the recipes are defined (in contrast to the implicit rules and(?) in contrast to pattern rules)
+#         or else you get "warning: overriding commands for target `printdeps'"
+.PHONY: printdeps
+printdeps: $(NAME).plugin
+
 
 # --- Testing ----
 ifeq ($(wildcard $(call EscapeSpace,$(STATA))),)

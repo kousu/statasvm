@@ -23,7 +23,7 @@ else
 endif
 
 %.dll:
-	cl /nologo $^ /link $(LDFLAGS) /OUT:$@
+	cl /nologo $^  $(foreach L,$(LIBS),$L.lib) /link $(LDFLAGS) /OUT:$@
 
 # this rule compiles a single .c file to a single .obj file
 %.obj: %.c

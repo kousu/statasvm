@@ -6,7 +6,9 @@ libsvm
 
 ### Windows
 
-???
+We bundle the precompiled libsvm.dll out of the [libsvm distribution](http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/libsvm.cgi?+http://www.csie.ntu.edu.tw/~cjlin/libsvm+zip) in our Stata package, so you should not need to install it explicitly.
+
+*TODO: what archictecture is the precompiled one for? probably 32-bit. Is this going to be a problem?*
 
 ### OS X
 
@@ -38,6 +40,8 @@ export LIBRARY_PATH=/opt/local/lib:$LIBRARY_PATH
 export LD_LIBRARY_PATH=/opt/local/lib:$LD_LIBRARY_PATH
 ```
 If you plan to be a regular user of MacPorts, you should add these to your `~/.profile`.
+
+*aside: it is unclear what the best strategy is: Apple strongly encourages bundling, what with their -install_name and @rpath directives and .app folders, but OS X is also a Unix with working package managers that understands dependencies and, more importantly, updating. We welcome debate in the issue tracker.*
 
 ### Linux
 

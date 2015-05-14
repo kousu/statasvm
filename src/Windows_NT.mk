@@ -29,13 +29,20 @@ MKDIR=mkdir
 # - <http://www.gnu.org/software/make/manual/make.html#Choosing-the-Shell>
 SHELL := cmd
 
+# XXX the Windows shared library naming convention is <name>.lib, whereas Unix uses lib<name>.{so,a}
+# see http://www.mingw.org/wiki/Specify_the_libraries_for_the_linker_to_use
+# libsvm does not respect this convention
+# so we hack around the problem	
+# I have a patch submitted which will make the correct fix, if they ever get around to reviewing it: https://github.com/cjlin1/libsvm/pull/33.patch
+LIBS := $(patsubst svm,libsvm,$(LIBS))
+
 # look for a default C compiler (usually 'cc')
 # if this is found, it's probably MinGW; and if it is MinGW, this is the proper way to find it.
 ifeq ($(shell where $(CC)),)
   # but if it's not found,
   # look for MSVC and then MinGW if that fails
   # this if a nested-if-else tree because what I'd do in another language (a hashtable of function pointers, or at least a list of options plus a loop) is, charitably speaking, tricky in make
-  ifneq ($(shell where cl),)
+  ifdef VCINSTALLDIR
     include Windows.VC.mk
   else
     ifneq ($(shell where gcc),)

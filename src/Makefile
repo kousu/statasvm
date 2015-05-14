@@ -113,6 +113,17 @@ ifeq ($(wildcard $(call EscapeSpace,$(STATA))),)
 else
 
 
+# rules to auto-download datasets from the libsvm sample archive
+# XXX this is hardcoded to only get *binary* ones. maybe we should instead include "datasets/binary/" in the target path (which might be more reasonable, anyway)
+tests/%.svmlight: tests/%.bz2
+	bunzip2 -d $<
+	mv tests/$* tests/$*.svmlight
+
+tests/%.bz2:
+	wget http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary/$*.bz2 -O $@
+
+# state the test-specific datasets
+test_readproblem: tests/duke.svmlight
 
 # for each .do file in tests/, make a .PHONY test_<testname> target which runs Stata and prints the output
 # the meta-target test runs all tests

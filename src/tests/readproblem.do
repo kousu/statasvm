@@ -4,3 +4,4 @@ capture program drop svm
  
 * load and call it 
 program svm, plugin
+plugin call svm, "tests/duke.svmlight"

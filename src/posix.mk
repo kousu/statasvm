@@ -8,7 +8,7 @@ CFLAGS+=-fPIC   # Note: the stata docs (http://www.stata.com/plugins/) do not me
 
 # strange, make comes with .LIBPATTERNS yet doesn't come with rules for actually making .so files
 %.so:
-	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $(LDFLAGS) $(foreach L,$(LIBS),-l$L) $^ -o $@
 
 
 #svm.plugin: $(OS)/$(ARCH)/svm.plugin

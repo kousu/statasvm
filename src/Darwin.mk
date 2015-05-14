@@ -12,11 +12,9 @@ LDFLAGS+=-bundle
 # this *doesn't* use @rpath, but it could, and it might if I reneg on this opinion and switch to bundling.
 # TODO: if we decide to bundle libsvm.dylib, we'll also need to add the current directory to where the .dylib will look for depends, like Windows. On Linux, people often write wrappers that manipulate LD_LIBRARY_PATH before launch, but OS X lets us bundle this information *into the executable*: use `-Wl,-rpath,.` (or maybe `-Wl,-rpath,@executable_path`). See `man ld`
 
-%.dylib:
-	$(CC) $(CFLAGS) $(LDFLAGS) $(foreach L,$(LIBS),-l$L) $^ -o $@ #or should this be -dynamiclib? it gives a different filetype, but still works
+%.dylib: %.so
+  mv %< $@
 	$(foreach L,$(LIBS),ABS=$$(otool -L $@ | tail -n +2 | grep $L | cut -f 1 -d " ") && install_name_tool -change $$ABS $$(basename $$ABS) $@ &&) true
-
-
 
 # --- testing ---
 

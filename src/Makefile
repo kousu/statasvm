@@ -58,6 +58,8 @@ MKDIR=mkdir -p
 CODE := $(call rwildcard,./,*.c)
 OBJECTS := $(patsubst %.c,%.o,$(CODE))
 
+LIBS += svm
+
 
 # --- platform detection ---
 
@@ -142,5 +144,5 @@ endif
 # *.log *should* get cleaned up by the testing recipe, but in case it doesn't or you have made some manually we clean it again here
 clean:
 	-$(RM) $(foreach o,$(OBJECTS),$(wildcard $(o))) *.plugin *.log
-	-$(RM) -r build/
+	#-$(RM) -r build/
 

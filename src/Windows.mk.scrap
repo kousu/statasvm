@@ -1,6 +1,9 @@
 
   
   ## TODO: rather than make the user choose, find where VS is installed by looking for VS120COMNTOOLS, VS110COMNTOOLS, VS100COMNTOOLS, VS90COMNTOOLS, ... We can exploit this to maybe auto-run vcvarsall.bat, or at least to give a better error message.
+  
+  # there's %VCINSTALLDIR%, but it's only defined *after* %VCINSTALLDIR%\vcvarsall.bat is run, so it's useless.
+  
   ## the goal here is to locate VCVARS
   #ifdef VS120COMNTOOLS
   #  VCVARS:=$(VS120COMNTOOLS)

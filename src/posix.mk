@@ -21,8 +21,10 @@ ifndef STATA
   STATA := $(shell which Stata)
 endif
 
+ifneq ($(OS),Darwin) #dirty, encapsulation-breaking hack: avoid the warning about redefining printdeps (make wasn't realllly designed with OOPey inheritence in mind)
 printdeps:
 	readelf -d $^
+endif
 
 # --- cleaning ---
 

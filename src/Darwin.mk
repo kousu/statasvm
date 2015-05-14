@@ -24,6 +24,9 @@ ifndef STATA #i.e. if the user doesn't have stata in their path
   STATA := $(wildcard /Applications/Stata/Stata.app/Contents/MacOS/Stata)
 endif
 
+printdeps:
+	otool -L $^
+
 # --- cleaning ---
 
 .PHONY: clean-darwin

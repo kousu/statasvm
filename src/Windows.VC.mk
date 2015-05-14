@@ -28,3 +28,7 @@ endif
 # this rule compiles a single .c file to a single .obj file
 %.obj: %.c
 	cl /nologo $(CFLAGS) /c $< /Fo$@
+	
+.PHONY: printdeps
+printdeps:
+	dumpbin /dependents $^

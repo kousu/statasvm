@@ -85,6 +85,14 @@ endif
 .PHONY: plugin
 plugin: svm.plugin
 
+
+# debugging tool: show the DLL dependencies as recorded in the DLL's metadata
+# the platform-specific subfiles should have defined a working recipe; we just define the target
+# BEWARE: this must be *before* the recipes are defined (in contrast to the implicit rules and(?) in contrast to pattern rules)
+#         or else you get "warning: overriding commands for target `printdeps'"
+.PHONY: printdeps
+printdeps: svm.plugin
+
 svm.$(DLLEXT): $(OBJECTS)
 
 # Stata uses consistent naming across platforms for library files,

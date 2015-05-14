@@ -21,6 +21,9 @@ ifndef STATA
   STATA := $(shell which Stata)
 endif
 
+printdeps:
+	readelf -d $^
+
 # --- cleaning ---
 
 .PHONY: clean-posix

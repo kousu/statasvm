@@ -1,10 +1,18 @@
 Compiling Stata-SVM
 ===================
 
+This is a guide for building the code for developers of Stata-SVM.
+If you just want to use it, see [INSTALL](INSTALL.md).
+
+Build requirements:
+* toolchain
+* libsvm
+* make
+
 Toolchain
 ---------
 
-To build, you will need to have your platform's toolchain installed, of course.
+To build, you will need to have your platform's toolchain installed.
 
 On Windows, you will need to [get gmake](http://gnuwin32.sourceforge.net/packages/make.htm), and you will also need a compiler (MinGW or Visual Studio) installed.
 Unlike the POSIX compilers, if you want to use Visual Studio, you need to amend your %PATH% by [using `vcvarsall.bat`](https://msdn.microsoft.com/en-us/library/x4d2c09s.aspx); for 32 bit builds:
@@ -26,6 +34,16 @@ On both OS X and Linux, you can test if you have the compiler installed with
 ```
 $ gcc -v
 ```
+
+libsvm
+------
+
+[libsvm](http://www.csie.ntu.edu.tw/~cjlin/libsvm/) is the C library which does the heavy lifting. Stata-SVM is a thin wrapper which exposes its routines and makes them Stata-esque.
+
+Windows:
+To compile against a DLL on Windows, you must have its associated .lib file. Unless the library author provides it [citation needed] the only way source for them is as a by-product of compiling that DLL.
+
+On OS X and Linux, installing the libsvm as normal will get you its build dependencies. See [INSTALL](INSTALL.md), and remember that if you use MacPorts you must tell the system to use /opt before the compile, as described in INSTALL.
 
 Building
 --------

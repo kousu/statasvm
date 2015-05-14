@@ -17,3 +17,4 @@ TODO
     * [?] Yosemite (10.10)
   * [-] 32 bit OS X (does this even exist anymore?)
 * [ ] Set up a cross-compiler (this is much harder!)
+* [ ] Support installing without root (..i.e. distribute libsvm and install it next to the things)

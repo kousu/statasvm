@@ -47,3 +47,17 @@ If you don't have access to the range of platforms we're supporting, you need to
 In practice, you can probably just push to master, like Brian BackBlaze suggests. It'll mean there might be awkward one-liner nit commits that end up on master,
 but since we're using the decentralized Github workflow, your master is your own so so long as you immediately complete all the testing, this won't be a problem.
 If you used `cross` these would end up there anyway (and you can always commit-squash them away if you are pedantic).
+
+Compiling
+---------
+
+See [COMPILE](COMPILE.md)
+
+
+Development Tips
+----------------
+
+To inspect DLL dependencies of a compiled file:
+Windows: _______
+OS X: `otool -L`
+*nix: `readelf -d` (or `objdump -x`)

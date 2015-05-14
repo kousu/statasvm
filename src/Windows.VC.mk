@@ -6,6 +6,7 @@
 # http://blog.nuclex-games.com/2012/03/how-to-consume-dlls-in-visual-cxx/ tells how to link against other libraries
 # in the worst case, the proper command line is listed in the Visual Studio C/C++ configuration pane if you go to the verrrry last page in a DLL project, but that means you need to construct such a project with the GUI first.
 CFLAGS+=/GL /EHsc  #..I don't know what these are
+CFLAGS+= /D _CRT_SECURE_NO_DEPRECATE #TEMPORARY: this tells VC to ignore that 'strtok' and friends are inherently unsafe, code which is used liberally through svm-train.c
 
 # stplugin.h *defaults* to Windows if not given, and this is exactly what happens under the official instructions which tell you to use Visual Studio in its default configuration
 # this also means that we *don't* bother to pass /DSYSTEM to the compiler.

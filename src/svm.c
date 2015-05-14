@@ -14,6 +14,12 @@ extern struct svm_model *model;
 extern struct svm_node *x_space;
 // end "svm-train.h"
 
+#if _WIN32
+// MS is not standard C, of course:
+// https://msdn.microsoft.com/en-us/library/2ts7cx93.aspx
+#define snprintf _snprintf
+
+#endif
 
 void print_stata(const char* s) {
   SF_display((char*)s);

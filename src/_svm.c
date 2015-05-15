@@ -25,13 +25,32 @@ void print_stata(const char* s) {
   SF_display((char*)s);
 }
 
+#if HAVE_SVM_PRINT_ERROR
+// TODO: libsvm doesn't have a svm_set_error_string_function, but if I get it added this is the stub
+void error_stata(const char* s) {
+  SF_error((char*)s);
+}
+#endif
+
+
+/* the Stata plugin interface is really really really basic:
+ * . plugin call var1 var2, op1 op2 77 op3
+ * causes argv to contain "op1", "op2", "77", "op3", and
+ * /implicitly/, var1 and var2 are available through the macros SF_{nvars,{v,s}{data,store}}().
+ *  (The plugin doesn't get to know (?) the names of the variables in `varlist'. [citation needed])
+ *
+ * The SF_mat_<op>(char* M, ...) macros access matrices in Stata's global namespace, by their global name.
+ */
 STDLL stata_call(int argc, char *argv[])
 {
-		printf("%d\n", argc);
+#if DEBUG
 	for(int i=0; i<argc; i++)
 	{
-		printf("[%d] %s\n",i,argv[i]);
+		printf("argv[%d]=%s\n",i,argv[i]);
 	}
+	
+	printf("Total dataset size: %dx%d. We only want [%d:%d,%d] args, though.\n", SF_nobs(), SF_nvar(), SF_in1(), SF_in2(), SF_nvars());
+#endif
 	if(argc < 1) {
 		return(102) ;  	    /* not enough variables specified */
 	}
@@ -40,7 +59,9 @@ STDLL stata_call(int argc, char *argv[])
 	
 	// libsvm
 	svm_set_print_string_function(print_stata);
-
+#if HAVE_SVM_PRINT_ERROR
+	svm_set_error_string_function(error_stata);
+#endif
 
 	// default values
 	param.svm_type = C_SVC;
@@ -59,6 +80,13 @@ STDLL stata_call(int argc, char *argv[])
 	param.weight_label = NULL;
 	param.weight = NULL;
 
+
+	for(ST_int j = SF_in1(); j <= SF_in2(); j++) {
+		if(SF_ifobs(j)) {
+		  //TODO
+		}
+	}
+	
 	char* dataset_file_name = argv[0];
 	
 	read_problem(dataset_file_name);

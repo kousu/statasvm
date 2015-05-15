@@ -18,11 +18,11 @@ program define svm, eclass
   capture program _svm, plugin
   
   if word count `varlist' < 2 {
-    di as error "Need at least 2 variables: a regressor and a regressee".
+    di as error "Two few variables: need one (endogenous) regressor and at least one (exogenous) regresee.".
     exit
   }
-  
-  plugin call _svm `varlist', "train"
+	
+  plugin call _svm `varlist' `if' `in', "train"
 
   ereturn clear
   

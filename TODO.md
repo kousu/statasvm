@@ -19,13 +19,24 @@ TODO
 * [ ] Set up a cross-compiler (this is much harder!)
 * [ ] Support installing without root (..i.e. distribute libsvm and install it next to the things)
 
+* [ ] write svmload.ado which handles reading svmlight format files
+   * -> "a plugin cannot create
 * [ ] Add stata/ to the include path instead of "stata/stplugin.h"? maybe?
 * [ ] Define a DEFINES macro in the makefile which works like LIBS
 * [ ] Separate the generic cross-platform make parts from the svm-specific parts.
 
+* [ ] Verify that Stata turns missing values into NaNs before libsvm eats them
+
+* [ ] Investigate loading direct to Stata matrices to speed things up
+   Stata has some severe memory limitations on its matrices: no more than 800x800 in Stata-IC, which makes it useless for machine learning
 
 libsvm:
 * [x] patch the Makefile to be saner
 * [ ] make print_func support printf arguments
 * [ ] replace all `fprintf(stderr, )`s with error_func (and make it also support printf args)
   * -> and then linkup error_func to Stata
+* [ ] canonicalize the freeing functions so that they all behave the same (the distinction between free_and_destroy() vs destroy() makes it difficult to use)
+* [ ] add svm_problem_free()
+* [ ] kill x_space from svm-train.c; it's not needed; just Malloc the space directly onto svm_problem->xvm_node
+* [ ] rename 'svm_node' to something less generic.
+* [ ] Models read via svm_load_model leak x_space (which is again a side effect of x_space sucking)

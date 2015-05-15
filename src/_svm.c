@@ -1,11 +1,12 @@
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h> //..yes.. there are two string headers
 #include <strings.h>
 
 #include <svm.h>
 #include "stplugin.h"
+
+#include <stdio.h>
 
 #define PLUGIN_NAME "_svm"
 
@@ -31,6 +32,87 @@ void svm_problem_free(struct svm_problem* prob) {
 	free(prob->x);
 	free(prob);
 }
+
+
+/* Stata doesn't let C plugins add new variables
+ * but parsing is terribly slow in pure Stata, demonstrably slower than in pure C
+ * This pair of routines is the best ugly marriage I can achieve:
+ *
+ * We adopt the libsvm people's solution: scan the data twice, once two find out the size (which is then passed back to pure Stata which has permission to edit the data table)
+ * and twice to actually fill it in.
+ *
+ * The variables created will be 'y' and 'x%d' for %d=[1 through max(feature_id)].
+ * Feature IDs are always positive integers, in svmlight format, according to its source code.
+ *
+ * Special case: the tag on an X variable (a 'feature') could also be the special words
+ * "sid:" or "cost:" (slack and weighting tweaks, respectively), according to the svmlight source.
+ * libsvm does not support these so for simplicity neither do we.
+ *
+ */
+
+//TODO: document
+//TODO: better errors (using an err buf)
+/* preread: scan */
+STDLL svmlight_preread(int argc, char* argv[]) {
+  
+  ST_retcode err = 0;
+  
+  if(argc != 1) {
+    SF_error("Wrong number of arguments\n");
+    return 1;
+  }
+  
+  char* fname = argv[0];
+  FILE* fd = fopen(fname, "r");
+  if(fd == NULL) {
+    SF_error("Unable to open file\n");
+    return 1;
+  }
+  
+  
+  
+  int M = 0, N = 0;
+  
+  // N is the number of lines
+  // M is the *maximum* number of features in a single line
+  	
+	double y;
+	
+	long int id;
+	double x;
+	
+  while(1) {
+	  if(fscanf(fd, "%lf", &y) != 1) { //this should get the first 'y' value
+	    // if it doesn't... we must be at the end of file... maybe
+	    break;
+	  }
+	  
+  	N+=1;
+  	printf("at line %d; M=%d\n", N, M);
+  	
+  	while(fscanf(fd, "%ld:%lf", &id, &x) == 2) {
+	    if(M < id) M = id;
+  	}
+  	
+  }
+  
+  
+  err = SF_scal_save("N", (ST_double)N);
+  if(err) {
+    SF_error("Unable to export scalar 'N' to Stata\n");
+    return err;
+  }
+  
+  err = SF_scal_save("M", (ST_double)M);
+  if(err) {
+    SF_error("Unable to export scalar 'N' to Stata\n");
+    return err;
+  }
+  
+  
+  return 0;
+}
+
 
 /* 
  * convert the Stata varlist format to libsvm sparse format
@@ -203,6 +285,7 @@ struct {
   const char* name;
   STDLL (*func)(int argc, char* argv[]);
 } subcommands[] = {
+	{ "preread", svmlight_preread },
   { "train", train },
   //{ "predict", predict },
   { NULL, NULL }
@@ -233,18 +316,22 @@ STDLL stata_call(int argc, char *argv[])
 	}
 	
 	char* command = argv[0];
-	argc--; argc++; //shift off the first arg before passing argv to the subcommand
+	argc--; argv++; //shift off the first arg before passing argv to the subcommand
 	
 	int i = 0;
-	while(subcommands[++i].name) {
+	while(subcommands[i].name) {
+		char err_buf[256];
+		snprintf(err_buf, 256, PLUGIN_NAME ": comparing |%s| to |%s|; argc=%d\n", command, subcommands[i].name, argc);
+		printf(err_buf);
 		if(strncmp(command, subcommands[i].name, COMMAND_MAX) == 0) {
 			return subcommands[i].func(argc, argv);
 		}
 		
+		i++;
 	}
 	
 	char err_buf[256];
-	snprintf(err_buf, 256, PLUGIN_NAME ": unrecognized subcommand %s\n", command);
+	snprintf(err_buf, 256, PLUGIN_NAME ": unrecognized subcommand |%s|\n", command);
 	SF_error(err_buf);
 	
 	return 1;

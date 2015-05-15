@@ -26,7 +26,8 @@ program define svm_load
   
   quiet set obs `=N'
   
-  capture plugin call _svm y x1-x1000, "read" "`using'"
+  * "*" means "all variables"
+  capture plugin call _svm *, "read" "`using'"
 end
 
 

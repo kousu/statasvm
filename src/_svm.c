@@ -55,6 +55,7 @@ void svm_problem_free(struct svm_problem* prob) {
 
 //TODO: document
 //TODO: better errors (using an err buf)
+// TODO: check for off-by-ones
 /* preread: scan */
 STDLL svmlight_read(int argc, char* argv[]) {
   
@@ -66,7 +67,6 @@ STDLL svmlight_read(int argc, char* argv[]) {
 		char* subcmd = argv[0];
 		argc--; argv++;
 		if(strncmp(subcmd, "pre", 5) == 0) {
-			printf("disabled reading\n");
 			reading = false;
 		} else {		
 		
@@ -75,13 +75,11 @@ STDLL svmlight_read(int argc, char* argv[]) {
 		}
 	}
 	
-	if(reading) { 
-			sleep(5); }
-	
 	if(argc != 1) {
     SF_error("Wrong number of arguments\n");
     return 1;
   }
+  
   
   char* fname = argv[0];
   FILE* fd = fopen(fname, "r");
@@ -100,44 +98,51 @@ STDLL svmlight_read(int argc, char* argv[]) {
 	long int id;
 	double x;
 	
-  while(1) {
-	  if(fscanf(fd, "%lf \t", &y) != 1) { //this should get the first 'y' value
-	    // if it doesn't... we must be at the end of file... maybe
-	    break;
-	  }
-  	
-  	//y = 666;
-	  
-	  if(reading) {
-	  	printf("storing to Y[%d]=%lf; Y is %dx1. Data is %dx%d\n", N+1, y, SF_nobs(), SF_nobs(), SF_nvar());
-	    err = SF_vstore(1 /*stata counts from 1*/, N+1, y);
-	    if(err) {
-	      SF_error("unable to store to y\n");
-	      //return err;
-	    }
-	  }
-	  
-  	
-  	while(fscanf(fd, "%ld:%lf", &id, &x) == 2) {
-  		if(id < 1) {
+	// we tree the svmlight format as a sequence of space-separated tokens, which is really easy to do with scanf(),
+	// where some of the tokens are
+	//   single floats (marking a new observation) and some are
+	//   pairs feature_id:value (giving a feature value)
+	// scanf is tricky, but it's the right tool for this job: parsing sequences of ascii numbers.
+	// TODO: this parser is *not quite conformant* to the non-standard:
+	//   it will treat two joined svmlight lines as two separate ones (that is, 1 3:4 5:6 2 3:9 will be two lines with classes '1' and '2' instead of an error; it should probably be an error)
+	char* tok;
+  while(fscanf(fd, "%ms", &tok) == 1) {
+    //printf("read token=|%s|\n", tok); //DEBUG
+    if(sscanf(tok, "%ld:%lf", &id, &x) == 2) { //this is a more specific match than the y match so it must come first
+  	  if(id < 1) {
   			SF_error("parse error: only positive feature IDs allowed\n");
   			return 4;
   		}
+  		if(M < id) M = id;
   		
-	    if(M < id) M = id;
-	    
 	    if(reading) {
-		    SF_vstore(id+1 /*stata counts from 1*/, N+1, x);
+				//printf("storing to X[%d,%ld]=%lf; Y is %dx1. Data is %dx%d\n", N, id, y, SF_nobs(), SF_nobs(), SF_nvar()); //DEBUG
+
+		    SF_vstore(id+1 /*stata counts from 1*/, N, x);
 			  if(err) {
 			    SF_error("unable to store to x\n");
 			    //return err;
 			  }
 	    }
-  	}
-  	
-  	fscanf(fd, "\n");
-  	N+=1;
+    } else if(sscanf(tok, "%lf", &y) == 1) { //this should get the first 'y' value
+      
+      N+=1;
+      
+	    if(reading) {
+				//printf("storing to Y[%d]=%lf; Y is %dx1. Data is %dx%d\n", N, y, SF_nobs(), SF_nobs(), SF_nvar()); //DEBUG
+			  err = SF_vstore(1 /*stata counts from 1*/, N, y);
+			  if(err) {
+			    SF_error("unable to store to y\n");
+			    //return err;
+		    }
+	    }
+	    
+    } else {
+    	SF_error("parse error\n");
+      return 1;
+    }	
   }
+	
   
   err = SF_scal_save("N", (ST_double)N);
   if(err) {

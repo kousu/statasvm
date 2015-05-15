@@ -1,2 +1,2 @@
-svm_load using "tests/duke.svmlight.short"
+svm_load using "tests/short.svmlight"
 list

@@ -5,6 +5,7 @@ DLLEXT:=so
 
 CFLAGS+=-Wall -Werror
 CFLAGS+=-fPIC   # Note: the stata docs (http://www.stata.com/plugins/) do not mention -fPIC, but they probably haven't used a recent GCC: GCC demands it
+CFLAGS+=-std=c99 #arrrrgh
 
 # strange, make comes with .LIBPATTERNS yet doesn't come with rules for actually making .so files
 %.so:

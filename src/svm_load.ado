@@ -1,12 +1,17 @@
+
+* The variables created will be 'y' and 'x%d' for %d=[1 through max(feature_id)].
+* Feature IDs are always positive integers, in svmlight format, according to its source code.
+
 program define svm_load
   syntax using/
   
   capture program _svm, plugin
-  plugin call _svm, "preread" "`using'"
+  plugin call _svm, "read" "pre" "`using'"
+  
+  scalar list /*DEBUG*/
   
   clear
-  set obs `=N'
-  generate y = .
+  quiet generate y = .
   
   * HACK: StataIC (which I am developing on) has a hard upper limit of 2k variables
   * We spend 1 on the 'y', and so we are limited to 2047 'x's
@@ -16,9 +21,12 @@ program define svm_load
   
   * this weird newlist syntax is the official suggestion for making a set of new variables in "help foreach"
   foreach j of newlist x1-x`=M'  {
-    generate `j' = .
+    quiet generate `j' = .
   }
   
+  quiet set obs `=N'
+  
+  capture plugin call _svm y x1-x1000, "read" "`using'"
 end
 
 

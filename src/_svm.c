@@ -1,12 +1,13 @@
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h> //..yes.. there are two string headers
 #include <strings.h>
+#include <stdbool.h>
 
 #include <svm.h>
 #include "stplugin.h"
 
-#include <stdio.h>
 
 #define PLUGIN_NAME "_svm"
 
@@ -34,15 +35,17 @@ void svm_problem_free(struct svm_problem* prob) {
 }
 
 
+#include <unistd.h>
+
 /* Stata doesn't let C plugins add new variables
  * but parsing is terribly slow in pure Stata, demonstrably slower than in pure C
  * This pair of routines is the best ugly marriage I can achieve:
  *
  * We adopt the libsvm people's solution: scan the data twice, once two find out the size (which is then passed back to pure Stata which has permission to edit the data table)
  * and twice to actually fill it in.
- *
- * The variables created will be 'y' and 'x%d' for %d=[1 through max(feature_id)].
- * Feature IDs are always positive integers, in svmlight format, according to its source code.
+ * To reduce the code, both scans are handled by one function but with an option flag of "pre" prefixed in the preread scan. 
+ * Results are passed back via Stata scalars N (the number of observations) and M (the number of 'features', i.e. the number of variables except for the first Y variable); Stata's C interface doesn't (apparently) provide any way to use tempnam or the r() table.4
+ *   but Stata scalars are in a single global namespace, so to avoid naming conflicts we prefix the N and M by the name of this function. 
  *
  * Special case: the tag on an X variable (a 'feature') could also be the special words
  * "sid:" or "cost:" (slack and weighting tweaks, respectively), according to the svmlight source.
@@ -53,11 +56,29 @@ void svm_problem_free(struct svm_problem* prob) {
 //TODO: document
 //TODO: better errors (using an err buf)
 /* preread: scan */
-STDLL svmlight_preread(int argc, char* argv[]) {
+STDLL svmlight_read(int argc, char* argv[]) {
   
   ST_retcode err = 0;
   
-  if(argc != 1) {
+  bool reading = true;
+  
+  if(argc > 1) {
+		char* subcmd = argv[0];
+		argc--; argv++;
+		if(strncmp(subcmd, "pre", 5) == 0) {
+			printf("disabled reading\n");
+			reading = false;
+		} else {		
+		
+		  SF_error("Unrecognized read subcommand %s\n"/* subcmd*/);
+		  return 1;
+		}
+	}
+	
+	if(reading) { 
+			sleep(5); }
+	
+	if(argc != 1) {
     SF_error("Wrong number of arguments\n");
     return 1;
   }
@@ -68,8 +89,6 @@ STDLL svmlight_preread(int argc, char* argv[]) {
     SF_error("Unable to open file\n");
     return 1;
   }
-  
-  
   
   int M = 0, N = 0;
   
@@ -82,20 +101,43 @@ STDLL svmlight_preread(int argc, char* argv[]) {
 	double x;
 	
   while(1) {
-	  if(fscanf(fd, "%lf", &y) != 1) { //this should get the first 'y' value
+	  if(fscanf(fd, "%lf \t", &y) != 1) { //this should get the first 'y' value
 	    // if it doesn't... we must be at the end of file... maybe
 	    break;
 	  }
+  	
+  	//y = 666;
 	  
-  	N+=1;
-  	printf("at line %d; M=%d\n", N, M);
+	  if(reading) {
+	  	printf("storing to Y[%d]=%lf; Y is %dx1. Data is %dx%d\n", N+1, y, SF_nobs(), SF_nobs(), SF_nvar());
+	    err = SF_vstore(1 /*stata counts from 1*/, N+1, y);
+	    if(err) {
+	      SF_error("unable to store to y\n");
+	      //return err;
+	    }
+	  }
+	  
   	
   	while(fscanf(fd, "%ld:%lf", &id, &x) == 2) {
+  		if(id < 1) {
+  			SF_error("parse error: only positive feature IDs allowed\n");
+  			return 4;
+  		}
+  		
 	    if(M < id) M = id;
+	    
+	    if(reading) {
+		    SF_vstore(id+1 /*stata counts from 1*/, N+1, x);
+			  if(err) {
+			    SF_error("unable to store to x\n");
+			    //return err;
+			  }
+	    }
   	}
   	
+  	fscanf(fd, "\n");
+  	N+=1;
   }
-  
   
   err = SF_scal_save("N", (ST_double)N);
   if(err) {
@@ -109,9 +151,12 @@ STDLL svmlight_preread(int argc, char* argv[]) {
     return err;
   }
   
-  
   return 0;
 }
+
+
+
+
 
 
 /* 
@@ -285,7 +330,7 @@ struct {
   const char* name;
   STDLL (*func)(int argc, char* argv[]);
 } subcommands[] = {
-	{ "preread", svmlight_preread },
+	{ "read", svmlight_read },
   { "train", train },
   //{ "predict", predict },
   { NULL, NULL }
@@ -308,7 +353,7 @@ STDLL stata_call(int argc, char *argv[])
 		printf("argv[%d]=%s\n",i,argv[i]);
 	}
 	
-	printf("Total dataset size: %dx%d. We only want [%d:%d,%d] args, though.\n", SF_nobs(), SF_nvar(), SF_in1(), SF_in2(), SF_nvars());
+	printf("Total dataset size: %dx%d. We have been asked operate on [%d:%d,%d].\n", SF_nobs(), SF_nvar(), SF_in1(), SF_in2(), SF_nvars());
 #endif
 	if(argc < 1) {
 		SF_error(PLUGIN_NAME ": no subcommand specified\n");
@@ -320,9 +365,6 @@ STDLL stata_call(int argc, char *argv[])
 	
 	int i = 0;
 	while(subcommands[i].name) {
-		char err_buf[256];
-		snprintf(err_buf, 256, PLUGIN_NAME ": comparing |%s| to |%s|; argc=%d\n", command, subcommands[i].name, argc);
-		printf(err_buf);
 		if(strncmp(command, subcommands[i].name, COMMAND_MAX) == 0) {
 			return subcommands[i].func(argc, argv);
 		}

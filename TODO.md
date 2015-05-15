@@ -18,3 +18,14 @@ TODO
   * [-] 32 bit OS X (does this even exist anymore?)
 * [ ] Set up a cross-compiler (this is much harder!)
 * [ ] Support installing without root (..i.e. distribute libsvm and install it next to the things)
+
+* [ ] Add stata/ to the include path instead of "stata/stplugin.h"? maybe?
+* [ ] Define a DEFINES macro in the makefile which works like LIBS
+* [ ] Separate the generic cross-platform make parts from the svm-specific parts.
+
+
+libsvm:
+* [x] patch the Makefile to be saner
+* [ ] make print_func support printf arguments
+* [ ] replace all `fprintf(stderr, )`s with error_func (and make it also support printf args)
+  * -> and then linkup error_func to Stata

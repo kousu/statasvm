@@ -79,12 +79,19 @@ struct svm_problem* stata2libsvm() {
 			// put data into X[l]
 			// (there are many values)
 			for(int j=1; j<SF_nvars(); j++) {
-				prob->x[prob->l] = malloc(sizeof(struct svm_node));
-				if(prob->x[prob->l] == NULL) {
-					// TODO: error
-					goto cleanup;
+				ST_double value;
+				SF_vdata(j, prob->l, &value);
+				if(!SF_is_missing(value)) {
+					// libsvm uses a sparse datastructure
+					// that means that missing values should not be allocated
+					prob->x[prob->l] = malloc(sizeof(struct svm_node));
+					if(prob->x[prob->l] == NULL) {
+						// TODO: error
+						goto cleanup;
+					}
+					prob->x[prob->l]->index = j;
+					prob->x[prob->l]->value = value;
 				}
-				SF_vdata(j, prob->l, &(prob->x[prob->l]->value));
 			}
 			prob->l++;
 		}

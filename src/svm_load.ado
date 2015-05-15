@@ -1,9 +1,33 @@
+program define svm_load
+  syntax using/
+  
+  capture program _svm, plugin
+  plugin call _svm, "preread" "`using'"
+  
+  clear
+  set obs `=N'
+  generate y = .
+  
+  * HACK: StataIC (which I am developing on) has a hard upper limit of 2k variables
+  * We spend 1 on the 'y', and so we are limited to 2047 'x's
+  if(`=M' > 2048-1) {
+    scalar M = 2047
+  }
+  
+  * this weird newlist syntax is the official suggestion for making a set of new variables in "help foreach"
+  foreach j of newlist x1-x`=M'  {
+    generate `j' = .
+  }
+  
+end
+
+
 * load the given svmlight-format file into memory
 * the outcome variable (the first one on each line) is loaded in y, the rest are loaded into x<label>, where <label> is the label listed in the file before each value
 * note! this *will* clear your current dataset
 * NB: it is not clear to me if it is easier or hard to do this in pure-Stata than to try to jerry-rig C into the mix (the main trouble with C is that extensions cannot create new variables, and we need to create new variables as we discover them)
 * it is *definitely* *SLOWER* to do this in pure Stata. svm-train loads the same test dataset in a fraction of a second where this takes 90s (on an SSD and i7).
-program define svm_load
+program define svm_load_purestata
   
   * this makes macro `using' contain a filename
   syntax using/

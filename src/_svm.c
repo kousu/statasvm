@@ -34,9 +34,6 @@ void svm_problem_free(struct svm_problem* prob) {
 	free(prob);
 }
 
-
-#include <unistd.h>
-
 /* Stata doesn't let C plugins add new variables
  * but parsing is terribly slow in pure Stata, demonstrably slower than in pure C
  * This pair of routines is the best ugly marriage I can achieve:
@@ -69,7 +66,6 @@ STDLL svmlight_read(int argc, char* argv[]) {
 		if(strncmp(subcmd, "pre", 5) == 0) {
 			reading = false;
 		} else {		
-		
 		  SF_error("Unrecognized read subcommand %s\n"/* subcmd*/);
 		  return 1;
 		}
@@ -80,6 +76,14 @@ STDLL svmlight_read(int argc, char* argv[]) {
     return 1;
   }
   
+  
+#if DEBUG
+	printf("svm read");
+	if(!reading) {
+	  printf(" pre");
+	}
+	printf("\n");
+#endif
   
   char* fname = argv[0];
   FILE* fd = fopen(fname, "r");
@@ -116,12 +120,15 @@ STDLL svmlight_read(int argc, char* argv[]) {
   		if(M < id) M = id;
   		
 	    if(reading) {
-				//printf("storing to X[%d,%ld]=%lf; Y is %dx1. Data is %dx%d\n", N, id, y, SF_nobs(), SF_nobs(), SF_nvar()); //DEBUG
-
+#if DEBUG
+				printf("storing to X[%d,%ld]=%lf; Y is %dx1. Data is %dx%d\n", N, id, y, SF_nobs(), SF_nobs(), SF_nvar()); //DEBUG
+#endif
 		    SF_vstore(id+1 /*stata counts from 1*/, N, x);
 			  if(err) {
+#if DEBUG
 			    SF_error("unable to store to x\n");
-			    //return err;
+#endif
+			    return err;
 			  }
 	    }
     } else if(sscanf(tok, "%lf", &y) == 1) { //this should get the first 'y' value
@@ -129,11 +136,16 @@ STDLL svmlight_read(int argc, char* argv[]) {
       N+=1;
       
 	    if(reading) {
-				//printf("storing to Y[%d]=%lf; Y is %dx1. Data is %dx%d\n", N, y, SF_nobs(), SF_nobs(), SF_nvar()); //DEBUG
+#if DEBUG
+				printf("storing to Y[%d]=%lf; Y is %dx1. Data is %dx%d\n", N, y, SF_nobs(), SF_nobs(), SF_nvar()); //DEBUG
+#endif
 			  err = SF_vstore(1 /*stata counts from 1*/, N, y);
 			  if(err) {
+#if DEBUG
+			    printf("unable to store to y\n");
+#endif
 			    SF_error("unable to store to y\n");
-			    //return err;
+			    return err;
 		    }
 	    }
 	    
@@ -144,6 +156,11 @@ STDLL svmlight_read(int argc, char* argv[]) {
   }
 	
   
+#if DEBUG
+	if(!reading) {
+	  printf("svm read pre: total dataset is %dx(1+%d)\n", N, M);
+	}
+#endif
   err = SF_scal_save("N", (ST_double)N);
   if(err) {
     SF_error("Unable to export scalar 'N' to Stata\n");
@@ -274,7 +291,8 @@ STDLL train(int argc, char* argv[]) {
 	}
 	
 	struct svm_model* model = svm_train(prob,&param); //a 'model' in libsvm is what I would call a 'fit' (I would call the structure being fitted to---svm---the model), but beggars can't be choosers
-	
+	(void)model; //silence unused-variable warnings temporarily
+
 #if DEBUG
 	if(svm_save_model("svmfit", model)) {
 		SF_error("DEBUG ERROR: unable to export fitted model\n");

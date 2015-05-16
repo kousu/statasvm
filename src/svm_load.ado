@@ -4,30 +4,47 @@
 
 program define svm_load
   syntax using/
-  
-  capture program _svm, plugin
-  plugin call _svm, "read" "pre" "`using'"
-  
-  scalar list /*DEBUG*/
-  
-  clear
-  quiet generate y = .
-  
-  * HACK: StataIC (which I am developing on) has a hard upper limit of 2k variables
-  * We spend 1 on the 'y', and so we are limited to 2047 'x's
-  if(`=M' > 2048-1) {
-    scalar M = 2047
+
+  capture program _svm, plugin /*load the plugin if necessary*/
+
+    di "CLIP=`CLIP'"
+  quietly {
+
+    * Do the pre-loading, to count how much space we need
+    plugin call _svm, "read" "pre" "`using'"
+
+    *scalar list /*DEBUG*/
+
+    * HACK: StataIC (which I am developing on) has a hard upper limit of 2k variables
+    * We spend 1 on the 'y', and so we are limited to 2047 'x's
+    * ADDITIONALLY, Stata has an off-by-one bug: the maximum number of variables you can allocate is 2048, but the maximum number you can pass to a C plugin is 2047.
+    * So account for these, we force the upper limit to 2046 arbitrarily
+    * This needs to be handled better. Perhaps we should let the user give varlist (but if they don't give it, default to all in the file??)
+    if(`=M' > 2047-1) {
+      scalar M = 2047-1
+    }
+
+    * make a new, empty, dataset of exactly the size we need
+    clear
+
+    * Make variables y x1 x2 x3 ... x`=M'
+    generate y = .
+
+    * this weird newlist syntax is the official suggestion for making a set of new variables in "help foreach"
+    foreach j of newlist x1-x`=M'  {
+      generate `j' = 2
+    }
+
+    * Make observations 1 .. `=N'
+    * Stata will fill in the missing value for each at this point
+    set obs `=N'
+
+    * Do the actual loading
+    * "*" means "all variables". We need to pass this in because in addition to C plugins only being able to read and write to variables that already exist,
+    * they can only read and write to variables specified in varlist
+    * (mata does not have this sort of restriction.)
+    capture plugin call _svm *, "read" "`using'"
   }
-  
-  * this weird newlist syntax is the official suggestion for making a set of new variables in "help foreach"
-  foreach j of newlist x1-x`=M'  {
-    quiet generate `j' = .
-  }
-  
-  quiet set obs `=N'
-  
-  * "*" means "all variables"
-  capture plugin call _svm *, "read" "`using'"
 end
 
 

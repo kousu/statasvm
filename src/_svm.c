@@ -34,21 +34,25 @@ void svm_problem_free(struct svm_problem* prob) {
 	free(prob);
 }
 
-/* Stata doesn't let C plugins add new variables
- * but parsing is terribly slow in pure Stata, demonstrably slower than in pure C
- * This pair of routines is the best ugly marriage I can achieve:
+/* Helper routine for reading svmlight files into Stata.
+ * We adopt the libsvm people's method: scan the data twice.
  *
- * We adopt the libsvm people's solution: scan the data twice.
+ * Stata doesn't let C plugins add new variables, but parsing with gettoken is agonizingly slow
+ * so there is this ugly marriage:
  *   i. find out the size (svmlight_read("pre", filename))
  *  ii. return this to Stata
  * iii. Stata edits the data table, allocating space
  *  iv. read in the data (svmlight_read(filename))
  *
- * To reduce code, both scans are handled by this one function but with a flag of "pre" given to indicate the preread scan.
- * This function is named svmlight_read despite its name in subcommands[] being 'read'
- *  because it conflicts with the build in POSIX read()
+ * Yes, it is at least an order of magnitude faster to read the data twice in C,
+ * even with the interlude back to Stata, than to do one pass with gettoken (Stata's wrapper around strtok())
  *
- * the size results are passed back via Stata scalars N (the number of observations) and M (the number of 'features', i.e. the number of variables except for the first Y variable); Stata's C interface doesn't (apparently) provide any way to use tempnam or the r() table.4
+ * To reduce code, both scans are handled by this one function (named to not conflict with the built in POSIX read())
+ * and its behaviour is modified with a flag of "pre" given to indicate the preread phase i.
+ * The results of the preread phase are passed back via Stata scalars
+ *   N (the number of observations) and
+ *   M (the number of 'features', i.e. the number of variables except for the first Y variable);
+ * Stata's C interface doesn't (apparently) provide any way to use tempnam or the r() table.4
  *   but Stata scalars are in a single global namespace, so to avoid naming conflicts we prefix the N and M by the name of this function. 
  *
  * Special case: the tag on an X variable (a 'feature') could also be the special words
@@ -58,6 +62,10 @@ void svm_problem_free(struct svm_problem* prob) {
  * TODO:
  * [ ] better errors messages (using an err buf or by defining a better SF_error())
  * [x] check for off-by-ones
+ * [ ] format conformity:
+ *   - libsvm gets annoyed if features are given out of order
+ *   - libsvm will accept feature id 0, though none of the. Perhaps we should also pass back a *minimum*?
+ *   - how does svm_light compare?
  */
 STDLL svmlight_read(int argc, char* argv[]) {
   
@@ -188,13 +196,12 @@ STDLL svmlight_read(int argc, char* argv[]) {
 
 /* 
  * convert the Stata varlist format to libsvm sparse format
- * takes no arguments because the varlist is an implicit global (from stplugin.c)
- * the result is a a "problem":
- *  two arrays of the same length, one of doubles (y) and one of pairs of 'index' and double (x)
- * in other words, it's the outcome vector Y and the design matrix X.
- *  (plus 'l', the length of the arrays)
+ * takes no arguments because the varlist is an implicit global (from stplugin.h)
+ * as is Stata-standard, the first variable is the regressor Y, the rest are regressees (aka features) X
+ * The result is a svm_problem, which is essentially just two arrays:
+ * the Y vector and the X design matrix. See svm.h for details.
  *
- * caller owns (i.e. is responsible for svm_free_problem()'ing) the result
+ * caller is responsible for freeing the result
  */
 struct svm_problem* stata2libsvm() {
   struct svm_problem* prob = malloc(sizeof(struct svm_problem));
@@ -258,6 +265,7 @@ struct svm_problem* stata2libsvm() {
 	return prob;
 	
 cleanup:
+  //TODO: clean up after ourselves
 	//TODO: be careful to check the last entry for partially initialized
 	return NULL;
 }
@@ -401,7 +409,7 @@ STDLL stata_call(int argc, char *argv[])
 	}
 	
 	char err_buf[256];
-	snprintf(err_buf, 256, PLUGIN_NAME ": unrecognized subcommand |%s|\n", command);
+	snprintf(err_buf, 256, PLUGIN_NAME ": unrecognized subcommand '%s'\n", command);
 	SF_error(err_buf);
 	
 	return 1;

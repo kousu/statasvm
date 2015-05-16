@@ -30,6 +30,16 @@ TODO
 * [ ] Investigate loading direct to Stata matrices to speed things up
    Stata has some severe memory limitations on its matrices: no more than 800x800 in Stata-IC, which makes it useless for machine learning
 
+* [ ] Figure out the best way to autoload the plugin
+ * one: make everything a subcommand in a single svm.ado file, which only gets loaded once
+ * two: 
+ * three: use 'program list' to detect if it's 
+ * four: ...are loaded plugins private variables? it sort of seems like they might be!!
+* [ ] make 'svm' a suite of subcommands; put everything into a single file, even, so that users cannot call them directly.
+
+boost.ado:
+* [ ] "local k : word count `varlist'" better written "scalar k = wordcount("`varlist'")"
+
 libsvm:
 * [x] patch the Makefile to be saner
 * [ ] make print_func support printf arguments

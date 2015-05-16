@@ -39,14 +39,6 @@ void svm_problem_pprint(struct svm_problem* prob) {
  */
 void svm_problem_free(struct svm_problem* prob) {
   for(int i=0; i<prob->l; i++) {
-    for(int j=0; ; j++) {
-      if(prob->x[i][j].	index == -1) { //can this be rolled into the for condition?
-        svm_node_free(&prob->x[i][j]); //the & here is because the array[j] translates to *(array_base_pointer+j) and we need to undo
-        break;
-      } else {
-        svm_node_free(&prob->x[i][j]);
-      }
-    }
     free(prob->x[i]);
   }
 	free(prob->y);

@@ -39,8 +39,12 @@ TODO
 
 * [ ] Stata doesn't provide any way to work with lists, except as variables in its global data table.
   libsvm returns a list marking which observations are the suppart vectors; probaaaabbly nathe most natural way to return this to the user is to add an extra boolean column to mark them. But I will have to talk to Schonlau
+* [ ] provide svm_classify and svm_regress as s convenience shortcuts to something like "svm
+ 
+* [ ] The closest I can get to local variables is to use in Stata tempname, and pass that along in argv to the plugin. Right now I hard-code everything with Globally Unique(TM) prefixes
 
-* [ ] provide svm_classify and svm_regress as convenience shortcuts to something like "svm
+* [ ] duke.svmlight is actually a terrible dataset, or I'm misusing it: it thinks *everything* is a support vector which defeats the purpose
+* [ ] rather than exposing svm-scale, autoscaling should be an option of svm_train
 
 boost.ado:
 * [ ] "local k : word count `varlist'" better written "scalar k = wordcount("`varlist'")"

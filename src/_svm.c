@@ -123,11 +123,13 @@ cleanup:
 
 
 STDLL _model2stata(int argc, char* argv[]) {
-
-	if(argc != 0) {
+  ST_retcode err;
+  
+	if(argc != 1) {
     SF_error("Wrong number of arguments\n");
     return 1;
   }
+  
   
 	// in combination with the read the model parameters out into the r() dict
 	// again, we can't actually access r() directly.
@@ -138,14 +140,26 @@ STDLL _model2stata(int argc, char* argv[]) {
   // - matrices
   // Further complicating things is that certain parts of svm_model are only applicable to certain svm_types (as documented in <svm.h>)
   // and further some of the values are matrices (probA and probB are, apparently, some sort of pairwise probability matrix between trained classes, but stored as a single array because the authors got lazy)
+  // and further complicating things:
   if(model == NULL) {
     SF_error("no trained model available\n");
     return 1;
   }
   
-  
-  SF_scal_save("_model2stata_nr_class", model->nr_class);
-  
+  char phase = argv[0][0];
+  if(phase == '1') {
+    SF_scal_save("_model2stata_nr_class", model->nr_class);
+    SF_scal_save("_model2stata_l", model->l);
+  } else if(phase == '2') {
+    for(int i=0; i<model->nr_class; i++) {
+      err = SF_mat_store("nSV", i+1, 1, (ST_double)(model->nSV[i]));
+      if(err) {
+        SF_error("error writing to nSV\n");
+        return err;
+      }
+    }
+    
+  }
   
   return 0;
 }

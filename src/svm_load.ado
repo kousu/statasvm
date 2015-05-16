@@ -18,7 +18,7 @@ program define svm_load
     * So account for these, we force the upper limit *of the number of X variables* to 2046 arbitrarily, leaving room for 1 for the Y variable and 1 to avoid the off-by-one bug
     * This needs to be handled better. Perhaps we should let the user give varlist (but if they don't give it, default to all in the file??)
     if(`=_svm_load_M' > 2047-1) {
-      scalar svm_load_M = 2047-1
+      scalar _svm_load_M = 2047-1
     }
 
     * make a new, empty, dataset of exactly the size we need

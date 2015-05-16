@@ -6,71 +6,131 @@
 #include <stdbool.h>
 #include <math.h> //for NAN
 
-#include <svm.h>
-#include "stplugin.h"
+#include "libsvm_patches.h"
+#include "_svm.h"
 
 
-#define PLUGIN_NAME "_svm"
 
-#if _WIN32
-// MS is not standard C, of course:
-// https://msdn.microsoft.com/en-us/library/2ts7cx93.aspx
-#define snprintf _snprintf
+
+static void print_stata(const char* s) {
+  SF_display((char*)s);
+}
+
+#if HAVE_SVM_PRINT_ERROR
+// TODO: libsvm doesn't have a svm_set_error_string_function, but if I get it added this is the stub
+static void error_stata(const char* s) {
+  SF_error((char*)s);
+}
 #endif
 
 
-void svm_problem_pprint(struct svm_problem* prob) {
-  for(int i=0; i<prob->l; i++) {
-    printf("y:%lf,", prob->y[i]);
-    for(int j=0; prob->x[i][j].index != -1; j++) {
-      printf(" %d:%lf", prob->x[i][j].index, prob->x[i][j].value);
-    }
-    printf("\n");
-  }
-}
-
-
-void svm_parameter_pprint(struct svm_parameter* param) {
-	printf("svm_parameter %p:\n", param);
-	
-	printf("\tsvm_type: %d\n", param->svm_type); //TODO: map to enum names
-	printf("\tkernel_type: %d\n", param->kernel_type);
-	printf("\tdegree: %d\n", param->degree);
-	
-	printf("\tgamma: %lf\n", param->gamma);
-	printf("\tcoef0: %lf \n", param->coef0);
-	
-	printf("\tcache_size: %lf\n", param->cache_size);
-	printf("\teps: %lf \n", param->eps);
-	printf("\tC: %lf\n", param->C);
-	
-	printf("\tnr_weight: %d\n", param->nr_weight);
-	printf("\tweight_label @ %p: TODO \n", param->weight_label/*[i] for i in range smethingsomething*/);
-	printf("\tweight @ %p: TODO \n", param->weight); //
-	
-	printf("\tnu: %lf\n", param->nu);
-	printf("\tp: %lf\n", param->p);
-	
-	printf("\tshrinking: %d\n", param->shrinking); //TODO: these are booleans, not ints
-	printf("\tprobability: %d\n", param->probability);
-}
 
 /* 
- * free an svm_problem structure.
- * this assumes that entries in prob.x[] have been individually allocated
- * which is not something currently guaranteed by libsvm
- * (just see their bundled svm-train.c's use of 'x_space' for a quick and therefore dirty approach).
- * it also assumes that the svm_problem itself is allocated on the heap,
- *   again is not guaranteed by libsvm.
+ * convert the Stata varlist format to libsvm sparse format
+ * takes no arguments because the varlist is an implicit global (from stplugin.h)
+ * as is Stata-standard, the first variable is the regressor Y, the rest are regressees (aka features) X
+ * The result is a svm_problem, which is essentially just two arrays:
+ * the Y vector and the X design matrix. See svm.h for details.
+ *
+ * Note that this will mangle the indecies: the libsvm indecies will start from 1, mapping *whichever variable was 2nd given in varlist to 1, 3rd to 2, ...*.
+ * If your workflow is "svm load using file.svmlight; svm train *" then there will be no mangling, but if you instead say "svm train y x3 x9" then 3 [Stata]->1 [libsvm] and 9 [Stata]->2 [libsvm]
+ * this is acceptable since the libsvm indices are ephemeral, never exposed to the Stata user, it just makes debugging confusing.
+ *
+ * caller is responsible for freeing the result.
+ * 
+ * Compare sklearn's [dense2libsvm](TODO), which does the same job but coming from a numpy matrix instead 
  */
-void svm_problem_free(struct svm_problem* prob) {
-  for(int i=0; i<prob->l; i++) {
-    free(prob->x[i]);
+struct svm_problem* stata2libsvm() {
+  struct svm_problem* prob = malloc(sizeof(struct svm_problem));
+  bzero(prob, sizeof(struct svm_problem)); //zap the memory just in case
+  
+  prob->l = 0; //initialize the number of observations
+  // we cannot simply malloc into mordor, because `if' and `in' cull what's available
+  // so what we really need is a dynamic array
+  // for now, in lieu of importing a datastructure to handle this, I'll do it with realloc
+  int capacity = 1;
+  prob->y = malloc(sizeof(*(prob->y))*capacity);
+  if(prob->y == NULL) {
+    //TODO: error
+    goto cleanup;
   }
-	free(prob->y);
-	free(prob->x);
-	free(prob);
+  prob->x = malloc(sizeof(*(prob->x))*capacity);
+  if(prob->x == NULL) {
+    //TODO: error
+    goto cleanup;
+  }
+  
+  //TODO: double-check this for off-by-one bugs
+  // This code is super confusing because we're dealing with three numbering systems: C's 0-based, Stata's 1-based, and libsvm's (.index) which is 0-based but sparse
+  
+	for(ST_int i = SF_in1(); i <= SF_in2(); i++) { //respect `in' option
+		if(SF_ifobs(i)) {			    									 //respect `if' option
+			if(prob->l >= capacity) {	// amortized-resizing
+				capacity<<=1; //double the capacity
+				prob->y = realloc(prob->y, sizeof(*(prob->y))*capacity);
+				prob->x = realloc(prob->x, sizeof(*(prob->x))*capacity);
+			}
+			
+			// put data into Y[l]
+			// (there is only one Y so we hard-code the variable index)
+			SF_vdata(1, prob->l+1, &(prob->y[prob->l]));
+			
+			// put data into X[l]
+			// (there are many values)
+      prob->x[prob->l] = calloc(SF_nvars(), sizeof(struct svm_node)); //TODO: make these inner arrays also dynamically grow. for a sparse problem this will drastically overallocate. (though I suppose your real bottleneck will be Stata, which doesn't do sparse)
+      if(prob->x[prob->l] == NULL) {
+        goto cleanup;
+      }
+      
+			// libsvm uses a sparse datastructure
+			// that means that missing values should not be allocated
+			// the length of each row is indicated by index=-1 on the last entry
+			int c = 0; //and the current position within the subarray is tracked here
+			for(int j=1; j<SF_nvars(); j++) {
+				ST_double value;
+				if(SF_vdata(j+1 /*this +1 accounts for the y variable: variable 2 in the Stata dataset is x1 */, prob->l+1, &value) == 0 && !SF_is_missing(value)) {
+					prob->x[prob->l][c].index = j;
+					prob->x[prob->l][c].value = value;
+					c++;
+				}
+      prob->x[prob->l][c].index = -1; //mark end-of-row
+      prob->x[prob->l][c].value = SV_missval; //not strictly necessary, but it makes me feel good
+			}
+			prob->l++;
+		}
+	}
+
+  //return overallocated memory by downsizing
+	prob->y = realloc(prob->y, sizeof(*(prob->y))*prob->l);
+	prob->x = realloc(prob->x, sizeof(*(prob->x))*prob->l);
+	
+	return prob;
+	
+cleanup:
+  SF_error("stata2libsvm failed\n");
+  //TODO: clean up after ourselves
+	//TODO: be careful to check the last entry for partially initialized
+	return NULL;
 }
+
+
+
+
+/* Stata only lets an extension module export a single function (which I guess is modelled after each .ado file being a single function, a tradition Matlab embraced as well)
+ * to support multiple routines the proper way we would have to build multiple DLLs, and to pass variables between them we'd have to figure out
+ * instead of fighting with that, I'm using a tried and true method: indirection:
+ *  the single function we export is a trampoline, and the subcommands array the list of places it can go to
+ */
+struct {
+  const char* name;
+  STDLL (*func)(int argc, char* argv[]);
+} subcommands[] = {
+	{ "read", svmlight_read },
+  { "train", train },
+  //{ "predict", predict },
+  { NULL, NULL }
+};
+
 
 /* Helper routine for reading svmlight files into Stata.
  * We adopt the libsvm people's method: scan the data twice.
@@ -234,94 +294,6 @@ STDLL svmlight_read(int argc, char* argv[]) {
 
 
 
-/* 
- * convert the Stata varlist format to libsvm sparse format
- * takes no arguments because the varlist is an implicit global (from stplugin.h)
- * as is Stata-standard, the first variable is the regressor Y, the rest are regressees (aka features) X
- * The result is a svm_problem, which is essentially just two arrays:
- * the Y vector and the X design matrix. See svm.h for details.
- *
- * Note that this will mangle the indecies: the libsvm indecies will start from 1, mapping *whichever variable was 2nd given in varlist to 1, 3rd to 2, ...*.
- * If your workflow is "svm load using file.svmlight; svm train *" then there will be no mangling, but if you instead say "svm train y x3 x9" then 3 [Stata]->1 [libsvm] and 9 [Stata]->2 [libsvm]
- * this is acceptable since the libsvm indices are ephemeral, never exposed to the Stata user, it just makes debugging confusing.
- *
- * caller is responsible for freeing the result.
- * 
- * Compare sklearn's [dense2libsvm](TODO), which does the same job but coming from a numpy matrix instead 
- */
-struct svm_problem* stata2libsvm() {
-  struct svm_problem* prob = malloc(sizeof(struct svm_problem));
-  bzero(prob, sizeof(struct svm_problem)); //zap the memory just in case
-  
-  prob->l = 0; //initialize the number of observations
-  // we cannot simply malloc into mordor, because `if' and `in' cull what's available
-  // so what we really need is a dynamic array
-  // for now, in lieu of importing a datastructure to handle this, I'll do it with realloc
-  int capacity = 1;
-  prob->y = malloc(sizeof(*(prob->y))*capacity);
-  if(prob->y == NULL) {
-    //TODO: error
-    goto cleanup;
-  }
-  prob->x = malloc(sizeof(*(prob->x))*capacity);
-  if(prob->x == NULL) {
-    //TODO: error
-    goto cleanup;
-  }
-  
-  //TODO: double-check this for off-by-one bugs
-  // This code is super confusing because we're dealing with three numbering systems: C's 0-based, Stata's 1-based, and libsvm's (.index) which is 0-based but sparse
-  
-	for(ST_int i = SF_in1(); i <= SF_in2(); i++) { //respect `in' option
-		if(SF_ifobs(i)) {			    									 //respect `if' option
-			if(prob->l >= capacity) {	// amortized-resizing
-				capacity<<=1; //double the capacity
-				prob->y = realloc(prob->y, sizeof(*(prob->y))*capacity);
-				prob->x = realloc(prob->x, sizeof(*(prob->x))*capacity);
-			}
-			
-			// put data into Y[l]
-			// (there is only one Y so we hard-code the variable index)
-			SF_vdata(1, prob->l+1, &(prob->y[prob->l]));
-			
-			// put data into X[l]
-			// (there are many values)
-      prob->x[prob->l] = calloc(SF_nvars(), sizeof(struct svm_node)); //TODO: make these inner arrays also dynamically grow. for a sparse problem this will drastically overallocate. (though I suppose your real bottleneck will be Stata, which doesn't do sparse)
-      if(prob->x[prob->l] == NULL) {
-        goto cleanup;
-      }
-      
-			// libsvm uses a sparse datastructure
-			// that means that missing values should not be allocated
-			// the length of each row is indicated by index=-1 on the last entry
-			int c = 0; //and the current position within the subarray is tracked here
-			for(int j=1; j<SF_nvars(); j++) {
-				ST_double value;
-				if(SF_vdata(j+1 /*this +1 accounts for the y variable: variable 2 in the Stata dataset is x1 */, prob->l+1, &value) == 0 && !SF_is_missing(value)) {
-					prob->x[prob->l][c].index = j;
-					prob->x[prob->l][c].value = value;
-					c++;
-				}
-      prob->x[prob->l][c].index = -1; //mark end-of-row
-      prob->x[prob->l][c].value = SV_missval; //not strictly necessary, but it makes me feel good
-			}
-			prob->l++;
-		}
-	}
-
-  //return overallocated memory by downsizing
-	prob->y = realloc(prob->y, sizeof(*(prob->y))*prob->l);
-	prob->x = realloc(prob->x, sizeof(*(prob->x))*prob->l);
-	
-	return prob;
-	
-cleanup:
-  SF_error("stata2libsvm failed\n");
-  //TODO: clean up after ourselves
-	//TODO: be careful to check the last entry for partially initialized
-	return NULL;
-}
-
 
 STDLL train(int argc, char* argv[]) {
 	
@@ -388,56 +360,6 @@ STDLL train(int argc, char* argv[]) {
 
 
 
-
-
-void print_stata(const char* s) {
-  SF_display((char*)s);
-}
-
-#if HAVE_SVM_PRINT_ERROR
-// TODO: libsvm doesn't have a svm_set_error_string_function, but if I get it added this is the stub
-void error_stata(const char* s) {
-  SF_error((char*)s);
-}
-#endif
-
-
-/* Initialization code adapted from
-    stplugin.c, version 2.0
-    copyright (c) 2003, 2006        			StataCorp
- */ 
-ST_plugin *_stata_ ;
-
-STDLL pginit(ST_plugin *p)
-{
-	_stata_ = p ;
-	
-	svm_set_print_string_function(print_stata);
-#if HAVE_SVM_PRINT_ERROR
-	svm_set_error_string_function(error_stata);
-#endif
-	
-	return(SD_PLUGINVER) ;
-}
-
-
-
-/* Stata only lets an extension module export a single function (which I guess is modelled after each .ado file being a single function, a tradition Matlab embraced as well)
- * to support multiple routines the proper way we would have to build multiple DLLs, and to pass variables between them we'd have to figure out
- * instead of fighting with that, I'm using a tried and true method: indirection:
- *  the single function we export is a trampoline, and the subcommands array the list of places it can go to
- */
-#define COMMAND_MAX 12 //this isn't actually used to enforce storage limits in subcommands (if we say 'const char name[COMMAND_MAX]' then it is impossible to define the last one as NULL, which is a bother, subcommands should respect this
-struct {
-  const char* name;
-  STDLL (*func)(int argc, char* argv[]);
-} subcommands[] = {
-	{ "read", svmlight_read },
-  { "train", train },
-  //{ "predict", predict },
-  { NULL, NULL }
-};
-
 /* the Stata plugin interface is really really really basic:
  * . plugin call var1 var2, op1 op2 77 op3
  * causes argv to contain "op1", "op2", "77", "op3", and
@@ -467,7 +389,7 @@ STDLL stata_call(int argc, char *argv[])
 	
 	int i = 0;
 	while(subcommands[i].name) {
-		if(strncmp(command, subcommands[i].name, COMMAND_MAX) == 0) {
+		if(strncmp(command, subcommands[i].name, SUBCOMMAND_MAX) == 0) {
 			return subcommands[i].func(argc, argv);
 		}
 		
@@ -479,5 +401,26 @@ STDLL stata_call(int argc, char *argv[])
 	SF_error(err_buf);
 	
 	return 1;
+}
+
+
+
+
+/* Initialization code adapted from
+    stplugin.c, version 2.0
+    copyright (c) 2003, 2006        			StataCorp
+ */ 
+ST_plugin *_stata_ ;
+
+STDLL pginit(ST_plugin *p)
+{
+	_stata_ = p ;
+	
+	svm_set_print_string_function(print_stata);
+#if HAVE_SVM_PRINT_ERROR
+	svm_set_error_string_function(error_stata);
+#endif
+	
+	return(SD_PLUGINVER) ;
 }
 

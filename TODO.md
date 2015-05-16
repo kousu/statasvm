@@ -41,6 +41,7 @@ boost.ado:
 * [ ] "local k : word count `varlist'" better written "scalar k = wordcount("`varlist'")"
 
 libsvm:
+* [ ] submit pprint() functions as patches
 * [x] patch the Makefile to be saner
 * [ ] make print_func support printf arguments
 * [ ] replace all `fprintf(stderr, )`s with error_func (and make it also support printf args)

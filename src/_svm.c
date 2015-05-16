@@ -332,7 +332,7 @@ STDLL train(int argc, char* argv[]) {
 	param.svm_type = C_SVC;
 	param.kernel_type = RBF;
 	param.degree = 3;
-	param.gamma = 0;	// 1/num_features
+	param.gamma = 0;
 	param.coef0 = 0;
 	param.nu = 0.5;
 	param.cache_size = 100;
@@ -344,6 +344,11 @@ STDLL train(int argc, char* argv[]) {
 	param.nr_weight = 0;
 	param.weight_label = NULL;
 	param.weight = NULL;
+	
+	if(param.gamma == 0) {
+	  //gamma is supposed to default 1/num_features if not explicitly given
+	  param.gamma = ((double)1)/(SF_nvars() - 1); // remember: without the cast this does integer division and gives 0
+	}
 	
 	struct svm_problem* prob = stata2libsvm();
   if(prob == NULL) {

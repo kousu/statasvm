@@ -29,7 +29,9 @@ program define svm_load
 
     * this weird newlist syntax is the official suggestion for making a set of new variables in "help foreach"
     foreach j of newlist x1-x`=_svm_load_M'  {
-      generate `j' = 2
+      * make a new variable named "xj" where j is an integer
+      * specify "double" because libsvm uses doubles and the C interface uses doubles, yet the default is floats
+      generate double `j' = 2
     }
 
     * Make observations 1 .. `=_svm_load_N'

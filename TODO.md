@@ -41,6 +41,7 @@ boost.ado:
 * [ ] "local k : word count `varlist'" better written "scalar k = wordcount("`varlist'")"
 
 libsvm:
+* [ ] link the programs dynamically instead of statically; there's no point distributing a DLL if you're not going to use it
 * [ ] submit pprint() functions as patches
 * [x] patch the Makefile to be saner
 * [ ] make print_func support printf arguments
@@ -50,4 +51,5 @@ libsvm:
 * [ ] add svm_problem_free()
 * [ ] kill x_space from svm-train.c; it's not needed; just Malloc the space directly onto svm_problem->xvm_node
 * [ ] rename 'svm_node' to something less generic.
-* [ ] Models read via svm_load_model leak x_space (which is again a side effect of x_space sucking)
+* [ ] Models read via svm_load_model leak x_space: it's never ever freed! (which is again a side effect of x_space sucking)
+* [ ] svm_parameter is an inheritence tree, awkwardly implemeneted in C by simply adding more fields than they will ever use at once. They *should* be using a union.

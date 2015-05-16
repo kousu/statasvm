@@ -1,2 +1,2 @@
 svm_import using "tests/duke.model"
-ereturn list
+do tests/helpers/inspect_model.do

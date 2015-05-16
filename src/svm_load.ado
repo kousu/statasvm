@@ -7,7 +7,6 @@ program define svm_load
 
   capture program _svm, plugin /*load the plugin if necessary*/
 
-    di "CLIP=`CLIP'"
   quietly {
 
     * Do the pre-loading, to count how much space we need
@@ -18,7 +17,7 @@ program define svm_load
     * HACK: StataIC (which I am developing on) has a hard upper limit of 2k variables
     * We spend 1 on the 'y', and so we are limited to 2047 'x's
     * ADDITIONALLY, Stata has an off-by-one bug: the maximum number of variables you can allocate is 2048, but the maximum number you can pass to a C plugin is 2047.
-    * So account for these, we force the upper limit to 2046 arbitrarily
+    * So account for these, we force the upper limit *of the number of X variables* to 2046 arbitrarily, leaving room for 1 for the Y variable and 1 to avoid the off-by-one bug
     * This needs to be handled better. Perhaps we should let the user give varlist (but if they don't give it, default to all in the file??)
     if(`=M' > 2047-1) {
       scalar M = 2047-1

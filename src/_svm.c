@@ -38,22 +38,27 @@ void svm_problem_free(struct svm_problem* prob) {
  * but parsing is terribly slow in pure Stata, demonstrably slower than in pure C
  * This pair of routines is the best ugly marriage I can achieve:
  *
- * We adopt the libsvm people's solution: scan the data twice, once two find out the size (which is then passed back to pure Stata which has permission to edit the data table)
- * and twice to actually fill it in.
- * To reduce the code, both scans are handled by one function but with an option flag of "pre" prefixed in the preread scan. 
- * Results are passed back via Stata scalars N (the number of observations) and M (the number of 'features', i.e. the number of variables except for the first Y variable); Stata's C interface doesn't (apparently) provide any way to use tempnam or the r() table.4
+ * We adopt the libsvm people's solution: scan the data twice.
+ *   i. find out the size (svmlight_read("pre", filename))
+ *  ii. return this to Stata
+ * iii. Stata edits the data table, allocating space
+ *  iv. read in the data (svmlight_read(filename))
+ *
+ * To reduce code, both scans are handled by this one function but with a flag of "pre" given to indicate the preread scan.
+ * This function is named svmlight_read despite its name in subcommands[] being 'read'
+ *  because it conflicts with the build in POSIX read()
+ *
+ * the size results are passed back via Stata scalars N (the number of observations) and M (the number of 'features', i.e. the number of variables except for the first Y variable); Stata's C interface doesn't (apparently) provide any way to use tempnam or the r() table.4
  *   but Stata scalars are in a single global namespace, so to avoid naming conflicts we prefix the N and M by the name of this function. 
  *
  * Special case: the tag on an X variable (a 'feature') could also be the special words
  * "sid:" or "cost:" (slack and weighting tweaks, respectively), according to the svmlight source.
  * libsvm does not support these so for simplicity neither do we.
  *
+ * TODO:
+ * [ ] better errors messages (using an err buf or by defining a better SF_error())
+ * [x] check for off-by-ones
  */
-
-//TODO: document
-//TODO: better errors (using an err buf)
-// TODO: check for off-by-ones
-/* preread: scan */
 STDLL svmlight_read(int argc, char* argv[]) {
   
   ST_retcode err = 0;
@@ -121,9 +126,9 @@ STDLL svmlight_read(int argc, char* argv[]) {
   		
 	    if(reading) {
 #if DEBUG
-				printf("storing to X[%d,%ld]=%lf; Y is %dx1. Data is %dx%d\n", N, id, y, SF_nobs(), SF_nobs(), SF_nvar()); //DEBUG
+				printf("storing to X[%d,%ld]=%lf; X is %dx%d\n", N, id, x, SF_nobs(), SF_nvar()-1); //DEBUG
 #endif
-		    SF_vstore(id+1 /*stata counts from 1*/, N, x);
+		    SF_vstore(id+1 /*stata counts from 1, so y has index 1, x1 has index 2, ... , x7 has index 8 ...*/, N, x);
 			  if(err) {
 #if DEBUG
 			    SF_error("unable to store to x\n");
@@ -137,7 +142,7 @@ STDLL svmlight_read(int argc, char* argv[]) {
       
 	    if(reading) {
 #if DEBUG
-				printf("storing to Y[%d]=%lf; Y is %dx1. Data is %dx%d\n", N, y, SF_nobs(), SF_nobs(), SF_nvar()); //DEBUG
+				printf("storing to Y[%d]=%lf; Y is %dx1.\n", N, y, SF_nobs()); //DEBUG
 #endif
 			  err = SF_vstore(1 /*stata counts from 1*/, N, y);
 			  if(err) {

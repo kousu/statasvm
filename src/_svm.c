@@ -174,18 +174,21 @@ STDLL svmlight_read(int argc, char* argv[]) {
 	  printf("svm read pre: total dataset is %dx(1+%d)\n", N, M);
 	}
 #endif
-  err = SF_scal_save("N", (ST_double)N);
-  if(err) {
-    SF_error("Unable to export scalar 'N' to Stata\n");
-    return err;
-  }
   
-  err = SF_scal_save("M", (ST_double)M);
-  if(err) {
-    SF_error("Unable to export scalar 'N' to Stata\n");
-    return err;
+  if(!reading) {
+    // return the preread mode results, but only in preread mode
+    err = SF_scal_save("_svm_load_N", (ST_double)N);
+    if(err) {
+      SF_error("Unable to export scalar 'N' to Stata\n");
+      return err;
+    }
+    
+    err = SF_scal_save("_svm_load_M", (ST_double)M);
+    if(err) {
+      SF_error("Unable to export scalar 'N' to Stata\n");
+      return err;
+    }
   }
-  
   return 0;
 }
 

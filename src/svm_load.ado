@@ -7,42 +7,46 @@ capture program _svm, plugin /*load the C extension if not already loaded*/
 program define svm_load
   syntax using/
 
-  quietly {
+   quietly {
 
     * Do the pre-loading, to count how much space we need
     plugin call _svm, "read" "pre" "`using'"
-
-    *scalar list /*DEBUG*/
-
+    
     * HACK: StataIC (which I am developing on) has a hard upper limit of 2k variables
     * We spend 1 on the 'y', and so we are limited to 2047 'x's
     * ADDITIONALLY, Stata has an off-by-one bug: the maximum number of variables you can allocate is 2048, but the maximum number you can pass to a C plugin is 2047.
     * So account for these, we force the upper limit *of the number of X variables* to 2046 arbitrarily, leaving room for 1 for the Y variable and 1 to avoid the off-by-one bug
     * This needs to be handled better. Perhaps we should let the user give varlist (but if they don't give it, default to all in the file??)
-    if(`=M' > 2047-1) {
-      scalar M = 2047-1
+    if(`=_svm_load_M' > 2047-1) {
+      scalar svm_load_M = 2047-1
     }
 
     * make a new, empty, dataset of exactly the size we need
     clear
 
-    * Make variables y x1 x2 x3 ... x`=M'
+    * Make variables y x1 x2 x3 ... x`=_svm_load_M'
     generate y = .
 
     * this weird newlist syntax is the official suggestion for making a set of new variables in "help foreach"
-    foreach j of newlist x1-x`=M'  {
+    foreach j of newlist x1-x`=_svm_load_M'  {
       generate `j' = 2
     }
 
-    * Make observations 1 .. `=N'
+    * Make observations 1 .. `=_svm_load_N'
     * Stata will fill in the missing value for each at this point
-    set obs `=N'
-
+    set obs `=_svm_load_N'
+    
+    * Delete the "local variables"
+    * Do this here in case the next step crashes
+    * I am programming in BASIC.
+    scalar drop _svm_load_N _svm_load_M
+    
     * Do the actual loading
     * "*" means "all variables". We need to pass this in because in addition to C plugins only being able to read and write to variables that already exist,
     * they can only read and write to variables specified in varlist
     * (mata does not have this sort of restriction.)
     capture plugin call _svm *, "read" "`using'"
+    
   }
 end
 

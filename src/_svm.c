@@ -4,6 +4,7 @@
 #include <string.h> //..yes.. there are two string headers
 #include <strings.h>
 #include <stdbool.h>
+#include <math.h> //for NAN
 
 #include <svm.h>
 #include "stplugin.h"
@@ -17,6 +18,17 @@
 #define snprintf _snprintf
 #endif
 
+
+void svm_problem_pprint(struct svm_problem* prob) {
+  for(int i=0; i<prob->l; i++) {
+    printf("y:%lf,", prob->y[i]);
+    for(int j=0; prob->x[i][j].index != -1; j++) {
+      printf(" %d:%lf", prob->x[i][j].index, prob->x[i][j].value);
+    }
+    printf("\n");
+  }
+}
+
 /* 
  * free an svm_problem structure.
  * this assumes that entries in prob.x[] have been individually allocated
@@ -27,6 +39,14 @@
  */
 void svm_problem_free(struct svm_problem* prob) {
   for(int i=0; i<prob->l; i++) {
+    for(int j=0; ; j++) {
+      if(prob->x[i][j].	index == -1) { //can this be rolled into the for condition?
+        svm_node_free(&prob->x[i][j]); //the & here is because the array[j] translates to *(array_base_pointer+j) and we need to undo
+        break;
+      } else {
+        svm_node_free(&prob->x[i][j]);
+      }
+    }
     free(prob->x[i]);
   }
 	free(prob->y);
@@ -134,7 +154,7 @@ STDLL svmlight_read(int argc, char* argv[]) {
   		
 	    if(reading) {
 #if DEBUG
-				printf("storing to X[%d,%ld]=%lf; X is %dx%d\n", N, id, x, SF_nobs(), SF_nvar()-1); //DEBUG
+				//printf("storing to X[%d,%ld]=%lf; X is %dx%d\n", N, id, x, SF_nobs(), SF_nvar()-1); //DEBUG
 #endif
 		    SF_vstore(id+1 /*stata counts from 1, so y has index 1, x1 has index 2, ... , x7 has index 8 ...*/, N, x);
 			  if(err) {
@@ -196,7 +216,6 @@ STDLL svmlight_read(int argc, char* argv[]) {
 
 
 
-
 /* 
  * convert the Stata varlist format to libsvm sparse format
  * takes no arguments because the varlist is an implicit global (from stplugin.h)
@@ -204,7 +223,11 @@ STDLL svmlight_read(int argc, char* argv[]) {
  * The result is a svm_problem, which is essentially just two arrays:
  * the Y vector and the X design matrix. See svm.h for details.
  *
- * caller is responsible for freeing the result
+ * Note that this will mangle the indecies: the libsvm indecies will start from 1, mapping *whichever variable was 2nd given in varlist to 1, 3rd to 2, ...*.
+ * If your workflow is "svm load using file.svmlight; svm train *" then there will be no mangling, but if you instead say "svm train y x3 x9" then 3 [Stata]->1 [libsvm] and 9 [Stata]->2 [libsvm]
+ * this is acceptable since the libsvm indices are ephemeral, never exposed to the Stata user, it just makes debugging confusing.
+ *
+ * caller is responsible for freeing the result.
  */
 struct svm_problem* stata2libsvm() {
   struct svm_problem* prob = malloc(sizeof(struct svm_problem));
@@ -227,6 +250,7 @@ struct svm_problem* stata2libsvm() {
   }
   
   //TODO: double-check this for off-by-one bugs
+  // This code is super confusing because we're dealing with three numbering systems: C's 0-based, Stata's 1-based, and libsvm's (.index) which is 0-based but sparse
   
 	for(ST_int i = SF_in1(); i <= SF_in2(); i++) { //respect `in' option
 		if(SF_ifobs(i)) {			    									 //respect `if' option
@@ -237,25 +261,29 @@ struct svm_problem* stata2libsvm() {
 			}
 			
 			// put data into Y[l]
-			// (there is only one value)
-			SF_vdata(0, prob->l, &(prob->y[prob->l]));
+			// (there is only one Y so we hard-code the variable index)
+			SF_vdata(1, prob->l+1, &(prob->y[prob->l]));
 			
 			// put data into X[l]
 			// (there are many values)
+      prob->x[prob->l] = calloc(SF_nvars(), sizeof(struct svm_node)); //TODO: make these inner arrays also dynamically grow. for a sparse problem this will drastically overallocate. (though I suppose your real bottleneck will be Stata, which doesn't do sparse)
+      if(prob->x[prob->l] == NULL) {
+        goto cleanup;
+      }
+      
+			// libsvm uses a sparse datastructure
+			// that means that missing values should not be allocated
+			// the length of each row is indicated by index=-1 on the last entry
+			int c = 0; //and the current position within the subarray is tracked here
 			for(int j=1; j<SF_nvars(); j++) {
 				ST_double value;
-				SF_vdata(j, prob->l, &value);
-				if(!SF_is_missing(value)) {
-					// libsvm uses a sparse datastructure
-					// that means that missing values should not be allocated
-					prob->x[prob->l] = malloc(sizeof(struct svm_node));
-					if(prob->x[prob->l] == NULL) {
-						// TODO: error
-						goto cleanup;
-					}
-					prob->x[prob->l]->index = j;
-					prob->x[prob->l]->value = value;
+				if(SF_vdata(j+1 /*this +1 accounts for the y variable: variable 2 in the Stata dataset is x1 */, prob->l+1, &value) == 0 && !SF_is_missing(value)) {
+					prob->x[prob->l][c].index = j;
+					prob->x[prob->l][c].value = value;
+					c++;
 				}
+      prob->x[prob->l][c].index = -1; //mark end-of-row
+      prob->x[prob->l][c].value = SV_missval; //not strictly necessary, but it makes me feel good
 			}
 			prob->l++;
 		}
@@ -268,6 +296,7 @@ struct svm_problem* stata2libsvm() {
 	return prob;
 	
 cleanup:
+  SF_error("stata2libsvm failed\n");
   //TODO: clean up after ourselves
 	//TODO: be careful to check the last entry for partially initialized
 	return NULL;
@@ -297,7 +326,15 @@ STDLL train(int argc, char* argv[]) {
 	param.weight = NULL;
 	
 	struct svm_problem* prob = stata2libsvm();
-	const char *error_msg = NULL;
+  if(prob == NULL) {
+    SF_error("stata2libsvm failed\n");
+    return 1;
+  }
+#if DEBUG
+  svm_problem_pprint(prob);
+#endif
+
+  const char *error_msg = NULL;
 	error_msg = svm_check_parameter(prob,&param);
 	if(error_msg) {
 		char error_buf[256];
@@ -310,7 +347,7 @@ STDLL train(int argc, char* argv[]) {
 	(void)model; //silence unused-variable warnings temporarily
 
 #if DEBUG
-	if(svm_save_model("svmfit", model)) {
+	if(svm_save_model("DEBUG.model", model)) {
 		SF_error("DEBUG ERROR: unable to export fitted model\n");
 	}
 #endif

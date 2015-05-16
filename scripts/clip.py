@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-# clip a svmlight file to the lowest-numbered 2047 features because Stata upsells itself
+# clip a svmlight file to the lowest-numbered features, so they will fit in Stata
 # (this is meant to be compatible with what svm_load.ado does)
 
 import sys
 
 if __name__ == '__main__':
+	MAX = 2048    #TODO: make this configurable; 2048 is the StataIC limit.
+	MAX -= 2 # -1 for y, -1 for the off-by-one bug
 	
 	outfile = "-" # TODO: support '-o' for giving output somewhere besides stdout
-	MAX = 2046
 	if outfile == "-":
 		sys.stdout = sys.stdout
 	else:

@@ -15,13 +15,13 @@ program define svm_load
     * Do the pre-loading, to count how much space we need
     plugin call _svm, "_load" "pre" "`using'"
     
-    * HACK: StataIC (which I am developing on) has a hard upper limit of 2k variables
-    * We spend 1 on the 'y', and so we are limited to 2047 'x's
-    * ADDITIONALLY, Stata has an off-by-one bug: the maximum number of variables you can allocate is 2048, but the maximum number you can pass to a C plugin is 2047.
-    * So account for these, we force the upper limit *of the number of X variables* to 2046 arbitrarily, leaving room for 1 for the Y variable and 1 to avoid the off-by-one bug
+    * HACK: Stata's various versions all have a hard upper limit on the number of variables; for example StataIC has 2048 (2^11) and StataMP has 2^15
+    * ADDITIONALLY, Stata has an off-by-one bug: the max you can actually pass to a C plugin is one less [citation needed]
+    * We simply clamp the number of variables to get around this,  leaving room for 1 for the Y variable and 1 to avoid the off-by-one bug
     * This needs to be handled better. Perhaps we should let the user give varlist (but if they don't give it, default to all in the file??)
-    if(`=_svm_load_M' > 2047-1) {
-      scalar _svm_load_M = 2047-1
+    if(`=_svm_load_M+1' > `c(max_k_theory)'-1) {
+      di as error "Warning: your version of Stata will not allow `=_svm_load_M+1' variables nor be able handle the extension plugin operating on that many. Clamping to `=c(max_k_theory)-1'."
+      scalar _svm_load_M = `=c(max_k_theory)-1-1' /*remember: the extra -1 is to account for the Y column*/
     }
 
     * make a new, empty, dataset of exactly the size we need

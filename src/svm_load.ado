@@ -2,10 +2,10 @@
 * The variables created will be 'y' and 'x%d' for %d=[1 through max(feature_id)].
 * Feature IDs are always positive integers, in svmlight format, according to its source code.
 
+capture program _svm, plugin /*load the C extension if not already loaded*/
+
 program define svm_load
   syntax using/
-
-  capture program _svm, plugin /*load the plugin if necessary*/
 
   quietly {
 

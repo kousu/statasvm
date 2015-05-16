@@ -125,7 +125,7 @@ struct {
   const char* name;
   STDLL (*func)(int argc, char* argv[]);
 } subcommands[] = {
-	{ "read", svmlight_read },
+  { "_load", _load },
   { "train", train },
   //{ "predict", predict },
   { NULL, NULL }
@@ -145,7 +145,7 @@ struct {
  * Yes, it is at least an order of magnitude faster to read the data twice in C,
  * even with the interlude back to Stata, than to do one pass with gettoken (Stata's wrapper around strtok())
  *
- * To reduce code, both scans are handled by this one function (named to not conflict with the built in POSIX read())
+ * To reduce code, both scans are handled by this one function.
  * and its behaviour is modified with a flag of "pre" given to indicate the preread phase i.
  * The results of the preread phase are passed back via Stata scalars
  *   N (the number of observations) and
@@ -165,8 +165,8 @@ struct {
  *   - libsvm will accept feature id 0, though none of the. Perhaps we should also pass back a *minimum*?
  *   - how does svm_light compare?
  */
-STDLL svmlight_read(int argc, char* argv[]) {
-  
+STDLL _load(int argc, char* argv[]) {
+
   ST_retcode err = 0;
   
   bool reading = true;

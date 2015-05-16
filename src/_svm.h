@@ -16,7 +16,7 @@
                           // (if we say 'const char name[COMMAND_MAX]' then it is impossible to mark the last one with name = NULL, which is a bother)
 
 struct svm_problem* stata2libsvm();
-STDLL svmlight_read(int argc, char* argv[]);
+STDLL _load(int argc, char* argv[]);
 STDLL train(int argc, char* argv[]);
 
 //

@@ -2,6 +2,9 @@
 * The variables created will be 'y' and 'x%d' for %d=[1 through max(feature_id)].
 * Feature IDs are always positive integers, in svmlight format, according to its source code.
 
+* TODO: rename to svm_use and figure out how to support the dual 'svm use filename' and 'svm use varlist using filename' that the built-in use does
+*        it will be possible, just maybe ugly
+
 capture program _svm, plugin /*load the C extension if not already loaded*/
 
 program define svm_load
@@ -10,7 +13,7 @@ program define svm_load
    quietly {
 
     * Do the pre-loading, to count how much space we need
-    plugin call _svm, "read" "pre" "`using'"
+    plugin call _svm, "_load" "pre" "`using'"
     
     * HACK: StataIC (which I am developing on) has a hard upper limit of 2k variables
     * We spend 1 on the 'y', and so we are limited to 2047 'x's
@@ -47,7 +50,7 @@ program define svm_load
     * "*" means "all variables". We need to pass this in because in addition to C plugins only being able to read and write to variables that already exist,
     * they can only read and write to variables specified in varlist
     * (mata does not have this sort of restriction.)
-    capture plugin call _svm *, "read" "`using'"
+    capture plugin call _svm *, "_load" "`using'"
     
   }
 end

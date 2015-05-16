@@ -19,7 +19,7 @@
 *.log
 
 # hide private files (copyrighted journal articles for reference, etc)
-deps/
+reference/
 software/
 devlog/
 VMs/

@@ -135,7 +135,7 @@ struct {
   { "_load", _load },
   { "train", train },
   { "export", export },
-  //{ "import", import },
+  { "import", import },
   //{ "predict", predict },
   { NULL, NULL }
 };
@@ -357,24 +357,42 @@ STDLL train(int argc, char* argv[]) {
 	svm_destroy_param(&param); //the model copies 'param' into itself, so we should free it here
 	svm_problem_free(prob);
 	
-	// TODO: read the model parameters out into the r() dict
-  
   return 0;
 }
 
 
 STDLL export(int argc, char* argv[]) {
 
-  printf("EXPORTING TO '%s'\n", argv[0]);
 	if(argc != 1) {
     SF_error("Wrong number of arguments\n");
     return 1;
   }
   
   char* fname = argv[0];
-  printf("EXPORTING TO '%s'\n", fname);
 	if(svm_save_model(fname, model)) {
 		SF_error("unable to export fitted model\n");
+		return 1;
+	}
+	
+	return 0;
+}
+
+
+
+STDLL import(int argc, char* argv[]) {
+
+	if(argc != 1) {
+    SF_error("Wrong number of arguments\n");
+    return 1;
+  }
+  
+  if(model != NULL) {
+    svm_free_and_destroy_model(&model);
+  }
+  
+  char* fname = argv[0];
+	if((model = svm_load_model(fname)) == NULL) {
+		SF_error("unable to import fitted model\n");
 		return 1;
 	}
 	

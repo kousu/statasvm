@@ -127,8 +127,10 @@ tests/%.svmlight: tests/%.bz2
 tests/%.bz2:
 	wget http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary/$*.bz2 -O $@
 
-# state the test-specific datasets
+# add test-specific files
 test_readproblem: tests/duke.svmlight
+tests/duke.model: test_export
+test_import: tests/duke.model #for example, this one is created by test_export, and so that has to run first; stating it like this lets make figure that out
 
 # for each .do file in tests/, make a .PHONY test_<testname> target which runs Stata and prints the output
 # the meta-target test runs all tests

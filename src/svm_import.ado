@@ -6,5 +6,6 @@ program define svm_import, eclass
   
   plugin call _svm, "import" "`using'"
   
+  ereturn clear
   _svm_model2stata /*fixup the e() dictionary, as if we'd just called svm_train*/
 end

@@ -46,6 +46,8 @@ TODO
 * [ ] duke.svmlight is actually a terrible dataset, or I'm misusing it: it thinks *everything* is a support vector which defeats the purpose
 * [ ] rather than exposing svm-scale, autoscaling should be an option of svm_train
 
+* [ ] add `make lint`
+
 boost.ado:
 * [ ] "local k : word count `varlist'" better written "scalar k = wordcount("`varlist'")"
 * [ ] backport my multi-platform plugin packager/loader, so that it works everywhere

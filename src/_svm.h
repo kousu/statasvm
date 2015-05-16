@@ -15,9 +15,14 @@
 #define SUBCOMMAND_MAX 12 //this is good to have symbolically even if it doesn't actually enforce storage limits because reasons
                           // (if we say 'const char name[COMMAND_MAX]' then it is impossible to mark the last one with name = NULL, which is a bother)
 
+extern struct svm_model* model;
+
 struct svm_problem* stata2libsvm();
 STDLL _load(int argc, char* argv[]);
 STDLL train(int argc, char* argv[]);
+STDLL export(int argc, char* argv[]);
+STDLL import(int argc, char* argv[]);
+STDLL predict(int argc, char* argv[]);
 
 //
 STDLL stata_call(int argc, char *argv[]);

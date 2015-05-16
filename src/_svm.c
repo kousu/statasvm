@@ -12,6 +12,13 @@
 
 
 
+// Stata doesn't provide any encapsulate. The core language is designed to do returns by editing a single global dictionary 'r()'t really provide
+// We /we/ probably exploit macros to make a list of in-memory models, but this would be foreign to Stata's style anyway
+// And that is why there is a global here.
+struct svm_model* model = NULL;
+
+
+
 static void print_stata(const char* s) {
   SF_display((char*)s);
 }
@@ -127,6 +134,8 @@ struct {
 } subcommands[] = {
   { "_load", _load },
   { "train", train },
+  { "export", export },
+  //{ "import", import },
   //{ "predict", predict },
   { NULL, NULL }
 };
@@ -294,7 +303,6 @@ STDLL _load(int argc, char* argv[]) {
 
 
 
-
 STDLL train(int argc, char* argv[]) {
 	
 	struct svm_parameter param;
@@ -341,21 +349,36 @@ STDLL train(int argc, char* argv[]) {
 		return(1);
 	}
 	
-	struct svm_model* model = svm_train(prob,&param); //a 'model' in libsvm is what I would call a 'fit' (I would call the structure being fitted to---svm---the model), but beggars can't be choosers
-	(void)model; //silence unused-variable warnings temporarily
-
-#if DEBUG
-	if(svm_save_model("DEBUG.model", model)) {
-		SF_error("DEBUG ERROR: unable to export fitted model\n");
+	if(model != NULL) {
+	  svm_free_and_destroy_model(&model); //_and_destroy() means set pointer to NULL
 	}
-#endif
+	model = svm_train(prob,&param); //a 'model' in libsvm is what I would call a 'fit' (I would call the structure being fitted to---svm---the model), but beggars can't be choosers
+	
 	svm_destroy_param(&param); //the model copies 'param' into itself, so we should free it here
 	svm_problem_free(prob);
 	
-	//svm_free_and_destroy_model(&model); //XXX when should this happen? this should get stored so we can call predict() on it. does 'program drop _svm' autofree all memory too?
-  // should 'model' be a global?????? that's so against my training, but it's also sort of how Stata rolls.
+	// TODO: read the model parameters out into the r() dict
   
   return 0;
+}
+
+
+STDLL export(int argc, char* argv[]) {
+
+  printf("EXPORTING TO '%s'\n", argv[0]);
+	if(argc != 1) {
+    SF_error("Wrong number of arguments\n");
+    return 1;
+  }
+  
+  char* fname = argv[0];
+  printf("EXPORTING TO '%s'\n", fname);
+	if(svm_save_model(fname, model)) {
+		SF_error("unable to export fitted model\n");
+		return 1;
+	}
+	
+	return 0;
 }
 
 

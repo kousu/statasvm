@@ -12,4 +12,6 @@ program define svm_train, eclass
 
   ereturn clear
   
+  * Now return values!
+  
 end

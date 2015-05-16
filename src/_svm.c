@@ -122,6 +122,35 @@ cleanup:
 
 
 
+STDLL _model2stata(int argc, char* argv[]) {
+
+	if(argc != 0) {
+    SF_error("Wrong number of arguments\n");
+    return 1;
+  }
+  
+	// in combination with the read the model parameters out into the r() dict
+	// again, we can't actually access r() directly.
+	// All we have for communication are
+	// - variables, which are reserved for the data table,
+	// - macros, which are strings,h
+	// - scalars, which can only be numeric in the C interface, though Stata can handle string scalars
+  // - matrices
+  // Further complicating things is that certain parts of svm_model are only applicable to certain svm_types (as documented in <svm.h>)
+  // and further some of the values are matrices (probA and probB are, apparently, some sort of pairwise probability matrix between trained classes, but stored as a single array because the authors got lazy)
+  if(model == NULL) {
+    SF_error("no trained model available\n");
+    return 1;
+  }
+  
+  
+  SF_scal_save("_model2stata_nr_class", model->nr_class);
+  
+  
+  return 0;
+}
+
+
 
 /* Stata only lets an extension module export a single function (which I guess is modelled after each .ado file being a single function, a tradition Matlab embraced as well)
  * to support multiple routines the proper way we would have to build multiple DLLs, and to pass variables between them we'd have to figure out
@@ -137,6 +166,7 @@ struct {
   { "export", export },
   { "import", import },
   //{ "predict", predict },
+  { "_model2stata", _model2stata },
   { NULL, NULL }
 };
 

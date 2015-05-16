@@ -37,10 +37,17 @@ TODO
  * four: ...are loaded plugins private variables? it sort of seems like they might be!!
 * [ ] make 'svm' a suite of subcommands; put everything into a single file, even, so that users cannot call them directly.
 
+* [ ] Stata doesn't provide any way to work with lists, except as variables in its global data table.
+  libsvm returns a list marking which observations are the suppart vectors; probaaaabbly nathe most natural way to return this to the user is to add an extra boolean column to mark them. But I will have to talk to Schonlau
+
+* [ ] provide svm_classify and svm_regress as convenience shortcuts to something like "svm
+
 boost.ado:
 * [ ] "local k : word count `varlist'" better written "scalar k = wordcount("`varlist'")"
+* [ ] backport my multi-platform plugin packager/loader, so that it works everywhere
 
 libsvm:
+* [ ] make svm_type_table[] and char *kernel_type_table[] non-private (now, you can't link /directly/ against variables, but you can provide accessor functions to map both ways)
 * [ ] link the programs dynamically instead of statically; there's no point distributing a DLL if you're not going to use it
 * [ ] submit pprint() functions as patches
 * [x] patch the Makefile to be saner

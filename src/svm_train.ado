@@ -10,8 +10,6 @@ program define svm_train, eclass
 	
   plugin call _svm `varlist' `if' `in', "train"
 
-  ereturn clear
-  
-  * Now return values!
+  _svm_model2stata /*fixup the e() dictionary*/
   
 end

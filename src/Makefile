@@ -129,7 +129,7 @@ tests/%.bz2:
 
 # add test-specific files
 test_readproblem: tests/duke.svmlight
-tests/duke.model: test_export
+tests/duke.model: test_export #XXX this isn't working right: because test_export is .PHONY, make thinks that tests/duke.model is also .PHONY. This doesn't make a difference in 'make test' but you really want to be able to run test_import in isolation to see that it really is reading the file and not the result of svm_train()
 test_import: tests/duke.model #for example, this one is created by test_export, and so that has to run first; stating it like this lets make figure that out
 
 # for each .do file in tests/, make a .PHONY test_<testname> target which runs Stata and prints the output
@@ -170,5 +170,6 @@ endif
 # *.log *should* get cleaned up by the testing recipe, but in case it doesn't or you have made some manually we clean it again here
 clean:
 	-$(RM) $(foreach o,$(OBJECTS),$(wildcard $(o))) *.plugin *.log *.model
+	-$(RM) tests/*.model
 	#-$(RM) -r build/
 

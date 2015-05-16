@@ -20,7 +20,7 @@ program define svm_load
     * We simply clamp the number of variables to get around this,  leaving room for 1 for the Y variable and 1 to avoid the off-by-one bug
     * This needs to be handled better. Perhaps we should let the user give varlist (but if they don't give it, default to all in the file??)
     if(`=_svm_load_M+1' > `c(max_k_theory)'-1) {
-      di as error "Warning: your version of Stata will not allow `=_svm_load_M+1' variables nor be able handle the extension plugin operating on that many. Clamping to `=c(max_k_theory)-1'."
+      di as error "Warning: your version of Stata will not allow `=_svm_load_M+1' variables nor be able to use the C plugin with that many. Clamping to `=c(max_k_theory)-1'."
       scalar _svm_load_M = `=c(max_k_theory)-1-1' /*remember: the extra -1 is to account for the Y column*/
     }
 

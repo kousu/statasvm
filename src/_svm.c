@@ -148,17 +148,143 @@ STDLL _model2stata(int argc, char* argv[]) {
   
   char phase = argv[0][0];
   if(phase == '1') {
+    /* copy out model->nr_class */
     SF_scal_save("_model2stata_nr_class", model->nr_class);
+    
+    /* copy out model->l */
     SF_scal_save("_model2stata_l", model->l);
-  } else if(phase == '2') {
-    for(int i=0; i<model->nr_class; i++) {
-      err = SF_mat_store("nSV", i+1, 1, (ST_double)(model->nSV[i]));
+    
+    /* take a break from this C routine (think of this as a coroutine, sort of) to communicate to the Stata routine what needs to be Stata-allocated */ 
+    /* these macros have underscores because, according to the official docs, Stata actually only has a single global namespace for macros and just prefixes locals with _ */
+    if(model->sv_indices != NULL) {
+      err = SF_macro_save("_have_sv_indices", "1");
       if(err) {
-        SF_error("error writing to nSV\n");
+        SF_error("error writing to have_sv_indices\n");
         return err;
       }
     }
+    if(model->rho != NULL) {
+      err = SF_macro_save("_have_rho", "1");
+      if(err) {
+        SF_error("error writing to have_rho\n");
+        return err;
+      }
+    }
+    if(model->probA != NULL) {
+      SF_macro_save("_have_probA", "1");
+      if(err) {
+        SF_error("error writing to have_probA\n");
+        return err;
+      }
+    }
+    if(model->probB != NULL) {
+      SF_macro_save("_have_probB", "1");
+      if(err) {
+        SF_error("error writing to have_probB\n");
+        return err;
+      }
+    }
+     
+  } else if(phase == '2') {
+    /* copy out model->sv_indices */
+    /* see comments in _svm_model2stata.ado for why this is only a stop-gap */
+    for(int i=0; i<model->l; i++) {
+      //printf("SVs[%d] = %d\n", i, model->sv_indices[i]);
+      if(model->sv_indices) {
+        err = SF_mat_store("SVs", i+1, 1, (ST_double)(model->sv_indices[i])); /* the name has been intentionally changed for readability */
+        if(err) {
+          SF_error("error writing to SVs\n");
+          return err;
+        }
+      }
+    }
+  
     
+    
+    for(int i=0; i<model->nr_class; i++) {
+      /* copy out model->nSV */
+      if(model->nSV) {
+        err = SF_mat_store("nSV", i+1, 1, (ST_double)(model->nSV[i]));
+        if(err) {
+          SF_error("error writing to nSV\n");
+          return err;
+        }
+      }
+      if(model->label) {
+        /* copy out model->label */
+        err = SF_mat_store("labels", i+1, 1, (ST_double)(model->label[i])); /* the name has been intentionally changed for readability */
+        if(err) {
+          SF_error("error writing to labels\n");
+          return err;
+        }
+      }
+    }
+    
+    /* copy out model->sv_coef */
+    for(int i=0; i<model->nr_class-1; i++) { //the -1 is taken directly from <svm.h>! (plus this segfaults if it tries to read a next row). Because...between k classes there's k-1 decisions? or something? I wish libsvm actually explained itself.
+      for(int j=0; j<model->l; j++) {
+        err = SF_mat_store("sv_coef", i+1, j+1, (ST_double)(model->sv_coef[i][j]));
+        if(err) {
+          SF_error("error writing to sv_coef\n");
+          return err;
+        }
+      }
+    }
+    
+    
+    /* from the libsvm README:
+    
+    rho is the bias term (-b). probA and probB are parameters used in
+    probability outputs. If there are k classes, there are k*(k-1)/2
+    binary problems as well as rho, probA, and probB values. They are
+    aligned in the order of binary problems:
+    1 vs 2, 1 vs 3, ..., 1 vs k, 2 vs 3, ..., 2 vs k, ..., k-1 vs k. 
+    
+    in other words: upper triangularly.
+    
+    Rather than try to work out a fragile (and probably slow, requiring of the % operator)
+    formula to map the array index to matrix indecies or vice versa, this loop simply
+    walks *three* variables together: i,j are the matrix index, c is the array index.
+    */
+    int c=0;
+    for(int i=0; i<model->nr_class; i++) {
+      for(int j=i+1; j<model->nr_class; j++) {
+        /* copy out model->rho */
+        if(model->rho) {
+          //printf("rho[%d][%d] == rho[%d] = %lf\n", i, j, c, model->rho[c]);
+          err = SF_mat_store("rho", i+1, j+1, (ST_double)(model->rho[c]));
+          if(err) {
+            SF_error("error writing to rho\n");
+            return err;
+          }
+        }
+        
+        /* copy out model->probA */
+        if(model->probA) {
+          //printf("probA[%d][%d] == probA[%d] = %lf\n", i, j, c, model->probA[c]);
+          err = SF_mat_store("probA", i+1, j+1, (ST_double)(model->probA[c]));
+          if(err) {
+            SF_error("error writing to probA\n");
+            return err;
+          }
+        }
+        
+        
+        /* copy out model->rho */
+        if(model->probB) {
+          //printf("probB[%d][%d] == probB[%d] = %lf\n", i, j, c, model->probB[c]);
+          err = SF_mat_store("probB", i+1, j+1, (ST_double)(model->probB[c]));
+          if(err) {
+            SF_error("error writing to probB\n");
+            return err;
+          }
+        }
+        
+        
+        c++; //step the array.
+      }
+      
+    }
   }
   
   return 0;

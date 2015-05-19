@@ -506,8 +506,10 @@ STDLL train(int argc, char* argv[]) {
     return 1;
   }
 #ifdef DEBUG
-  svm_problem_pprint(prob);
+  printf("Parameters to svm_train with:\n");
   svm_parameter_pprint(&param);
+  printf("Problem to svm_train on:\n");
+  svm_problem_pprint(prob);
 #endif
 
   const char *error_msg = NULL;

@@ -95,6 +95,11 @@ will run `tests/train.do`.
 Most tests require some sort of example data. We use the [libsvm data archive](http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/) as a very convenient source, and as the running the tests will auto-download datasets as needed, you need to be aware of the copyright notice:
 * Chih-Chung Chang and Chih-Jen Lin, LIBSVM : a library for support vector machines. ACM Transactions on Intelligent Systems and Technology, 2:27:1--27:27, 2011. Software available at http://www.csie.ntu.edu.tw/~cjlin/libsvm.
 
+To compare test results from different platforms, try this: (TODO: roll this into the Makefile)
+```
+for test in $(cd tests/; ls -1 *.do); do test=$(echo $test | sed s/.do//); make test_$test > test_$test.`uname -s`.out; done
+```
+
 Installation/Deployment
 -----------------------
 

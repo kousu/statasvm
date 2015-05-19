@@ -128,7 +128,7 @@ tests/%.bz2:
 	wget http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary/$*.bz2 -O $@
 
 # add test-specific files
-test_readproblem: tests/duke.svmlight
+test_load test_train test_export test_preload: tests/duke.svmlight
 tests/duke.model: test_export #XXX this isn't working right: because test_export is .PHONY, make thinks that tests/duke.model is also .PHONY. This doesn't make a difference in 'make test' but you really want to be able to run test_import in isolation to see that it really is reading the file and not the result of svm_train()
 test_import: tests/duke.model #for example, this one is created by test_export, and so that has to run first; stating it like this lets make figure that out
 

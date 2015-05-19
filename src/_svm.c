@@ -367,7 +367,7 @@ STDLL _load(int argc, char* argv[]) {
   }
   
   
-#if DEBUG
+#ifdef DEBUG
 	printf("svm read");
 	if(!reading) {
 	  printf(" pre");
@@ -399,9 +399,9 @@ STDLL _load(int argc, char* argv[]) {
 	// scanf is tricky, but it's the right tool for this job: parsing sequences of ascii numbers.
 	// TODO: this parser is *not quite conformant* to the non-standard:
 	//   it will treat two joined svmlight lines as two separate ones (that is, 1 3:4 5:6 2 3:9 will be two lines with classes '1' and '2' instead of an error; it should probably be an error)
-	char* tok;
-  while(fscanf(fd, "%ms", &tok) == 1) {
-    //printf("read token=|%s|\n", tok); //DEBUG
+	char tok[512]; //GNU fscanf() has a "%ms" sequence which means "malloc a string large enough", but BSD and Windows don't. 512 is probably excessive for a single token (it's what, at most?)
+  while(fscanf(fd, "%511s", tok) == 1) { //the OS X fscanf(3) page is unclear if a string fieldwidth includes or doesn't include the NUL, but the BSD page, which as almost the same wording, says it *does not*, and [Windows is the same](https://msdn.microsoft.com/en-us/library/6ttkkkhh.aspx), which is why 511 != 512 here
+    //printf("read token=[%s]\n", tok); //DEBUG
     if(sscanf(tok, "%ld:%lf", &id, &x) == 2) { //this is a more specific match than the y match so it must come first
   	  if(id < 1) {
   			SF_error("parse error: only positive feature IDs allowed\n");
@@ -410,12 +410,12 @@ STDLL _load(int argc, char* argv[]) {
   		if(M < id) M = id;
   		
 	    if(reading) {
-#if DEBUG
+#ifdef DEBUG
 				//printf("storing to X[%d,%ld]=%lf; X is %dx%d\n", N, id, x, SF_nobs(), SF_nvar()-1); //DEBUG
 #endif
 		    SF_vstore(id+1 /*stata counts from 1, so y has index 1, x1 has index 2, ... , x7 has index 8 ...*/, N, x);
 			  if(err) {
-#if DEBUG
+#ifdef DEBUG
 			    SF_error("unable to store to x\n");
 #endif
 			    return err;
@@ -426,12 +426,12 @@ STDLL _load(int argc, char* argv[]) {
       N+=1;
       
 	    if(reading) {
-#if DEBUG
+#ifdef DEBUG
 				printf("storing to Y[%d]=%lf; Y is %dx1.\n", N, y, SF_nobs()); //DEBUG
 #endif
 			  err = SF_vstore(1 /*stata counts from 1*/, N, y);
 			  if(err) {
-#if DEBUG
+#ifdef DEBUG
 			    printf("unable to store to y\n");
 #endif
 			    SF_error("unable to store to y\n");
@@ -446,7 +446,7 @@ STDLL _load(int argc, char* argv[]) {
   }
 	
   
-#if DEBUG
+#ifdef DEBUG
 	if(!reading) {
 	  printf("svm read pre: total dataset is %dx(1+%d)\n", N, M);
 	}
@@ -505,7 +505,7 @@ STDLL train(int argc, char* argv[]) {
     SF_error("stata2libsvm failed\n");
     return 1;
   }
-#if DEBUG
+#ifdef DEBUG
   svm_problem_pprint(prob);
   svm_parameter_pprint(&param);
 #endif
@@ -581,7 +581,7 @@ STDLL import(int argc, char* argv[]) {
  */
 STDLL stata_call(int argc, char *argv[])
 {
-#if DEBUG
+#ifdef DEBUG
 	print_stata("Stata-SVM v0.0.1\n") ;
 	for(int i=0; i<argc; i++)
 	{

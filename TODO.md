@@ -48,6 +48,9 @@ TODO
 
 * [ ] add `make lint`
 
+
+* [ ] Test the svmlight parser against files with excessively long (>512) tokens. It should error out, but I fear instead it'll just keep parsing.
+
 boost.ado:
 * [ ] "local k : word count `varlist'" better written "scalar k = wordcount("`varlist'")"
 * [ ] backport my multi-platform plugin packager/loader, so that it works everywhere

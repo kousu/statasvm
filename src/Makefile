@@ -129,12 +129,14 @@ tests/%.bz2:
 
 # add test-specific files
 test_load test_train test_export test_preload: tests/duke.svmlight
-tests/duke.model: test_export #XXX this isn't working right: because test_export is .PHONY, make thinks that tests/duke.model is also .PHONY. This doesn't make a difference in 'make test' but you really want to be able to run test_import in isolation to see that it really is reading the file and not the result of svm_train()
+$(call FixPath,tests/duke.model): test_export #the make manual claims on Windows all paths use forward slashes and only forward slashes, but apparently this doesn't apply to targets, only prerequisites.
+     # maybe what I should do is give up and move all this into a sub Makefile and use recursive make to avoid dealing with path separators.
 test_import: tests/duke.model #for example, this one is created by test_export, and so that has to run first; stating it like this lets make figure that out
+
 
 # for each .do file in tests/, make a .PHONY test_<testname> target which runs Stata and prints the output
 # the meta-target test runs all tests
-# TODO: catch errors using Stata's "capture" command and actually fail the build
+# TODO: Stata always returns 0 so make doesn't know if a test fails or not, but Stata does print error codes out, so I need to write a wrapper that translates these to OS-level return codes
 
   TESTS:=$(patsubst tests/%.do,test_%,$(wildcard tests/*.do))
   

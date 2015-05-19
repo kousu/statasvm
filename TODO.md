@@ -53,6 +53,10 @@ TODO
 
 * [ ] Compare svm_save_model results from svm-train and my code. They /should/ always be identical on the same data.
 
+make:
+* [ ] On Windows, it appears that forward-slashes aren't recognized as path separators in targets. They are in prerequisites, though.
+   Set up a test case and submit a bug report.
+
 boost.ado:
 * [ ] "local k : word count `varlist'" better written "scalar k = wordcount("`varlist'")"
 * [ ] backport my multi-platform plugin packager/loader, so that it works everywhere

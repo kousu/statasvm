@@ -123,7 +123,7 @@ cleanup:
 
 
 STDLL _model2stata(int argc, char* argv[]) {
-  ST_retcode err;
+  ST_retcode err = 0;
   
 	if(argc != 1) {
     SF_error("Wrong number of arguments\n");

@@ -23,6 +23,21 @@ program define svm_load
       di as error "Warning: your version of Stata will not allow `=_svm_load_M+1' variables nor be able to use the C plugin with that many. Clamping to `=c(max_k_theory)-1'."
       scalar _svm_load_M = `=c(max_k_theory)-1-1' /*remember: the extra -1 is to account for the Y column*/
     }
+    
+    * handle error cases; I do this explicitly  so 
+    if(`=_svm_load_M'<1) {
+      * because Stata programming is all with macros, if this is a bad variable it doesn't cause a sensible crash,
+      * instead of causes either "invalid syntax" or some sort of mysterious "invalid operation" error
+      * (in particular "newlist x1-x0" is invalid)
+      * checking this doesn't cover all the ways M can be bad (e.g. it could be a string)
+      di as error "Need at least one feature to load"
+      exit 1	
+    }
+    if(`=_svm_load_N'<1) {
+      * this one 
+      di as error "Need at least one observation to load"
+      exit 1	
+    }
 
     * make a new, empty, dataset of exactly the size we need
     clear
@@ -34,7 +49,7 @@ program define svm_load
     foreach j of newlist x1-x`=_svm_load_M'  {
       * make a new variable named "xj" where j is an integer
       * specify "double" because libsvm uses doubles and the C interface uses doubles, yet the default is floats
-      generate double `j' = 2
+      generate double `j' = .
     }
 
     * Make observations 1 .. `=_svm_load_N'

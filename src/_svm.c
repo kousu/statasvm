@@ -48,6 +48,10 @@ static void error_stata(const char* s) {
  */
 struct svm_problem* stata2libsvm() {
   struct svm_problem* prob = malloc(sizeof(struct svm_problem));
+  if(prob == NULL) {
+    // TODO: error
+    goto cleanup;
+  }
   memset(prob, 0, sizeof(struct svm_problem)); //zap the memory just in case
   
   prob->l = 0; //initialize the number of observations
@@ -74,7 +78,15 @@ struct svm_problem* stata2libsvm() {
 			if(prob->l >= capacity) {	// amortized-resizing
 				capacity<<=1; //double the capacity
 				prob->y = realloc(prob->y, sizeof(*(prob->y))*capacity);
+				if(prob->y == NULL) {
+          //TODO: error
+          goto cleanup;
+				}
 				prob->x = realloc(prob->x, sizeof(*(prob->x))*capacity);
+				if(prob->x == NULL) {
+          //TODO: error
+          goto cleanup;
+				}
 			}
 			
 			// put data into Y[l]
@@ -115,7 +127,7 @@ struct svm_problem* stata2libsvm() {
 cleanup:
   SF_error("stata2libsvm failed\n");
   //TODO: clean up after ourselves
-	//TODO: be careful to check the last entry for partially initialized
+	//TODO: be careful to check the last entry for partially initialized subarrays
 	return NULL;
 }
 
@@ -521,12 +533,13 @@ ST_retcode train(int argc, char* argv[]) {
 	}
 	
 	if(model != NULL) {
+    // we have a singleton struct svm_model, so we need to clean up the old one before allocating a new one
 	  svm_free_and_destroy_model(&model); //_and_destroy() means set pointer to NULL
 	}
 	model = svm_train(prob,&param); //a 'model' in libsvm is what I would call a 'fit' (I would call the structure being fitted to---svm---the model), but beggars can't be choosers
 	
 	svm_destroy_param(&param); //the model copies 'param' into itself, so we should free it here
-	svm_problem_free(prob);
+	//svm_problem_free(prob);
 	
   return 0;
 }
@@ -540,6 +553,12 @@ ST_retcode export(int argc, char* argv[]) {
   }
   
   char* fname = argv[0];
+  
+  if(model == NULL) {
+    SF_error("no model available to export\n");
+    return 0;
+  }
+  
 	if(svm_save_model(fname, model)) {
 		SF_error("unable to export fitted model\n");
 		return 1;

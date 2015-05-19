@@ -44,6 +44,7 @@ include util.mk
 # so that we can tolerate the POSIX incompatible parts of Windows by override.
 WHICH=which
 NULL=/dev/null
+MV=mv
 CP=cp
 CAT=cat
 MKDIR=mkdir -p
@@ -177,7 +178,8 @@ test_import: tests/duke.model #for example, this one is created by test_export, 
   # (this test won't work on Windows, but that I don't need it to work there)
   .PHONY: manyexport
   manyexport:
-	while true; do $(MAKE) test_export; $(MV) tests/duke.model tests/duke.model`date +%H%M%S`; done
+	-rm tests/duke.model*
+	while true; do $(MAKE) test_export > /dev/null; $(MV) tests/duke.model tests/duke.model`date +%H%M%S`; done
 
 endif
 

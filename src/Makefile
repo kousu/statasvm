@@ -146,9 +146,21 @@ test_import: tests/duke.model #for example, this one is created by test_export, 
   # If this seems absurd, remember that Stata is targeted at GUI-heavy Windows users,
   # and that the most scripting they are likely to do is to run a big computation overnight.
   
+  # auto-wrap tests with the code in tests/helpers/
+  # Stata doesn't pass command line arguments to batch scripts
+  # *and* it doesn't let us control where stdout goes --- it insists on naming the output <basename>.log
+  # So to convince Stata to do roughly the right thing, we borrow a page from Microsoft: code generation and temporary files
+  # Stata *insists* the file extension for `stata -b file` be '.do';
+  # it exits silently and without error but without doing what I want otherwise.
+  # Hence, these wrapped files are given identical names but stuffed in a subdir to distinguish them.
+  #
+  # The order of dependencies *is the order the commands are concatenated*.
+  tests/wrapped/%.do: tests/helpers/settings.do tests/%.do tests/helpers/inspect_model.do
+	$(CAT) $^ > $@
+  
   #  because Stata doesn't have a tty mode, to fake having stdout we cat Stata's <testname>.log (note that this is in the current directory, not the directory the .do file is in!),
   #  which it generates when run in batch mode, and we mark this .INTERMEDIATE so that make knows to delete it immediately
-  %.log: tests/%.do
+  %.log: tests/wrapped/%.do
 	"$(STATA)" -e $<
   
   #notice: $< means 'the first prerequisite' and is basically a super-special case meant for exactly this sort of usage
@@ -170,6 +182,6 @@ endif
 # *.log *should* get cleaned up by the testing recipe, but in case it doesn't or you have made some manually we clean it again here
 clean:
 	-$(RM) $(foreach o,$(OBJECTS),$(wildcard $(o))) *.plugin *.log *.model
-	-$(RM) tests/*.model
+	-$(RM) tests/*.model tests/wrapped/*.do
 	#-$(RM) -r build/
 

@@ -1,8 +1,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h> //..yes.. there are two string headers
-#include <strings.h>
+#include <string.h>
 #include <stdbool.h>
 #include <math.h> //for NAN
 
@@ -49,7 +48,7 @@ static void error_stata(const char* s) {
  */
 struct svm_problem* stata2libsvm() {
   struct svm_problem* prob = malloc(sizeof(struct svm_problem));
-  bzero(prob, sizeof(struct svm_problem)); //zap the memory just in case
+  memset(prob, 0, sizeof(struct svm_problem)); //zap the memory just in case
   
   prob->l = 0; //initialize the number of observations
   // we cannot simply malloc into mordor, because `if' and `in' cull what's available

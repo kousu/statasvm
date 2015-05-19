@@ -51,6 +51,8 @@ TODO
 
 * [ ] Test the svmlight parser against files with excessively long (>512) tokens. It should error out, but I fear instead it'll just keep parsing.
 
+* [ ] Compare svm_save_model results from svm-train and my code. They /should/ always be identical on the same data.
+
 boost.ado:
 * [ ] "local k : word count `varlist'" better written "scalar k = wordcount("`varlist'")"
 * [ ] backport my multi-platform plugin packager/loader, so that it works everywhere

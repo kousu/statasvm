@@ -121,7 +121,7 @@ cleanup:
 
 
 
-STDLL _model2stata(int argc, char* argv[]) {
+ST_retcode _model2stata(int argc, char* argv[]) {
   ST_retcode err = 0;
   
 	if(argc != 1) {
@@ -298,7 +298,7 @@ STDLL _model2stata(int argc, char* argv[]) {
  */
 struct {
   const char* name;
-  STDLL (*func)(int argc, char* argv[]);
+  ST_retcode (*func)(int argc, char* argv[]);
 } subcommands[] = {
   { "_load", _load },
   { "train", train },
@@ -343,7 +343,7 @@ struct {
  *   - libsvm will accept feature id 0, though none of the. Perhaps we should also pass back a *minimum*?
  *   - how does svm_light compare?
  */
-STDLL _load(int argc, char* argv[]) {
+ST_retcode _load(int argc, char* argv[]) {
 
   ST_retcode err = 0;
   
@@ -472,7 +472,7 @@ STDLL _load(int argc, char* argv[]) {
 
 
 
-STDLL train(int argc, char* argv[]) {
+ST_retcode train(int argc, char* argv[]) {
 	
 	struct svm_parameter param;
 	// set up svm_paramet default values
@@ -532,7 +532,7 @@ STDLL train(int argc, char* argv[]) {
 }
 
 
-STDLL export(int argc, char* argv[]) {
+ST_retcode export(int argc, char* argv[]) {
 
 	if(argc != 1) {
     SF_error("Wrong number of arguments\n");
@@ -550,7 +550,7 @@ STDLL export(int argc, char* argv[]) {
 
 
 
-STDLL import(int argc, char* argv[]) {
+ST_retcode import(int argc, char* argv[]) {
 
 	if(argc != 1) {
     SF_error("Wrong number of arguments\n");

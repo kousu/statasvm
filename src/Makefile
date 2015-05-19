@@ -156,17 +156,17 @@ test_import: tests/duke.model #for example, this one is created by test_export, 
   #
   # The order of dependencies *is the order the commands are concatenated*.
   tests/wrapped/%.do: tests/helpers/settings.do tests/%.do tests/helpers/inspect_model.do
-	$(CAT) $^ > $@
+	$(CAT) $(call FixPath,$^) > $(call FixPath,$@)
   
   #  because Stata doesn't have a tty mode, to fake having stdout we cat Stata's <testname>.log (note that this is in the current directory, not the directory the .do file is in!),
   #  which it generates when run in batch mode, and we mark this .INTERMEDIATE so that make knows to delete it immediately
   %.log: tests/wrapped/%.do
-	"$(STATA)" -e $<
+	"$(STATA)" -e $(call FixPath,$<)
   
   #notice: $< means 'the first prerequisite' and is basically a super-special case meant for exactly this sort of usage
   #.PHONY: $(TESTS) #	" Make does not consider implicit rules for PHONY targets" ?? In other words: there is no way to autogenerate .PHONY targets. whyyyyy.
   test_%: %.log plugin
-	$(CAT) $<
+	$(CAT) $(call FixPath,$<)
   
   #.INTERMEDIATE: $(patsubst test_%,%.log,$(TESTS)) # this is commented out because it breaks under Win32 gmake, causing the files to *not* be deleted at finish.
   

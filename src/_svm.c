@@ -96,7 +96,7 @@ struct svm_problem* stata2libsvm() {
 			
 			// put data into Y[l]
 			// (there is only one Y so we hard-code the variable index)
-			SF_vdata(1, prob->l+1, &(prob->y[prob->l]));
+			SF_vdata(1, i+1, &(prob->y[prob->l]));
 			
 			// put data into X[l]
 			// (there are many values)
@@ -112,7 +112,7 @@ struct svm_problem* stata2libsvm() {
 			int c = 0; //and the current position within the subarray is tracked here
 			for(int j=1; j<SF_nvars(); j++) {
 				ST_double value;
-				if(SF_vdata(j+1 /*this +1 accounts for the y variable: variable 2 in the Stata dataset is x1 */, prob->l+1, &value) == 0 && !SF_is_missing(value)) {
+				if(SF_vdata(j+1 /*this +1 accounts for the y variable: variable 2 in the Stata dataset is x1 */, i+1, &value) == 0 && !SF_is_missing(value)) {
 					prob->x[prob->l][c].index = j;
 					prob->x[prob->l][c].value = value;
 					c++;

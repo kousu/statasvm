@@ -141,19 +141,20 @@ test_import: tests/duke.model #for example, this one is created by test_export, 
 
   ## find all tests automatically
   #TESTS:=$(wildcard tests/*.do)
+  #TESTS:=$(patsubst %.do,%,$(TESTS))
   # hardcode the list of tests explicitly: the advantage is controlling the order without doing weird things to test naming
   #TESTS:=loadplugin preload load train predict export import 
   TESTS:=$(shell $(CAT) $(call FixPath,tests/order.lst))
   
   # test targets
-  TESTS:=$(patsubst %,test_%,$(TESTS))
+  TESTS:=$(patsubst %,tests/%,$(TESTS))
   
   #notice: $< means 'the first prerequisite' and is basically a super-special case meant for exactly this sort of usage
   #.PHONY: $(TESTS) #	" Make does not consider implicit rules for PHONY targets" ?? In other words: there is no way to autogenerate .PHONY targets. whyyyyy.
-  test_%: %.log plugin
+  tests/%: %.log plugin
 	$(CAT) $(call FixPath,$<)
-  .PHONY: test
-  test: $(TESTS)
+  .PHONY: tests
+  tests: $(TESTS)
   
   # stata -b is 'batch mode', i.e. it's the closest Stata has to running "Rscript" or "ruby" or "python"
   # -e is identical to -b, except it suppresses the completion notification message

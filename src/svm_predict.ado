@@ -1,4 +1,4 @@
-capture program _svm, plugin /*load the C extension if not already loaded*/
+program _svm, plugin /*load the C extension if not already loaded*/
 
 program define svm_predict, eclass
   syntax namelist(max=1) [if] [in]
@@ -32,7 +32,6 @@ program define svm_predict, eclass
   *di "svm_predict: plugin call _svm `target' `varlist' `if' `in', predict" /*DEBUG*/
   plugin call _svm `target' `varlist' `if' `in', predict
 
-  ereturn clear
   /*fixup the e() dictionary*/
   /* TODO: currently this is empty, but svm_predict_probability() or svm_predict_values() give information;;; perhaps we can request them via a flag */
   

@@ -100,7 +100,8 @@ struct svm_problem* stata2libsvm() {
 			
 			// put data into X[l]
 			// (there are many values)
-      prob->x[prob->l] = calloc(SF_nvars()-1, sizeof(struct svm_node)); //TODO: make these inner arrays also dynamically grow. for a sparse problem this will drastically overallocate. (though I suppose your real bottleneck will be Stata, which doesn't do sparse)
+      prob->x[prob->l] = calloc(SF_nvars(), sizeof(struct svm_node)); //TODO: make these inner arrays also dynamically grow. for a sparse problem this will drastically overallocate. (though I suppose your real bottleneck will be Stata, which doesn't do sparse)
+      //svm_node[] is like a C-string: its actual length is one more than it's stated length, since it needs a final finisher token; so (SF_nvars()-1)+1 is the upper limit that we might need: -1 to take out the y column, +1 for the finisher token
       if(prob->x[prob->l] == NULL) {
         goto cleanup;
       }
@@ -536,7 +537,7 @@ ST_retcode train(int argc, char* argv[]) {
   const char *error_msg = NULL;
 	error_msg = svm_check_parameter(prob,&param);
 	if(error_msg) {
-		char error_buf[256];
+		char error_buf[256]; //XXX should we strlen() the error message? or should we make this larger?
 		snprintf(error_buf, 256, "Parameter error: %s", error_msg);
 		SF_error((char*)error_buf);
 		return(1);

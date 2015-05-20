@@ -114,23 +114,26 @@ Testing
 
 You can run the unit tests with, 
 ```
-$ make test
+$ make tests
 ```
 but you will need Stata installed and activated for this, of course.
 
 You can also run specific tests by appending the basename of the testing .do file. For example
 ```
-$ make test_train
+$ make tests/train
 ```
-will run `tests/train.do`.
+will run `tests/train.do` in a harness that detects errors.
 
 Most tests require some sort of example data. We use the [libsvm data archive](http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/) as a very convenient source, and as the running the tests will auto-download datasets as needed, you need to be aware of the copyright notice:
 * Chih-Chung Chang and Chih-Jen Lin, LIBSVM : a library for support vector machines. ACM Transactions on Intelligent Systems and Technology, 2:27:1--27:27, 2011. Software available at http://www.csie.ntu.edu.tw/~cjlin/libsvm.
 
 To compare test results from different platforms, try this:
 ```
-make clean; make test > `uname -s`.out
+make clean; make tests > `uname -s`.out
 ```
+
+Tests are only activated if they are in tests/order.lst, so that the tests can be ordered in progression by difficulty.
+TODO: replace order.lst with tests.mk, which can list explicitly the (partial) ordering.
 
 Installation/Deployment
 -----------------------

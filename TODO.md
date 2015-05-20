@@ -62,16 +62,22 @@ boost.ado:
 * [ ] backport my multi-platform plugin packager/loader, so that it works everywhere
 
 libsvm:
+* [ ] the python code is pretty hacky. A lot of it could be rolled into libsvm's core, and what's left can be replaced by things like argparse and multiprocessing
+* [ ] since they say svm_check_param() should always be called before svm_train(), *why not just roll it in?*
+  * fixing this is related the doing better polymorphism via a union type
 * [ ] make svm_type_table[] and char *kernel_type_table[] non-private (now, you can't link /directly/ against variables, but you can provide accessor functions to map both ways)
 * [ ] link the programs dynamically instead of statically; there's no point distributing a DLL if you're not going to use it
 * [ ] submit pprint() functions as patches
 * [x] patch the Makefile to be saner
+  * use implicit rules as much as possible
 * [ ] make print_func support printf arguments
 * [ ] replace all `fprintf(stderr, )`s with error_func (and make it also support printf args)
   * -> and then linkup error_func to Stata
 * [ ] canonicalize the freeing functions so that they all behave the same (the distinction between free_and_destroy() vs destroy() makes it difficult to use)
 * [ ] add svm_problem_free()
-* [ ] kill x_space from svm-train.c; it's not needed; just Malloc the space directly onto svm_problem->xvm_node
+* [ ] kill x_space from svm-train.c; it's not needed; just Malloc the space directly onto svm_problem->svm_node
 * [ ] rename 'svm_node' to something less generic.
 * [ ] Models read via svm_load_model leak x_space: it's never ever freed! (which is again a side effect of x_space sucking)
 * [ ] svm_parameter is an inheritence tree, awkwardly implemeneted in C by simply adding more fields than they will ever use at once. They *should* be using a union.
+* [ ] do away with free_sv, in favour of *always* copying the SVs; then you can (and should) free the svm_problem separately from the svm (give me an instance where you actually have so many support vectors that this is a problem)
+

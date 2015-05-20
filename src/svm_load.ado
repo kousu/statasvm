@@ -43,7 +43,7 @@ program define svm_load
     clear
 
     * Make variables y x1 x2 x3 ... x`=_svm_load_M'
-    generate y = .
+    generate double y = .
 
     * this weird newlist syntax is the official suggestion for making a set of new variables in "help foreach"
     foreach j of newlist x1-x`=_svm_load_M'  {

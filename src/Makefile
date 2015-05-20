@@ -183,6 +183,14 @@ test_import: tests/duke.model #for example, this one is created by test_export, 
 
 endif
 
+# --- Distribution ---
+
+$(call FixPath,../statasvm.zip): #at this writing, git doesn't let you say ".." as a path: it thinks it's "out of the repository", so instead we cd and hardcode the filename
+	cd .. && git archive --format=zip -o statasvm.zip HEAD
+
+.PHONY: release
+release: ../statasvm.zip
+
 
 # --- Cleaning ---
 

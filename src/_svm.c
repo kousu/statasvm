@@ -322,7 +322,7 @@ struct {
   { "train", train },
   { "export", export },
   { "import", import },
-  //{ "predict", predict },
+  { "predict", predict },
   { "_model2stata", _model2stata },
   { NULL, NULL }
 };
@@ -553,6 +553,72 @@ ST_retcode train(int argc, char* argv[]) {
 	//svm_problem_free(prob);
 	
   return 0;
+}
+
+
+
+/* 
+ * wrap libsvm:svm_predict()
+ * that function is *not* vectorized, but Stata is all about operating on whole datasets, so this is looped, in CPU
+ */
+ST_retcode predict(int argc, char* argv[]) {
+	
+  ST_retcode err = 0;
+
+  if(SF_nvars() < 1) {
+    SF_error("svm_predict: need at least a target\n");
+    return 1;
+  }
+  
+  if(model == NULL) {
+    SF_error("svm_predict: no active model\n");
+    return 1;
+  }
+  
+  
+	for(ST_int i = SF_in1(); i <= SF_in2(); i++) { //respect `in' option
+		if(SF_ifobs(i)) {			    									 //respect `if' option
+      // Map the current row into a libsvm svm_node list
+      //XXX TODO: this code was copied verbatim from stata2libsvm; it needs to be factored instead!!
+      struct svm_node* X = calloc(SF_nvars(), sizeof(struct svm_node));
+      if(X == NULL) {
+        SF_error("svm_predict: unable to allocate memory\n");
+        return 1;
+      }
+      
+			// libsvm uses a sparse datastructure
+			// that means that missing values should not be allocated
+			// the length of each row is indicated by index=-1 on the last entry
+			int c = 0; //and the current position within the subarray is tracked here
+			for(int j=1; j<SF_nvars(); j++) {
+				ST_double value;
+				if(SF_vdata(j+1 /*this +1 accounts for the y variable: variable 2 in the Stata dataset is x1 */, i+1, &value) == 0 && !SF_is_missing(value)) {
+					X[c].index = j;
+					X[c].value = value;
+					c++;
+				}
+                        }
+      X[c].index = -1; //mark end-of-row
+      X[c].value = SV_missval; //not strictly necessary, but it makes me feel good
+      
+      // do the prediction! (one observation at a time)
+      double y = svm_predict(model, X);
+      
+      // write back
+      // by convention wtih svm_predict.ado, the 1th variable, i.e. the first on the varlist (not the first in the dataset), is the output location
+		  err = SF_vstore(1 /*stata counts from 1*/, i, y);
+		  if(err) {
+#ifdef DEBUG
+		    printf("unable to store prediction\n");
+#endif
+		    SF_error("unable to store prediction\n");
+		    return err;
+	    }
+      
+      free(X);
+	} }
+
+        return 0;
 }
 
 

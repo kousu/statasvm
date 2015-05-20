@@ -19,9 +19,9 @@ program define svm_load
     * ADDITIONALLY, Stata has an off-by-one bug: the max you can actually pass to a C plugin is one less [citation needed]
     * We simply clamp the number of variables to get around this,  leaving room for 1 for the Y variable and 1 to avoid the off-by-one bug
     * This needs to be handled better. Perhaps we should let the user give varlist (but if they don't give it, default to all in the file??)
-    if(`=_svm_load_M+1' > `c(max_k_theory)'-1) {
-      di as error "Warning: your version of Stata will not allow `=_svm_load_M+1' variables nor be able to use the C plugin with that many. Clamping to `=c(max_k_theory)-1'."
-      scalar _svm_load_M = `=c(max_k_theory)-1-1' /*remember: the extra -1 is to account for the Y column*/
+    if(`=_svm_load_M+1' > `c(max_k_theory)'-1-1) {
+      di as error "Warning: your version of Stata will not allow `=_svm_load_M+1' variables nor be able to use the C plugin with that many. Clamping to `=c(max_k_theory)-1-1'."
+      scalar _svm_load_M = `=c(max_k_theory)-1-1-1' /*remember: the extra -1 is to account for the Y column, and the extra extra -1 is the leave room for a prediction column*/
     }
     
     * handle error cases; I do this explicitly  so 

@@ -47,6 +47,11 @@ static void error_stata(const char* s) {
  * Compare sklearn's [dense2libsvm](TODO), which does the same job but coming from a numpy matrix instead 
  */
 struct svm_problem* stata2libsvm() {
+  if(SF_nvars() < 1) {
+    SF_error("stata2libsvm: no outcome variable specified\n");
+    return NULL;
+  }
+
   struct svm_problem* prob = malloc(sizeof(struct svm_problem));
   if(prob == NULL) {
     // TODO: error
@@ -95,7 +100,7 @@ struct svm_problem* stata2libsvm() {
 			
 			// put data into X[l]
 			// (there are many values)
-      prob->x[prob->l] = calloc(SF_nvars(), sizeof(struct svm_node)); //TODO: make these inner arrays also dynamically grow. for a sparse problem this will drastically overallocate. (though I suppose your real bottleneck will be Stata, which doesn't do sparse)
+      prob->x[prob->l] = calloc(SF_nvars()-1, sizeof(struct svm_node)); //TODO: make these inner arrays also dynamically grow. for a sparse problem this will drastically overallocate. (though I suppose your real bottleneck will be Stata, which doesn't do sparse)
       if(prob->x[prob->l] == NULL) {
         goto cleanup;
       }
@@ -125,7 +130,7 @@ struct svm_problem* stata2libsvm() {
 	return prob;
 	
 cleanup:
-  SF_error("stata2libsvm failed\n");
+  SF_error("XXX stata2libsvm failed\n");
   //TODO: clean up after ourselves
 	//TODO: be careful to check the last entry for partially initialized subarrays
 	return NULL;
@@ -486,6 +491,11 @@ ST_retcode _load(int argc, char* argv[]) {
 
 ST_retcode train(int argc, char* argv[]) {
 	
+  if(SF_nvars() < 2) {
+    SF_error("svm_train: need one dependent and at least one independent variable.\n");
+    return 1;
+  }
+
 	struct svm_parameter param;
 	// set up svm_paramet default values
 	
@@ -513,7 +523,7 @@ ST_retcode train(int argc, char* argv[]) {
 	
 	struct svm_problem* prob = stata2libsvm();
   if(prob == NULL) {
-    SF_error("stata2libsvm failed\n");
+    //assumption: stata2libsvm has already SF_error()ed anything we could
     return 1;
   }
 #ifdef DEBUG

@@ -53,6 +53,9 @@ TODO
 
 * [ ] Compare svm_save_model results from svm-train and my code. They /should/ always be identical on the same data.
 
+* [ ] add auto-valgrinding to the makefile (e.g. make VALGRIND=1 or make VALGRIND="--show-...." to trigger a lookup and addition of valgrind to the mix
+* [ ] auto-scale/centering?
+
 make:
 * [ ] On Windows, it appears that forward-slashes aren't recognized as path separators in targets. They are in prerequisites, though.
    Set up a test case and submit a bug report.

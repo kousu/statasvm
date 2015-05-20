@@ -1,4 +1,4 @@
-capture program _svm, plugin /*load the C extension if not already loaded*/
+program _svm, plugin /*load the C extension if not already loaded*/
 
 program define svm_predict, eclass
   syntax namelist(max=1) [if] [in]

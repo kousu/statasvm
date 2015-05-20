@@ -1,4 +1,4 @@
-capture program _svm, plugin /*load the C extension if not already loaded*/ 
+program _svm, plugin /*load the C extension if not already loaded*/
 
 * subroutine to convert the global struct svm_model that lives in the DLL to a mixture of e() entries, variables, and matrices
 * this needs to be its own subroutine because, due to limitations in the Stata C API,th 

@@ -13,8 +13,6 @@
 *  for some reason, Stata often uses macros instead of scalar variables, e.g. this is how "foreach" and "file read" behave. Perhaps Stata at one point had no scalars and therefore people fell back on macros, and now it's stuck and it's horrible.
 
 program define svm
-  gettoken subcmd 0 : 0 , parse(" ,")
-  di "calling svm_`subcmd'"
-  svm_`subcmd'
+  svm_train `0'
 end
 

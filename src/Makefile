@@ -139,8 +139,19 @@ test_import: tests/duke.model #for example, this one is created by test_export, 
 # the meta-target test runs all tests
 # TODO: Stata always returns 0 so make doesn't know if a test fails or not, but Stata does print error codes out, so I need to write a wrapper that translates these to OS-level return codes
 
-  TESTS:=$(patsubst tests/%.do,test_%,$(wildcard tests/*.do))
+  ## find all tests automatically
+  #TESTS:=$(wildcard tests/*.do)
+  # hardcode the list of tests explicitly: the advantage is controlling the order without doing weird things to test naming
+  #TESTS:=loadplugin preload load train predict export import 
+  TESTS:=$(shell $(CAT) $(call FixPath,tests/order.lst))
   
+  # test targets
+  TESTS:=$(patsubst %,test_%,$(TESTS))
+  
+  #notice: $< means 'the first prerequisite' and is basically a super-special case meant for exactly this sort of usage
+  #.PHONY: $(TESTS) #	" Make does not consider implicit rules for PHONY targets" ?? In other words: there is no way to autogenerate .PHONY targets. whyyyyy.
+  test_%: %.log plugin
+	$(CAT) $(call FixPath,$<)
   .PHONY: test
   test: $(TESTS)
   
@@ -166,10 +177,6 @@ test_import: tests/duke.model #for example, this one is created by test_export, 
   %.log: tests/wrapped/%.do
 	"$(STATA)" -e $(call FixPath,$<)
   
-  #notice: $< means 'the first prerequisite' and is basically a super-special case meant for exactly this sort of usage
-  #.PHONY: $(TESTS) #	" Make does not consider implicit rules for PHONY targets" ?? In other words: there is no way to autogenerate .PHONY targets. whyyyyy.
-  test_%: %.log plugin
-	$(CAT) $(call FixPath,$<)
   
   #.INTERMEDIATE: $(patsubst test_%,%.log,$(TESTS)) # this is commented out because it breaks under Win32 gmake, causing the files to *not* be deleted at finish.
   

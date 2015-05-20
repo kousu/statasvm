@@ -1,4 +1,4 @@
-capture program _svm, plugin /*load the C extension if not already loaded*/
+program _svm, plugin /*load the C extension if not already loaded*/
 
 * save the current dataset in svmlight format
 * 

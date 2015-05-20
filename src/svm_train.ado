@@ -1,4 +1,4 @@
-capture program _svm, plugin /*load the C extension if not already loaded*/
+program _svm, plugin /*load the C extension if not already loaded*/
 
 program define svm_train, eclass
   syntax varlist [if] [in], [options_go_here]

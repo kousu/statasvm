@@ -51,11 +51,16 @@ TODO
 
 * [ ] Test the svmlight parser against files with excessively long (>512) tokens. It should error out, but I fear instead it'll just keep parsing.
 
-* [ ] Compare svm_save_model results from svm-train and my code. They /should/ always be identical on the same data.
+* [x] Compare svm_save_model results from svm-train and my code. They /should/ always be identical on the same data.
+
 
 * [ ] add auto-valgrinding to the makefile (e.g. make VALGRIND=1 or make VALGRIND="--show-...." to trigger a lookup and addition of valgrind to the mix
 * [ ] auto-scale/centering?
 
+* [ ] consider pros and cons of committing svm.h and libsvm.lib and libsvm.dll to the local repo, as in  http://blog.nuclex-games.com/2012/03/how-to-consume-dlls-in-visual-cxx/
+  * pro: build is simpler: there's no need to download and build libsvm -- and so there's no intrinsic dependency on VS
+  * con: cannot control architecture; or else there'd have to be duplicate .dlls
+  
 make:
 * [ ] On Windows, it appears that forward-slashes aren't recognized as path separators in targets. They are in prerequisites, though.
    Set up a test case and submit a bug report.

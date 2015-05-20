@@ -10,10 +10,6 @@ FixPath = $(subst /,\,$1)
 # platform config
 DLLEXT:=dll
 
-# rewrite $OBJECTS to be Windows-style
-OBJECTS := $(call FixPath,$(patsubst %.o,%.obj,$(OBJECTS)))
-
-
 # the common testing code is written POSIXey; these variables glue POSIX shell into the DOS shell, more or less.
 CAT=type 2>NUL
 RM=del /F /Q 2>NUL
@@ -39,16 +35,19 @@ LIBS := $(patsubst svm,libsvm,$(LIBS))
 # look for a default C compiler (usually 'cc')
 # if this is found, it's probably MinGW; and if it is MinGW, this is the proper way to find it.
 ifeq ($(shell where $(CC)),)
+  ifneq (($shell where gcc),) #MinGW doesn't install a symlink cc -> gcc :(
+    CC=gcc
+  endif
+endif
+
+ifeq ($(shell where $(CC)),)
   # but if it's not found,
   # look for MSVC and then MinGW if that fails
   # this if a nested-if-else tree because what I'd do in another language (a hashtable of function pointers, or at least a list of options plus a loop) is, charitably speaking, tricky in make
   ifdef VCINSTALLDIR
+    $(info Assuming Visual Studio)
     include Windows.VC.mk
   else
-    ifneq ($(shell where gcc),)
-      $(error NotImplemented: MinGW)
-      include Windows.MinGW.mk
-    else
       # if the toolchain is still not found, bail
       # it is too hard to do multiline error strings in make (http://stackoverflow.com/questions/649246/is-it-possible-to-create-a-multi-line-string-variable-in-a-makefile), so I'm misusing $(warning) instead: 
       $(warning Unable to find a C compiler for your Windows machine)
@@ -57,8 +56,10 @@ ifeq ($(shell where $(CC)),)
       $(warning i. Relaunch this command prompt from the system-appropriate VS Tools Command Prompt shortcut in your Start Menu,)
       $(warning ii. or invoke vcvarsall.bat manually (see https://msdn.microsoft.com/en-us/library/x4d2c09s.aspx))
       $(error Bailing)
-    endif
   endif
+else
+  $(info Assuming MinGW)
+  include Windows.MinGW.mk
 endif
 
 

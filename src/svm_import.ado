@@ -1,4 +1,4 @@
-capture program _svm, plugin /*load the C extension if not already loaded*/
+program _svm, plugin /*load the C extension if not already loaded*/
 
 * import a libsvm model file
 * XXX because of how the libsvm variable labels don't necessarily align with the Stata ones,

@@ -5,7 +5,7 @@
 * TODO: rename to svm_use and figure out how to support the dual 'svm use filename' and 'svm use varlist using filename' that the built-in use does
 *        it will be possible, just maybe ugly
 
-capture program _svm, plugin /*load the C extension if not already loaded*/
+program _svm, plugin /*load the C extension if not already loaded*/
 
 program define svm_load
   syntax using/

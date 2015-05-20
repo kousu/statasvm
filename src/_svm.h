@@ -18,11 +18,11 @@
 extern struct svm_model* model;
 
 struct svm_problem* stata2libsvm();
-STDLL _load(int argc, char* argv[]);
-STDLL train(int argc, char* argv[]);
-STDLL export(int argc, char* argv[]);
-STDLL import(int argc, char* argv[]);
-STDLL predict(int argc, char* argv[]);
+ST_retcode _load(int argc, char* argv[]);
+ST_retcode train(int argc, char* argv[]);
+ST_retcode export(int argc, char* argv[]);
+ST_retcode import(int argc, char* argv[]);
+ST_retcode predict(int argc, char* argv[]);
 
 //
 STDLL stata_call(int argc, char *argv[]);

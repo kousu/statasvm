@@ -30,8 +30,7 @@ program define _svm_model2stata, eclass
   
   
   * Phase 2
-  
-  * Allocate Stata matrices to copy the libsvm matrices and vectors
+  * Allocate Stata matrices and copy the libsvm matrices and vectors
   
   *TODO: SV and sv_indices are probably best translated jointly by adding an indicator variable column to the original dataset telling if that observation was chosen as a support vector (of course, this will mean we need to further clamp the upper limit)
   
@@ -50,6 +49,7 @@ program define _svm_model2stata, eclass
   matrix colnames labels = "labels"
   
   matrix sv_coef = J(e(nr_class)-1,e(l),.)
+  
   if(`have_rho'==1) {
     matrix rho = J(e(nr_class),e(nr_class),.)
   }
@@ -65,6 +65,28 @@ program define _svm_model2stata, eclass
   *  I can easily extract ->label with the same code, but attaching it to the rownames of the other is tricky
   plugin call _svm, "_model2stata" 2
   
+  * Phase 3
+  * Export the rest of the values to e()
+  * We *cannot* export matrices to e() from the C interface, hence we have to do this very explicit thing
+  * NOTE: 'ereturn matrix' erases the old name (unless you specify ,copy), which is why we don't have to explicitly drop things
+  *       'ereturn scalar' doesn't do this, because Stata loves being consistent. Just go read the docs for 'syntax' and see how easy it is. 
   
+  if(`have_sv_indices'==1) {
+    ereturn matrix SVs = SVs
+  }
+  
+  ereturn matrix nSV = nSV
+  ereturn matrix labels = labels
+  
+  ereturn matrix sv_coef = sv_coef
+  if(`have_rho'==1) {
+    ereturn matrix rho = rho
+  }
+  if(`have_probA'==1) {
+    ereturn matrix probA = probA
+  }
+  if(`have_probB'==1) {
+    ereturn matrix probB = probB
+  }
   
 end

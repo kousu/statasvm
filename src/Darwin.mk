@@ -5,6 +5,7 @@ include posix.mk
 DLLEXT:=dylib
 
 CFLAGS+=-DSYSTEM=APPLEMAC	#the Stata Programming Interface (i.e. stplugin.h) name for what OS we're on (actually, the OS X plugin seems to work fine if compiled with OPUNIX, but I don't want to trust to that)
+
 LDFLAGS+=-bundle
 
 

@@ -1,17 +1,18 @@
 # common POSIX parts. Makefile.{Linux,OpenBSD,FreeBSD,NetBSD,Darwin} all inherit from this
 # the values in here correspond to the
 
-DLLEXT:=so
+ifndef DLLEXT #hack: this guards against overwriting DLLEXT:=dll
+  DLLEXT:=so
+endif
 
 CFLAGS+=-Wall -Werror
-CFLAGS+=-fPIC   # Note: the stata docs (http://www.stata.com/plugins/) do not mention -fPIC, but they probably haven't used a recent GCC: GCC demands it
-CFLAGS+=-std=c99 #arrrrgh
+CFLAGS+=-std=c99 #arrrrgh, this should be the default
 
 #CFLAGS+=-DDEBUG
 
 # strange, make comes with .LIBPATTERNS yet doesn't come with rules for actually making .so files
-%.so:
-	$(CC) $(LDFLAGS) $(foreach L,$(LIBS),-l$L) $^ -o $@
+%.$(DLLEXT):
+	$(CC) $(LDFLAGS) $^  -o $@  $(foreach L,$(LIBS),-l$L)
 
 
 #svm.plugin: $(OS)/$(ARCH)/svm.plugin

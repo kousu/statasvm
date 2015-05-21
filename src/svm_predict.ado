@@ -1,8 +1,8 @@
 program _svm, plugin /*load the C extension if not already loaded*/
 
 program define svm_predict, eclass
-  syntax namelist(max=1) [if] [in]
-  local target = "`namelist'"
+  syntax newvarname [if] [in]
+  local target = "`varlist'"
   
   * C plugins can only speak to variables mentioned in the varlist they are called with
   * that is, if we are going predict on some vectors, we need to know what X variables we're

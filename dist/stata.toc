@@ -1,0 +1,5 @@
+v 3
+d nguenthe's stata repo
+
+* this repo has one sub-repo per package, because that's cleaner on my end
+p svm/svm - Support Vector Machines for both Classification and Regression

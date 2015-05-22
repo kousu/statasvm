@@ -1,0 +1,5 @@
+# Folder for building
+# If you run a webserver in this folder, Stata should (/should/, this is alpha still) be able to install and use the code, no matter what platform
+
+# Ignore subfolders, because they are The Devils Work
+*/

@@ -66,8 +66,10 @@ make:
    Set up a test case and submit a bug report.
 
 boost.ado:
+* [ ] backport putting subdirectories for packages
 * [ ] "local k : word count `varlist'" better written "scalar k = wordcount("`varlist'")"
-* [ ] backport my multi-platform plugin packager/loader, so that it works everywhere
+* [ ] backport .pkg's (new?) feature of 'g WIN64 boost64.dll boost.plugin' + 'h boost.plugin'
+* [ ] backport auto-loading the plugin
 
 libsvm:
 * [ ] the python code is pretty hacky. A lot of it could be rolled into libsvm's core, and what's left can be replaced by things like argparse and multiprocessing

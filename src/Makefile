@@ -35,23 +35,12 @@
 
 # TODO:
 # [ ] document clearly how much this depends on your environment variables
+# [ ] the plugin should be a subproject with a submakefile, ideally makeable on its own but separate from the ado files
+#    that will let this build system be adapted to multi-plugin packages
 
 # --- includes ---
 
 include util.mk
-
-# --- config ---
-
-# extend the list of $(CC), $(YACC), ... with extra standard programs variables
-# so that we can tolerate the POSIX incompatible parts of Windows by override.
-WHICH:=which
-NULL:=/dev/null
-MV:=mv
-CAT:=cat
-RM:=rm -rf
-CP:=cp
-MKDIR:=mkdir -p
-LN:=ln -f
 
 
 

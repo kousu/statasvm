@@ -1,7 +1,21 @@
 # common POSIX parts. Makefile.{Linux,OpenBSD,FreeBSD,NetBSD,Darwin} all inherit from this
 # the values in here correspond to the
 
-ifndef DLLEXT #hack: this guards against overwriting DLLEXT:=dll
+# --- config ---
+
+# extend the list of $(CC), $(YACC), ... with extra standard programs variables
+# so that we can tolerate the POSIX incompatible parts of Windows by override.
+WHICH:=which
+NULL:=/dev/null
+MV:=mv
+CAT:=cat
+RM:=rm -rf
+CP:=cp
+MKDIR:=mkdir -p
+LN:=ln -f
+
+
+ifndef DLLEXT #hack: this guards against overwriting DLLEXT:=dll in the MinGW path
   DLLEXT:=so
 endif
 

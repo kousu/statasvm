@@ -62,4 +62,3 @@ define cludine
 $(foreach i,$(1),$(eval $(call _cludine,$(i))))
 endef
 
-$(eval $(call cludine,tst/Makefile tst/tst/Makefile))

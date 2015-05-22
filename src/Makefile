@@ -27,6 +27,8 @@
 # - %.ext2:
 #      <recipe> $^
 #   defines a templated way to build .ext files without specifying which ones to build. It is meant to be used with a recipeless 'target.ext2: fileA.ext1 fileB.ext1'
+# - to rename a file (which you might want to do if there's a pattern rule for one file extension but you want its outcome to be another) you must use $(LN) or $(CP),
+#   because $(MV) will cause make to see that a dependency is missing and then behave inconsistently, either always rebuilding or do different subsections of the sequence each run or not doing anything.
 
 #NB: this template rule doesn't have any dependencies specified, but is uses them ($^).
 #    this means you need to give them, by saying, e.g. `mylib.dll: mymain.obj myutil.obj`
@@ -46,17 +48,17 @@ WHICH:=which
 NULL:=/dev/null
 MV:=mv
 CAT:=cat
-RM:=rm
+RM:=rm -rf
 CP:=cp
 MKDIR:=mkdir -p
-LN:=ln
+LN:=ln -f
 
 
 
 
 # --- build declarations  ---
 
-NAME:=_svm
+PLUGIN:=_svm
 
 # Compiled but unlinked object files
 # These assume POSIX (XXX maybe we should `include posix.mk` unconditionally, and then override it, since most of the builds are basically posix)
@@ -65,9 +67,21 @@ OBJECTS := $(patsubst %.c,%.o,$(CODE))
 
 LIBS += svm
 
-
 # --- platform detection ---
 
+# Our platform as far as we care is two pieces: the $(OS) and the processor $(ARCH)
+# These are the standard forms used most places: {Windows_NT,Darwin,Linux,....}, and {i386, x86_64}
+#
+# Stata knows this information too, and at runtime offers it as c(os) and c(bit),
+# but its strings are different: {Windows,MacOSX,Unix} and {32,64}
+# Additionally, at *package time* it has an entirely different scheme,
+# documented in [R]->net->Creating your own site->Additional package directives:
+# {Windows,32} -> {WIN}
+# {Windows,64} -> {WIN64A}  #notice the 'A'!
+# {MacOSX64,32} -> {MACINTEL}
+# {MacOSX64,64} -> {MACINTEL64}
+# {Unix,32} -> {LINUX} #because there's apparently no other Unices
+# {Unix,64} -> {LINUX64}
 
 .PHONY: all #this has to come before we include <OS>.mk, because it has to be the first rule
 all: plugin
@@ -78,26 +92,62 @@ ifneq ($(OS),Windows_NT)
   ARCH:=$(shell uname -m)
 endif
 
+
 ifeq ($(wildcard $(OS).mk),)
   $(error "Unsupported OS '$(OS)'")
-else
-  include $(OS).mk
 endif
+
+include $(OS).mk
+
+
+# now that the platform-specific stuff has loaded,
+# compute Stata's package-time platform string
+ifeq ($(OS),Windows_NT)
+  PLATFORM:=WIN
+else ifeq ($(OS),Darwin)
+  PLATFORM:=MACINTEL
+else
+  PLATFORM:=LINUX
+endif
+
+ifeq ($(ARCH),x86_64)
+  PLATFORM:=$(PLATFORM)64
+endif
+
+ifeq ($(PLATFORM),WIN64) #handle the nuisance special case
+    PLATFORM:=$(PLATFORM)A
+endif
+
 
 # --- rules ---
 
 
 .PHONY: plugin
-plugin: $(NAME).plugin
+plugin: bin/$(PLATFORM)/$(PLUGIN).plugin
 
-$(NAME).$(DLLEXT): $(OBJECTS)
+# as a convenience for development, auto-link back the platform-specific plugin to the local directory, so that the tests can find it
+# the proper thing to do would be to edit Stata's path, and I miiight be able to automate what with 'which svm.ado' + 'adopath',
+#  but the tests won't work unless they are run from the Makefile directory anyway
+plugin: $(PLUGIN).plugin
+$(PLUGIN).plugin: bin/$(PLATFORM)/$(PLUGIN).plugin
+	$(LN) $(call FixPath,$<) $(call FixPath,$@)
+
 
 # Stata uses consistent naming across platforms for library files,
 # even if the platforms don't, so we can have a shared target
 # TODO: do platform-specific builds under build/$(OS)/$(ARCH)/ (and then link or copy the final result to ./svm.plugin)
 #       we will ultimately distribute all of $(OS)/$(ARCH)/svm.plugin to everyone, since that's about the best we can do given Stata's simplistic package management system.
-$(NAME).plugin: $(NAME).$(DLLEXT)
-	$(LN) $(call FixPath,$<	) $(call FixPath,$@)
+bin/$(PLATFORM)/%.plugin: %.$(DLLEXT)
+#the silent mkdir is awkwardly written twice because windows doesn't have mkdir -p
+	@$(MKDIR) bin && cd bin && $(MKDIR) $(PLATFORM)
+	$(LN) $(call FixPath,$<) $(call FixPath,$@)
+
+
+$(PLUGIN).$(DLLEXT): $(OBJECTS)
+
+%.plugin: bin/$(PLATFORM)/%.plugin
+
+
 
 # (this would do the 'and then link' step)
 #$(NAME).plugin: $(OS)/$(ARCH)/$(NAME).plugin
@@ -213,5 +263,4 @@ release: ../statasvm.zip
 clean:
 	-$(RM) $(foreach o,$(OBJECTS),$(wildcard $(o))) *.plugin *.log *.model
 	-$(RM) tests/*.model tests/wrapped/*.do
-	#-$(RM) -r build/
-
+	-$(RM) bin/

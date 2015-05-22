@@ -20,7 +20,9 @@ CFLAGS+=/W3 /WX #turn up warnings, and make them crash the compile
 LDFLAGS+=/DLL    #build a DLL instead of an EXE
 LDFLAGS+=/LTCG   #causes whole-DLL optimization 
 
-ifeq ($(Platform),X64) #UNFINISHED
+# Windows doesn't have uname; instead we have to check the variable set by vcvarsall.bat to figure out what arch we're building for
+# the *output* here *is* in posix uname -m format, though.
+ifeq ($(Platform),X64)
   ARCH:=x86_64
 else
   ARCH:=i386

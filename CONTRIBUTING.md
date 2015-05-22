@@ -54,6 +54,52 @@ Compiling
 See [COMPILE](COMPILE.md)
 
 
+Deployment (aka Distribution)
+----------------------------
+
+Stata has its own home-grown package manager, as described in [[R]](http://www.stata.com/manuals14/rnet.pdf).
+Since it is closed-source, it would be rare for its packages to show up in package managers, anyway.
+This means that we are responsible for packaging because we are the downstream.
+
+To make a package ready for distribution, go to *each* build machine and do:
+```
+$ make
+```
+
+Copy all the results (the only differences should in the bin/ subfolder). When you have done all the builds,
+you should see all the platforms waiting
+```
+$ ls -l bin/
+[TODO]
+```
+
+Next, you need to find copies of libsvm to bundle for the Windows and OS X builds (we rely on package managers for other systems).
+For WIN, the 32 bit Windows, you need to get a 32 bit libsvm.dll. For WIN64A, you need a 64 bit libsvm.dll.
+Similarly on Mac.
+Put these DLLs next to their respective _svm.plugins, so that you have:
+```
+ls -l bin/*/
+[TODO]
+```
+
+Now you are ready to
+```
+$ make dist
+```
+
+You should run a testing server and note down your hostame
+```
+$ ../scripts/dist.sh
+```
+so that, on each platform, you can make sure the plugin loads:
+```
+. net from http://$HOSTNAME:8000
+. net describe svm
+. net install svm
+. svm
+. net uninstall svm
+```
+
 Development Tips
 ----------------
 

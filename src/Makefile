@@ -42,11 +42,12 @@
 
 include util.mk
 
-
-
-
 # --- build declarations  ---
 
+NAME:=statasvm
+PKG:=svm
+AUTHOR:=Nick Guenther <nguenthe@uwaterloo.ca> and Matthias Schonlau <schonlau@uwaterloo.ca>
+DESCRIPTION:=Support Vector Machines for both Classification and Regression
 PLUGIN:=_svm
 
 # Compiled but unlinked object files
@@ -232,14 +233,7 @@ tests/import: tests/duke.model #for example, this one is created by test_export,
 
 endif
 
-# --- Distribution ---
-
-$(call FixPath,../statasvm.zip): #at this writing, git doesn't let you say ".." as a path: it thinks it's "out of the repository", so instead we cd and hardcode the filename
-	cd .. && git archive --format=zip -o statasvm.zip HEAD
-
-.PHONY: release
-release: ../statasvm.zip
-
+include dist.mk
 
 # --- Cleaning ---
 
@@ -253,3 +247,4 @@ clean:
 	-$(RM) $(foreach o,$(OBJECTS),$(wildcard $(o))) *.plugin *.log *.model
 	-$(RM) tests/*.model tests/wrapped/*.do
 	-$(RM) bin/
+	-$(RM) dist/

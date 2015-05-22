@@ -1,0 +1,30 @@
+#!/bin/bash
+
+cd $(dirname $1)
+PKG=$(basename $1 .pkg)
+DESCRIPTION=$2
+AUTHOR=$3
+
+(
+# state the .pkg version number
+echo v 3
+
+# package description
+echo d $PKG
+echo d $DESCRIPTION
+echo d $AUTHOR
+echo
+
+# package contents
+#
+# we blindly index all the files (-type f) in the folder
+# BUT files under bin/ are special: they are platform-specific binaries:
+# bin/MACINTEL64/file is written as 'g MACINTEL64 $PKG/bin/MACINTEL64/file
+# additionally, any .plugin files found under .bin are marked 'h file.plugin'
+# which makes Stata bail if it can't find a matching one in the platform list,
+# since .plugin modules are the goal of these packaging shennanigans
+# (however, there may be other files, e.g. .dlls, which should not force a failure )
+find $PKG/ -type f \( -name "bin" -prune -o -print \) | awk '{ print "f " $1 }'
+find $PKG/bin -mindepth 2 -maxdepth 3 -type f  | awk '{ split($1,A,"/"); print "g " A[3] " " $1 }'
+find $PKG/bin -type f -name "*.plugin" -exec basename {} \; | sort | uniq | awk '{ print "h " $1 }'
+) > $PKG.pkg

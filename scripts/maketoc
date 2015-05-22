@@ -1,0 +1,32 @@
+#!/bin/sh
+
+
+REPO=$1
+DESCRIPTION=$2
+
+cd $REPO
+
+(
+# state the .toc format version
+echo v 3
+
+# repo description
+# including Distribution-Date in that format enables 'adoupdate'
+# See [R]->net->Format of content and package-description files.
+cat <<EOF
+d $DESCRIPTION
+EOF
+
+# blank line
+echo
+
+
+# repo contents
+#
+find -type f -name "*.pkg" | while read PKG; do
+  # extract each package's one-liner description, assuming the convention that it is the second "d " line
+  PKG_DESCRIPTION=$(egrep "^d " $PKG | head -n 2 | tail -n 1 | cut -c 3-)
+  # note it down in the table of contents
+  echo "p $PKG $PKG_DESCRIPTION"
+done
+) > stata.toc

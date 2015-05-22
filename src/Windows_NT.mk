@@ -16,6 +16,7 @@ NULL:=NUL
 MV:=rename /Y 2>NUL
 CAT:=type 2>NUL
 RM:=del /F /Q 2>NUL
+RMDIR:=rmdir /S /Q 2>NUL
 CP:=copy /Y 2>NUL
 MKDIR:=mkdir
 LN:=$(CP)  #Windows doesn't have reliable hard links (NTFS does, but you know), so instead of linking just duplicate.

@@ -245,6 +245,7 @@ include dist.mk
 # *.log *should* get cleaned up by the testing recipe, but in case it doesn't or you have made some manually we clean it again here
 clean:
 	-$(RM) $(foreach o,$(OBJECTS),$(wildcard $(o))) *.plugin *.log *.model
-	-$(RM) tests/*.model tests/wrapped/*.do
-	-$(RM) bin/
-	-$(RM) dist/
+	-$(RM) $(call FixPath,tests/*.model)
+	-$(RMDIR) $(call FixPath,tests/wrapped)
+	-$(RMDIR) bin
+	-$(RMDIR) dist

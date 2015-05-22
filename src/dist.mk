@@ -52,14 +52,14 @@ dist: dist/stata.toc
 
 # XXX clean this up
 # factor out the 'make stata repos' and 'make stata packages' parts
-dist/stata.toc:
+dist/stata.toc: ../scripts/maketoc
 	@mkdir -p $(dir $@)
 	../scripts/maketoc $(dir $@) "$(DESCRIPTION)"
 
 dist/stata.toc: DESCRIPTION:=nguenthe's Stata repo
 
 
-dist/%.pkg: $(DIST)
+dist/%.pkg: $(DIST) ../scripts/makepluginpkg
 	@mkdir -p $(dir $@)
 	../scripts/makepluginpkg "$@" "$(DESCRIPTION)" "$(AUTHOR)"
 

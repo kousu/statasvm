@@ -23,7 +23,7 @@ echo
 
 # repo contents
 #
-find ./ -type f -name "*.pkg" | cut -c 3- | while read PKG; do
+find . -type f -name "*.pkg" | cut -c 3- | while read PKG; do
   # extract each package's one-liner description, assuming the convention that it is the second "d " line
   PKG_DESCRIPTION=$(egrep "^d " $PKG | head -n 2 | tail -n 1 | cut -c 3-)
   # note it down in the table of contents

@@ -11,10 +11,15 @@ FixPath = $(subst /,\,$1)
 DLLEXT:=dll
 
 # the common testing code is written POSIXey; these variables glue POSIX shell into the DOS shell, more or less.
-CAT=type 2>NUL
-RM=del /F /Q 2>NUL
-CP=copy /Y 2>NUL
-MKDIR=mkdir
+WHICH:=where
+NULL:=NUL
+MV:=rename /Y 2>NUL
+CAT:=type 2>NUL
+RM:=del /F /Q 2>NUL
+CP:=copy /Y 2>NUL
+MKDIR:=mkdir
+LN:=$(CP)  #Windows doesn't have reliable hard links (NTFS does, but you know), so instead of linking just duplicate.
+
 
 # 'del', 'type' and so on are are DOS builtins and, unlike POSIX, they are *only builtins* (there is no /bin/[ on Windows),
 # so we must run them via cmd, either by prefixing them with `cmd /c` or, more simply, enforcing which shell make uses.

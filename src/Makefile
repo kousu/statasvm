@@ -42,12 +42,14 @@ include util.mk
 
 # extend the list of $(CC), $(YACC), ... with extra standard programs variables
 # so that we can tolerate the POSIX incompatible parts of Windows by override.
-WHICH=which
-NULL=/dev/null
-MV=mv
-CP=cp
-CAT=cat
-MKDIR=mkdir -p
+WHICH:=which
+NULL:=/dev/null
+MV:=mv
+CAT:=cat
+RM:=rm
+CP:=cp
+MKDIR:=mkdir -p
+LN:=ln
 
 
 
@@ -95,7 +97,7 @@ $(NAME).$(DLLEXT): $(OBJECTS)
 # TODO: do platform-specific builds under build/$(OS)/$(ARCH)/ (and then link or copy the final result to ./svm.plugin)
 #       we will ultimately distribute all of $(OS)/$(ARCH)/svm.plugin to everyone, since that's about the best we can do given Stata's simplistic package management system.
 $(NAME).plugin: $(NAME).$(DLLEXT)
-	$(CP) $(call FixPath,$<	) $(call FixPath,$@)
+	$(LN) $(call FixPath,$<	) $(call FixPath,$@)
 
 # (this would do the 'and then link' step)
 #$(NAME).plugin: $(OS)/$(ARCH)/$(NAME).plugin

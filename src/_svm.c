@@ -117,10 +117,9 @@ struct svm_problem* stata2libsvm() {
 			int c = 0; //and the current position within the subarray is tracked here
 			for(int j=1; j<SF_nvars(); j++) {
 				ST_double value = NAN;
-				if((err = SF_vdata(j+1 /*this +1 accounts for the y variable: variable 2 in the Stata dataset is x1 */, i+1, &value))) {
+				if((err = SF_vdata(j+1 /*this +1 accounts for the y variable: variable 2 in the Stata dataset is x1 */, i, &value))) {
 					SF_error("error reading Stata columns into libsvm\n");
-					continue;
-					//goto cleanup;
+					goto cleanup;
 				}
 				if(SF_is_missing(value)) {
 					SF_error("svm cannot handle missing data\n");

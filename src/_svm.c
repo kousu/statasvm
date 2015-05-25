@@ -47,6 +47,8 @@ static void error_stata(const char* s) {
  * Compare sklearn's [dense2libsvm](TODO), which does the same job but coming from a numpy matrix instead 
  */
 struct svm_problem* stata2libsvm() {
+  ST_retcode err;
+  
   if(SF_nvars() < 1) {
     SF_error("stata2libsvm: no outcome variable specified\n");
     return NULL;
@@ -105,21 +107,31 @@ struct svm_problem* stata2libsvm() {
       if(prob->x[prob->l] == NULL) {
         goto cleanup;
       }
-      
-			// libsvm uses a sparse datastructure
-			// that means that missing values should not be allocated
-			// the length of each row is indicated by index=-1 on the last entry
+
+                        // libsvm uses a sparse datastructure, a pairlist [{index, value}, ...
+                       // the length of each row is indicated by index=-1 on the last entry]
+                       // which we faithfully fill in 
+                       // and which connotes that missing values should not be allocated, but empirically that causes wrong values,
+                       //  so we deny it (e.g. rho = all 0, sv_coef = all {-1, 1}), which means that it is actually impossible to input an actually sparse data structure
+
 			int c = 0; //and the current position within the subarray is tracked here
 			for(int j=1; j<SF_nvars(); j++) {
-				ST_double value;
-				if(SF_vdata(j+1 /*this +1 accounts for the y variable: variable 2 in the Stata dataset is x1 */, i+1, &value) == 0 && !SF_is_missing(value)) {
-					prob->x[prob->l][c].index = j;
-					prob->x[prob->l][c].value = value;
-					c++;
+				ST_double value = NAN;
+				if((err = SF_vdata(j+1 /*this +1 accounts for the y variable: variable 2 in the Stata dataset is x1 */, i+1, &value))) {
+					SF_error("error reading Stata columns into libsvm\n");
+					continue;
+					//goto cleanup;
 				}
-      prob->x[prob->l][c].index = -1; //mark end-of-row
-      prob->x[prob->l][c].value = SV_missval; //not strictly necessary, but it makes me feel good
+				if(SF_is_missing(value)) {
+					SF_error("svm cannot handle missing data\n");
+					goto cleanup;
+				}
+				prob->x[prob->l][c].index = j;
+				prob->x[prob->l][c].value = value;
+				c++;
 			}
+			prob->x[prob->l][c].index = -1; //mark end-of-row
+      			prob->x[prob->l][c].value = SV_missval; //not necessary for libsvm, but it makes me feel good
 			prob->l++;
 		}
 	}
@@ -131,7 +143,9 @@ struct svm_problem* stata2libsvm() {
 	return prob;
 	
 cleanup:
+#ifdef DEBUG
   SF_error("XXX stata2libsvm failed\n");
+#endif
   //TODO: clean up after ourselves
 	//TODO: be careful to check the last entry for partially initialized subarrays
 	return NULL;

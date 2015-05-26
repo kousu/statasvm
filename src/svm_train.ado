@@ -2,7 +2,7 @@ program _svm, plugin /*load the C extension if not already loaded*/
 
 program define svm_train, eclass
   version 13
-  syntax varlist [if] [in], [options_go_here]
+  syntax varlist (numeric) [if] [in], [options_go_here]
   
   /* call down into C */
   plugin call _svm `varlist' `if' `in', "train"

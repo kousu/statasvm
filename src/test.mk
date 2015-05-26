@@ -15,7 +15,6 @@ $(call FixPath,tests/duke.model): tests/export #the make manual claims on Window
      # maybe what I should do is give up and move all this into a sub Makefile and use recursive make to avoid dealing with path separators.
 tests/import: tests/duke.model #for example, this one is created by test_export, and so that has to run first; stating it like this lets make figure that out
 
-
 # for each .do file in tests/, make a .PHONY test_<testname> target which runs Stata and prints the output
 # the meta-target test runs all tests
 # TODO: Stata always returns 0 so make doesn't know if a test fails or not, but Stata does print error codes out, so I need to write a wrapper that translates these to OS-level return codes
@@ -23,12 +22,11 @@ tests/import: tests/duke.model #for example, this one is created by test_export,
 ## find all tests automatically
 #TESTS:=$(wildcard tests/*.do)
 #TESTS:=$(patsubst %.do,%,$(TESTS))
-# hardcode the list of tests explicitly: the advantage is controlling the order without doing weird things to test naming
-#TESTS:=loadplugin preload load train predict export import 
-TESTS:=$(shell $(CAT) $(call FixPath,tests/order.lst))
 
-# test targets
+# hardcode the list of tests explicitly: the advantage is controlling the order without doing weird things to test naming
+TESTS:=$(shell $(CAT) $(call FixPath,tests/order.lst))
 TESTS:=$(patsubst %,tests/%,$(TESTS))
+
   
 #notice: $< means 'the first prerequisite' and is basically a super-special case meant for exactly this sort of usage
 #.PHONY: $(TESTS) #	" Make does not consider implicit rules for PHONY targets" ?? In other words: there is no way to autogenerate .PHONY targets. whyyyyy.

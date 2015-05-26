@@ -52,10 +52,12 @@ tests: $(TESTS)
 # Hence, these wrapped files are given identical names but stuffed in a subdir to distinguish them.
 #
 # The order of dependencies *is the order the commands are concatenated*.
-tests/wrapped/%.do: tests/helpers/settings.do tests/%.do tests/helpers/inspect_model.do
-	@-$(MKDIR) tests 2>$(NULL)
-	@-cd tests && $(MKDIR) wrapped 2>$(NULL)
-	$(CAT) $(call FixPath,$^) > $(call FixPath,$@)
+tests/wrapped/%.do: tests/wrapped tests/helpers/settings.do tests/%.do tests/helpers/inspect_model.do
+	$(CAT) $(call FixPath,$(filter-out tests/wrapped,$^)) > $(call FixPath,$@)
+	
+# it's a bad idea to have directories as targets, but there's no cross-platform way to say "if directory already exists, don't make it";
+tests/wrapped:
+	$(MKDIR) $(call FixPath,tests/wrapped) 2>$(NULL)
   
 #  because Stata doesn't have a tty mode, to fake having stdout we cat Stata's <testname>.log (note that this is in the current directory, not the directory the .do file is in!),
 #  which it generates when run in batch mode, and we mark this .INTERMEDIATE so that make knows to delete it immediately

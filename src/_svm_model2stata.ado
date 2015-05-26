@@ -35,7 +35,7 @@ program define _svm_model2stata, eclass
   
   *TODO: SV and sv_indices are probably best translated jointly by adding an indicator variable column to the original dataset telling if that observation was chosen as a support vector (of course, this will mean we need to further clamp the upper limit)
   
-  if(`have_sv_indices'==1) {
+  if(`have_sv_indices'==1 & `e(l)'>0) {
     matrix SVs = J(e(l),1,.) /*but for now we can just copy out sv_indices*/
     matrix colnames SVs = "SVs"
   }
@@ -46,18 +46,22 @@ program define _svm_model2stata, eclass
   matrix colnames nSV = "nSV"
   /*matrix rownames nSV = . . */
   
-  matrix labels = J(e(nr_class),1,.)
-  matrix colnames labels = "labels"
+  if(`e(nr_class)'>0) {
+    matrix labels = J(e(nr_class),1,.)
+    matrix colnames labels = "labels"
+  }
   
-  matrix sv_coef = J(e(nr_class)-1,e(l),.)
+  if(`e(nr_class)'>1 & `e(l)'>0) {
+    matrix sv_coef = J(e(nr_class)-1,e(l),.)
+  }
   
-  if(`have_rho'==1) {
+  if(`have_rho'==1 & `e(nr_class)'>0) {
     matrix rho = J(e(nr_class),e(nr_class),.)
   }
-  if(`have_probA'==1) {
+  if(`have_probA'==1 & `e(nr_class)'>0) {
     matrix probA = J(e(nr_class),e(nr_class),.)
   }
-  if(`have_probB'==1) {
+  if(`have_probB'==1 & `e(nr_class)'>0) {
     matrix probB = J(e(nr_class),e(nr_class),.)
   }
   
@@ -71,23 +75,16 @@ program define _svm_model2stata, eclass
   * We *cannot* export matrices to e() from the C interface, hence we have to do this very explicit thing
   * NOTE: 'ereturn matrix' erases the old name (unless you specify ,copy), which is why we don't have to explicitly drop things
   *       'ereturn scalar' doesn't do this, because Stata loves being consistent. Just go read the docs for 'syntax' and see how easy it is. 
+  * All of these are silenced because various things might kill any of them, and we want failures to be independent of each other
   
-  if(`have_sv_indices'==1) {
-    ereturn matrix SVs = SVs
-  }
+  quietly capture ereturn matrix SVs = SVs
   
-  ereturn matrix nSV = nSV
-  ereturn matrix labels = labels
+  quietly capture ereturn matrix nSV = nSV
+  quietly capture ereturn matrix labels = labels
   
-  ereturn matrix sv_coef = sv_coef
-  if(`have_rho'==1) {
-    ereturn matrix rho = rho
-  }
-  if(`have_probA'==1) {
-    ereturn matrix probA = probA
-  }
-  if(`have_probB'==1) {
-    ereturn matrix probB = probB
-  }
+  quietly capture ereturn matrix sv_coef = sv_coef
+  quietly capture ereturn matrix rho = rho
+  quietly capture ereturn matrix probA = probA
+  quietly capture ereturn matrix probB = probB
   
 end

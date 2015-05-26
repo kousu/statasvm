@@ -169,6 +169,10 @@ struct svm_problem *stata2libsvm()
                 error("Unable to read Stata dependent variable column into libsvm\n");
                 return NULL;
             }
+            if(SF_is_missing(prob->y[prob->l])) {
+                error("svm cannot handle missing data\n");
+                goto cleanup;
+            }
 
             // put data into X[l]
             // (there are many values)

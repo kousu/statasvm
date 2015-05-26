@@ -223,15 +223,6 @@ tests/import: tests/duke.model #for example, this one is created by test_export,
   
   
   #.INTERMEDIATE: $(patsubst test_%,%.log,$(TESTS)) # this is commented out because it breaks under Win32 gmake, causing the files to *not* be deleted at finish.
-  
-  # temporary target to help bug hunt a memory corruption
-  # which shows up as inconsistently corrupted svm_save_model() output
-  # (this test won't work on Windows, but that I don't need it to work there)
-  .PHONY: manyexport
-  manyexport:
-	-rm tests/duke.model*
-	while true; do $(MAKE) test_export > /dev/null; $(MV) tests/duke.model tests/duke.model`date +%H%M%S`; done
-
 endif
 
 include dist.mk

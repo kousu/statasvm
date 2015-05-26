@@ -68,3 +68,10 @@ dist/svm/%: %
 	@mkdir -p $(dir $@)
 	$(CP) $< $@
 	
+
+# --- cleaning ---
+clean: clean-dist
+
+.PHONY: clean-dist
+clean-dist:
+	-$(RMDIR) dist

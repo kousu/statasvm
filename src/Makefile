@@ -87,6 +87,17 @@ ifeq ($(wildcard $(OS).mk),)
   $(error "Unsupported OS '$(OS)'")
 endif
 
+
+
+
+# debugging tool: show the DLL dependencies as recorded in the DLL's metadata
+# the platform-specific subfiles should have defined a working platform-specific recipe to actually carry this out; we just define the target here.
+# BEWARE: this must be *before* the recipes are defined (in contrast to the implicit rules and(?) in contrast to pattern rules)
+#         or else you get "warning: overriding commands for target `printdeps'"
+.PHONY: printdeps
+printdeps: $(PLUGIN).plugin
+
+
 include $(OS).mk
 
 
@@ -144,100 +155,18 @@ $(PLUGIN).$(DLLEXT): $(OBJECTS)
 #	$(CP) $(call FixPath,$<) $(call FixPath,$@)
 
 
-
-
-# debugging tool: show the DLL dependencies as recorded in the DLL's metadata
-# the platform-specific subfiles should have defined a working platform-specific recipe to actually carry this out; we just define the target here.
-# BEWARE: this must be *before* the recipes are defined (in contrast to the implicit rules and(?) in contrast to pattern rules)
-#         or else you get "warning: overriding commands for target `printdeps'"
-.PHONY: printdeps
-printdeps: $(PLUGIN).plugin
-
-
-# --- Testing ----
-ifeq ($(wildcard $(call EscapeSpace,$(STATA))),)
-  # TODO: make this more robust, e.g. by trying different paths.
-  $(warning "Unable to locate Stata. You will not be able to run tests.")
-else
-
-
-# rules to auto-download datasets from the libsvm sample archive
-# XXX this is hardcoded to only get *binary* ones. maybe we should instead include "datasets/binary/" in the target path (which might be more reasonable, anyway)
-tests/%.svmlight: tests/%.bz2
-	bunzip2 -d $<
-	mv tests/$* tests/$*.svmlight
-
-tests/%.bz2:
-	wget http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary/$*.bz2 -O $@
-
-# add test-specific files
-tests/load tests/train tests/export tests/preload: tests/duke.svmlight
-$(call FixPath,tests/duke.model): tests/export #the make manual claims on Windows all paths use forward slashes and only forward slashes, but apparently this doesn't apply to targets, only prerequisites.
-     # maybe what I should do is give up and move all this into a sub Makefile and use recursive make to avoid dealing with path separators.
-tests/import: tests/duke.model #for example, this one is created by test_export, and so that has to run first; stating it like this lets make figure that out
-
-
-# for each .do file in tests/, make a .PHONY test_<testname> target which runs Stata and prints the output
-# the meta-target test runs all tests
-# TODO: Stata always returns 0 so make doesn't know if a test fails or not, but Stata does print error codes out, so I need to write a wrapper that translates these to OS-level return codes
-
-  ## find all tests automatically
-  #TESTS:=$(wildcard tests/*.do)
-  #TESTS:=$(patsubst %.do,%,$(TESTS))
-  # hardcode the list of tests explicitly: the advantage is controlling the order without doing weird things to test naming
-  #TESTS:=loadplugin preload load train predict export import 
-  TESTS:=$(shell $(CAT) $(call FixPath,tests/order.lst))
-  
-  # test targets
-  TESTS:=$(patsubst %,tests/%,$(TESTS))
-  
-  #notice: $< means 'the first prerequisite' and is basically a super-special case meant for exactly this sort of usage
-  #.PHONY: $(TESTS) #	" Make does not consider implicit rules for PHONY targets" ?? In other words: there is no way to autogenerate .PHONY targets. whyyyyy.
-  tests/%: %.log plugin
-	$(CAT) $(call FixPath,$<)
-  .PHONY: tests
-  tests: $(TESTS)
-  
-  # stata -b is 'batch mode', i.e. it's the closest Stata has to running "Rscript" or "ruby" or "python"
-  # -e is identical to -b, except it suppresses the completion notification message
-  # If this seems absurd, remember that Stata is targeted at GUI-heavy Windows users,
-  # and that the most scripting they are likely to do is to run a big computation overnight.
-  
-  # auto-wrap tests with the code in tests/helpers/
-  # Stata doesn't pass command line arguments to batch scripts
-  # *and* it doesn't let us control where stdout goes --- it insists on naming the output <basename>.log
-  # So to convince Stata to do roughly the right thing, we borrow a page from Microsoft: code generation and temporary files
-  # Stata *insists* the file extension for `stata -b file` be '.do';
-  # it exits silently and without error but without doing what I want otherwise.
-  # Hence, these wrapped files are given identical names but stuffed in a subdir to distinguish them.
-  #
-  # The order of dependencies *is the order the commands are concatenated*.
-  tests/wrapped/%.do: tests/helpers/settings.do tests/%.do tests/helpers/inspect_model.do
-	@$(MKDIR) tests && cd tests && $(MKDIR) wrapped
-	$(CAT) $(call FixPath,$^) > $(call FixPath,$@)
-  
-  #  because Stata doesn't have a tty mode, to fake having stdout we cat Stata's <testname>.log (note that this is in the current directory, not the directory the .do file is in!),
-  #  which it generates when run in batch mode, and we mark this .INTERMEDIATE so that make knows to delete it immediately
-  %.log: tests/wrapped/%.do
-	"$(STATA)" -e $(call FixPath,$<)
-  
-  
-  #.INTERMEDIATE: $(patsubst test_%,%.log,$(TESTS)) # this is commented out because it breaks under Win32 gmake, causing the files to *not* be deleted at finish.
-endif
-
-include dist.mk
-
 # --- Cleaning ---
 
 # Tip: consider replacing 'rm' with 'git clean -f', if you are using git. It might be dangerously overzealous but if you've used git right,
 # it's much more thorough and reliable about getting your state back to scratch, because it by definition puts the state back to what's checked in.
-
 	
 .PHONY: clean
 # *.log *should* get cleaned up by the testing recipe, but in case it doesn't or you have made some manually we clean it again here
 clean:
 	-$(RM) $(foreach o,$(OBJECTS),$(wildcard $(o))) *.plugin *.log *.model
-	-$(RM) $(call FixPath,tests/*.model)
-	-$(RMDIR) $(call FixPath,tests/wrapped)
 	-$(RMDIR) bin
-	-$(RMDIR) dist
+
+include test.mk
+
+include dist.mk
+

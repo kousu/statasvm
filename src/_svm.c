@@ -30,46 +30,55 @@ struct svm_model *model = NULL;
 static void display(const char *fmt, ...)
 {
     va_list args;
-    va_start(args, fmt);
 
     // print to the standard stream
+    va_start(args, fmt);
     vprintf(fmt, args);
-
+    va_end(args);
+    
     // print to Stata
+    va_start(args, fmt);
     char buf[BUF_MAX];
     vsnprintf(buf, sizeof(buf), fmt, args);
     SF_display(buf);
-
     va_end(args);
 }
 
 static void error(const char *fmt, ...)
 {
     va_list args;
-    va_start(args, fmt);
 
     // print to the standard stream
+    va_start(args, fmt);
     vfprintf(stderr, fmt, args);
-
+    va_end(args);
+    
     // print to Stata
+    va_start(args, fmt);
     char buf[BUF_MAX];
     vsnprintf(buf, sizeof(buf), fmt, args);
     SF_error(buf);
-
     va_end(args);
 }
 
 static void debug(const char *fmt, ...)
 {
-#ifdef DEBUG
+    if(getenv("DEBUG") == NULL) return;
+
     va_list args;
-    va_start(args, fmt);
 
     // print to the standard stream
+    va_start(args, fmt);
     vfprintf(stderr, fmt, args);
+    va_end(args);    
 
+    // print to Stata
+    va_start(args, fmt);
+    char buf[BUF_MAX] = "Butts";
+    fprintf(stderr, "fmt===%s\n",fmt);
+    vsnprintf(buf, sizeof(buf), fmt, args);
+    SF_display(buf);    
     va_end(args);
-#endif
 }
 
 
@@ -217,9 +226,8 @@ struct svm_problem *stata2libsvm()
     return prob;
 
   cleanup:
-#ifdef DEBUG
-    error("XXX stata2libsvm failed\n");
-#endif
+    debug("XXX stata2libsvm failed\n");
+    
     //TODO: clean up after ourselves
     //TODO: be careful to check the last entry for partially initialized subarrays
     return NULL;
@@ -618,12 +626,13 @@ ST_retcode train(int argc, char *argv[])
         //assumption: stata2libsvm has already printed any relevant error messages
         return 1;
     }
-#ifdef DEBUG                    //this is wrapped here because svm_*_pprint() don't go through the hooks above
-    debug("Parameters to svm_train with:\n");
-    svm_parameter_pprint(&param);
-    debug("Problem to svm_train on:\n");
-    svm_problem_pprint(prob);
-#endif
+    
+    if(getenv("DEBUG")) {                    //this is wrapped here because svm_*_pprint() don't go through the hooks above
+        debug("Parameters to svm_train with:\n");
+        svm_parameter_pprint(&param);
+        debug("Problem to svm_train on:\n");
+        svm_problem_pprint(prob);
+    }
 
     const char *error_msg = NULL;
     error_msg = svm_check_parameter(prob, &param);

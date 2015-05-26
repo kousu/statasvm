@@ -23,8 +23,6 @@ endif
 CFLAGS+=-Wall -Werror
 CFLAGS+=-std=c99 #arrrrgh, this should be the default
 
-#CFLAGS+=-DDEBUG
-
 # strange, make comes with .LIBPATTERNS yet doesn't come with rules for actually making .so files
 %.$(DLLEXT):
 	$(CC) $(LDFLAGS) $^  -o $@  $(foreach L,$(LIBS),-l$L)

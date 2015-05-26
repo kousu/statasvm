@@ -163,7 +163,12 @@ struct svm_problem *stata2libsvm()
             }
             // put data into Y[l]
             // (there is only one Y so we hard-code the variable index)
-            SF_vdata(1, i, &(prob->y[prob->l]));
+            err = SF_vdata(1, i, &(prob->y[prob->l]));
+            debug("Reading in Y[%d]=%lf, (err=%d)\n", i, prob->y[prob->l], err);
+            if(err) {
+                error("Unable to read Stata dependent variable column into libsvm\n");
+                return NULL;
+            }
 
             // put data into X[l]
             // (there are many values)
@@ -799,7 +804,8 @@ STDLL stata_call(int argc, char *argv[])
 
 /* Initialization code adapted from
     stplugin.c, version 2.0
-    copyright (c) 2003, 2006        			StataCorp
+    copyright (c) 2003, 2006
+    StataCorp
  */
 ST_plugin *_stata_;
 

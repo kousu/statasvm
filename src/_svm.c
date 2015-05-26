@@ -163,7 +163,7 @@ struct svm_problem *stata2libsvm()
             }
             // put data into Y[l]
             // (there is only one Y so we hard-code the variable index)
-            SF_vdata(1, i + 1, &(prob->y[prob->l]));
+            SF_vdata(1, i, &(prob->y[prob->l]));
 
             // put data into X[l]
             // (there are many values)
@@ -675,7 +675,7 @@ ST_retcode predict(int argc, char *argv[])
                 ST_double value;
                 if (SF_vdata(j + 1
                              /*this +1 accounts for the y variable: variable 2 in the Stata dataset is x1 */
-                             , i + 1, &value) == 0
+                             , i, &value) == 0
                     && !SF_is_missing(value)) {
                     X[c].index = j;
                     X[c].value = value;

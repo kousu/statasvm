@@ -8,6 +8,7 @@
 program _svm, plugin /*load the C extension if not already loaded*/
 
 program define svm_load
+  version 13
   syntax using/
 
    quietly {

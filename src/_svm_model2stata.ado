@@ -5,7 +5,8 @@ program _svm, plugin /*load the C extension if not already loaded*/
 * it does an awkward dance where _svm.plugin writes to the (global!) scalar dict and then this code copies those entries to r()
 * as with svm_load, the extension function is called multiple times with sub-sub-commands, because it doesn't have permission to perform all the operations needed
 program define _svm_model2stata, eclass
-  
+  version 13
+
   * as with loading, this has to call in and out of the plugin because chicken/egg:
   *   the plugin doesn't have permission to allocate Stata memory (in this case matrices),
   *   but we don't know how much to allocate before interrogating the svm_model

@@ -1,6 +1,7 @@
 program _svm, plugin /*load the C extension if not already loaded*/
 
 program define svm_predict, eclass
+  version 13
   syntax newvarname [if] [in]
   local target = "`varlist'"
   

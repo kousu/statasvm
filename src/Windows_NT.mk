@@ -40,13 +40,13 @@ LIBS := $(patsubst svm,libsvm,$(LIBS))
 
 # look for a default C compiler (usually 'cc')
 # if this is found, it's probably MinGW; and if it is MinGW, this is the proper way to find it.
-ifeq ($(shell where $(CC)),)
-  ifneq (($shell where gcc),) #MinGW doesn't install a symlink cc -> gcc :(
+ifeq ($(shell where $(CC) 2>NUL),)
+  ifneq (($shell where gcc 2>NUL),) #MinGW doesn't install a symlink cc -> gcc :(
     CC=gcc
   endif
 endif
 
-ifeq ($(shell where $(CC)),)
+ifeq ($(shell where $(CC) 2>NUL),)
   # but if it's not found,
   # look for MSVC and then MinGW if that fails
   # this if a nested-if-else tree because what I'd do in another language (a hashtable of function pointers, or at least a list of options plus a loop) is, charitably speaking, tricky in make
@@ -56,12 +56,15 @@ ifeq ($(shell where $(CC)),)
   else
       # if the toolchain is still not found, bail
       # it is too hard to do multiline error strings in make (http://stackoverflow.com/questions/649246/is-it-possible-to-create-a-multi-line-string-variable-in-a-makefile), so I'm misusing $(warning) instead: 
+      $(warning --------------------------------------------------------------------)
       $(warning Unable to find a C compiler for your Windows machine)
       $(warning - If you have MinGW, you should ensure it is on your %PATH%)
       $(warning - If you have Visual Studio installed, add it to your %PATH%:)
       $(warning i. Relaunch this command prompt from the system-appropriate VS Tools Command Prompt shortcut in your Start Menu,)
       $(warning ii. or invoke vcvarsall.bat manually (see https://msdn.microsoft.com/en-us/library/x4d2c09s.aspx))
-      $(error Bailing)
+      $(warning --------------------------------------------------------------------)
+	  
+	  CC:="<no_compiler>"
   endif
 else
   $(info Assuming MinGW)

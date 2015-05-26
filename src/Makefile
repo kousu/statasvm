@@ -151,7 +151,7 @@ $(PLUGIN).$(DLLEXT): $(OBJECTS)
 # BEWARE: this must be *before* the recipes are defined (in contrast to the implicit rules and(?) in contrast to pattern rules)
 #         or else you get "warning: overriding commands for target `printdeps'"
 .PHONY: printdeps
-printdeps: $(NAME).plugin
+printdeps: $(PLUGIN).plugin
 
 
 # --- Testing ----
@@ -213,6 +213,7 @@ tests/import: tests/duke.model #for example, this one is created by test_export,
   #
   # The order of dependencies *is the order the commands are concatenated*.
   tests/wrapped/%.do: tests/helpers/settings.do tests/%.do tests/helpers/inspect_model.do
+	@$(MKDIR) tests && cd tests && $(MKDIR) wrapped
 	$(CAT) $(call FixPath,$^) > $(call FixPath,$@)
   
   #  because Stata doesn't have a tty mode, to fake having stdout we cat Stata's <testname>.log (note that this is in the current directory, not the directory the .do file is in!),

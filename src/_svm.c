@@ -63,7 +63,7 @@ static void error(const char *fmt, ...)
 
 static void debug(const char *fmt, ...)
 {
-    if(getenv("DEBUG") == NULL) return;
+    if(getenv("DEBUG") == NULL) { return; }
 
     va_list args;
 

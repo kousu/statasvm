@@ -3,12 +3,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdarg.h>
 #include <math.h> //for NAN
 
 #include "libsvm_patches.h"
 #include "_svm.h"
 
 
+#define BUF_MAX 1024
 
 
 // Stata doesn't provide any encapsulate. The core language is designed to do returns by editing a single global dictionary 'r()'t really provide
@@ -17,17 +19,76 @@
 struct svm_model* model = NULL;
 
 
+/****************************/
+/* Define better print routines,
+  and support format strings
+   which dual print to standard streams
+   and to the Stata logfile,
+  so that you can see their output as it happens and inline with where it happened relative to the other Stata output
+(if Stata was designed today it would have a CLI printing to stdout that the GUI ran in a subprocess; maybe they think there is some sort of DRM protection by forcing people to only run overnight batch jobs? */
 
-static void print_stata(const char* s) {
-  SF_display((char*)s);
+static void display(const char* fmt, ...) {
+ va_list args;
+ va_start(args,fmt);
+ 
+ // print to the standard stream
+ vprintf(fmt, args);
+ 
+ // print to Stata
+ char buf[BUF_MAX];
+ vsnprintf(buf, sizeof(buf), fmt, args);
+ SF_display(buf);
+ 
+ va_end(args);
 }
 
-#if HAVE_SVM_PRINT_ERROR
-// TODO: libsvm doesn't have a svm_set_error_string_function, but if I get it added this is the stub
-static void error_stata(const char* s) {
-  SF_error((char*)s);
+static void error(const char* fmt, ...) {
+ va_list args;
+ va_start(args,fmt);
+ 
+ // print to the standard stream
+ vfprintf(stderr, fmt, args);
+ 
+ // print to Stata
+ char buf[BUF_MAX];
+ vsnprintf(buf, sizeof(buf), fmt, args);
+ SF_error(buf);
+ 
+ va_end(args);
+}
+
+static void debug(const char* fmt, ...) {
+#ifdef DEBUG
+ va_list args;
+ va_start(args,fmt);
+
+ // print to the standard stream
+ vfprintf(stderr, fmt, args);
+
+ va_end(args);
+#endif
+}
+
+
+
+
+/* ******************************** */
+/* libsvm print hooks */
+
+// these exist only to glue the small type variations together
+static void libsvm_display(const char* s) {
+  display(s);
+}
+
+#ifdef HAVE_SVM_PRINT_ERROR
+static void libsvm_error(const char* s) {
+  error(s);
 }
 #endif
+
+
+
+
 
 
 
@@ -50,7 +111,7 @@ struct svm_problem* stata2libsvm() {
   ST_retcode err;
   
   if(SF_nvars() < 1) {
-    SF_error("stata2libsvm: no outcome variable specified\n");
+    error("stata2libsvm: no outcome variable specified\n");
     return NULL;
   }
 
@@ -118,11 +179,11 @@ struct svm_problem* stata2libsvm() {
 			for(int j=1; j<SF_nvars(); j++) {
 				ST_double value = NAN;
 				if((err = SF_vdata(j+1 /*this +1 accounts for the y variable: variable 2 in the Stata dataset is x1 */, i, &value))) {
-					SF_error("error reading Stata columns into libsvm\n");
+					error("error reading Stata columns into libsvm\n");
 					goto cleanup;
 				}
 				if(SF_is_missing(value)) {
-					SF_error("svm cannot handle missing data\n");
+					error("svm cannot handle missing data\n");
 					goto cleanup;
 				}
 				prob->x[prob->l][c].index = j;
@@ -143,7 +204,7 @@ struct svm_problem* stata2libsvm() {
 	
 cleanup:
 #ifdef DEBUG
-  SF_error("XXX stata2libsvm failed\n");
+  error("XXX stata2libsvm failed\n");
 #endif
   //TODO: clean up after ourselves
 	//TODO: be careful to check the last entry for partially initialized subarrays
@@ -156,7 +217,7 @@ ST_retcode _model2stata(int argc, char* argv[]) {
   ST_retcode err = 0;
   
 	if(argc != 1) {
-    SF_error("Wrong number of arguments\n");
+    error("Wrong number of arguments\n");
     return 1;
   }
   
@@ -172,7 +233,7 @@ ST_retcode _model2stata(int argc, char* argv[]) {
   // and further some of the values are matrices (probA and probB are, apparently, some sort of pairwise probability matrix between trained classes, but stored as a single array because the authors got lazy)
   // and further complicating things:
   if(model == NULL) {
-    SF_error("no trained model available\n");
+    error("no trained model available\n");
     return 1;
   }
   
@@ -189,28 +250,28 @@ ST_retcode _model2stata(int argc, char* argv[]) {
     if(model->sv_indices != NULL) {
       err = SF_macro_save("_have_sv_indices", "1");
       if(err) {
-        SF_error("error writing to have_sv_indices\n");
+        error("error writing to have_sv_indices\n");
         return err;
       }
     }
     if(model->rho != NULL) {
       err = SF_macro_save("_have_rho", "1");
       if(err) {
-        SF_error("error writing to have_rho\n");
+        error("error writing to have_rho\n");
         return err;
       }
     }
     if(model->probA != NULL) {
       SF_macro_save("_have_probA", "1");
       if(err) {
-        SF_error("error writing to have_probA\n");
+        error("error writing to have_probA\n");
         return err;
       }
     }
     if(model->probB != NULL) {
       SF_macro_save("_have_probB", "1");
       if(err) {
-        SF_error("error writing to have_probB\n");
+        error("error writing to have_probB\n");
         return err;
       }
     }
@@ -223,7 +284,7 @@ ST_retcode _model2stata(int argc, char* argv[]) {
       if(model->sv_indices) {
         err = SF_mat_store("SVs", i+1, 1, (ST_double)(model->sv_indices[i])); /* the name has been intentionally changed for readability */
         if(err) {
-          SF_error("error writing to SVs\n");
+          error("error writing to SVs\n");
           return err;
         }
       }
@@ -236,7 +297,7 @@ ST_retcode _model2stata(int argc, char* argv[]) {
       if(model->nSV) {
         err = SF_mat_store("nSV", i+1, 1, (ST_double)(model->nSV[i]));
         if(err) {
-          SF_error("error writing to nSV\n");
+          error("error writing to nSV\n");
           return err;
         }
       }
@@ -244,7 +305,7 @@ ST_retcode _model2stata(int argc, char* argv[]) {
         /* copy out model->label */
         err = SF_mat_store("labels", i+1, 1, (ST_double)(model->label[i])); /* the name has been intentionally changed for readability */
         if(err) {
-          SF_error("error writing to labels\n");
+          error("error writing to labels\n");
           return err;
         }
       }
@@ -255,7 +316,7 @@ ST_retcode _model2stata(int argc, char* argv[]) {
       for(int j=0; j<model->l; j++) {
         err = SF_mat_store("sv_coef", i+1, j+1, (ST_double)(model->sv_coef[i][j]));
         if(err) {
-          SF_error("error writing to sv_coef\n");
+          error("error writing to sv_coef\n");
           return err;
         }
       }
@@ -284,7 +345,7 @@ ST_retcode _model2stata(int argc, char* argv[]) {
           //printf("rho[%d][%d] == rho[%d] = %lf\n", i, j, c, model->rho[c]);
           err = SF_mat_store("rho", i+1, j+1, (ST_double)(model->rho[c]));
           if(err) {
-            SF_error("error writing to rho\n");
+            error("error writing to rho\n");
             return err;
           }
         }
@@ -294,7 +355,7 @@ ST_retcode _model2stata(int argc, char* argv[]) {
           //printf("probA[%d][%d] == probA[%d] = %lf\n", i, j, c, model->probA[c]);
           err = SF_mat_store("probA", i+1, j+1, (ST_double)(model->probA[c]));
           if(err) {
-            SF_error("error writing to probA\n");
+            error("error writing to probA\n");
             return err;
           }
         }
@@ -305,7 +366,7 @@ ST_retcode _model2stata(int argc, char* argv[]) {
           //printf("probB[%d][%d] == probB[%d] = %lf\n", i, j, c, model->probB[c]);
           err = SF_mat_store("probB", i+1, j+1, (ST_double)(model->probB[c]));
           if(err) {
-            SF_error("error writing to probB\n");
+            error("error writing to probB\n");
             return err;
           }
         }
@@ -367,7 +428,7 @@ struct {
  * libsvm does not support these so for simplicity neither do we.
  *
  * TODO:
- * [ ] better errors messages (using an err buf or by defining a better SF_error())
+ * [ ] better error messages
  * [x] check for off-by-ones
  * [ ] format conformity:
  *   - libsvm gets annoyed if features are given out of order
@@ -386,29 +447,27 @@ ST_retcode _load(int argc, char* argv[]) {
 		if(strncmp(subcmd, "pre", 5) == 0) {
 			reading = false;
 		} else {		
-		  SF_error("Unrecognized read subcommand %s\n"/* subcmd*/);
+		  error("Unrecognized read subcommand %s\n"/* subcmd*/);
 		  return 1;
 		}
 	}
 	
 	if(argc != 1) {
-    SF_error("Wrong number of arguments\n");
+    error("Wrong number of arguments\n");
     return 1;
   }
   
   
-#ifdef DEBUG
-	printf("svm read");
+	debug("svm read");
 	if(!reading) {
-	  printf(" pre");
+	  debug(" pre");
 	}
-	printf("\n");
-#endif
+	debug("\n");
   
   char* fname = argv[0];
   FILE* fd = fopen(fname, "r");
   if(fd == NULL) {
-    SF_error("Unable to open file\n");
+    error("Unable to open file\n");
     return 1;
   }
   
@@ -434,20 +493,16 @@ ST_retcode _load(int argc, char* argv[]) {
     //printf("read token=[%s]\n", tok); //DEBUG
     if(sscanf(tok, "%ld:%lf", &id, &x) == 2) { //this is a more specific match than the y match so it must come first
   	  if(id < 1) {
-  			SF_error("parse error: only positive feature IDs allowed\n");
+  			error("parse error: only positive feature IDs allowed\n");
   			return 4;
   		}
   		if(M < id) M = id;
   		
 	    if(reading) {
-#ifdef DEBUG
-				//printf("storing to X[%d,%ld]=%lf; X is %dx%d\n", N, id, x, SF_nobs(), SF_nvar()-1); //DEBUG
-#endif
+				//debug("storing to X[%d,%ld]=%lf; X is %dx%d\n", N, id, x, SF_nobs(), SF_nvar()-1); //DEBUG
 		    SF_vstore(id+1 /*stata counts from 1, so y has index 1, x1 has index 2, ... , x7 has index 8 ...*/, N, x);
 			  if(err) {
-#ifdef DEBUG
-			    SF_error("unable to store to x\n");
-#endif
+			    error("unable to store to x\n");
 			    return err;
 			  }
 	    }
@@ -456,43 +511,35 @@ ST_retcode _load(int argc, char* argv[]) {
       N+=1;
       
 	    if(reading) {
-#ifdef DEBUG
-				printf("storing to Y[%d]=%lf; Y is %dx1.\n", N, y, SF_nobs()); //DEBUG
-#endif
+				debug("storing to Y[%d]=%lf; Y is %dx1.\n", N, y, SF_nobs()); //DEBUG
 			  err = SF_vstore(1 /*stata counts from 1*/, N, y);
 			  if(err) {
-#ifdef DEBUG
-			    printf("unable to store to y\n");
-#endif
-			    SF_error("unable to store to y\n");
+			    error("unable to store to y\n");
 			    return err;
 		    }
 	    }
 	    
     } else {
-    	SF_error("parse error\n");
+    	error("svmlight parse error\n");
       return 1;
     }	
   }
 	
-  
-#ifdef DEBUG
 	if(!reading) {
-	  printf("svm read pre: total dataset is %dx(1+%d)\n", N, M);
+	  debug("svm read pre: total dataset is %dx(1+%d)\n", N, M);
 	}
-#endif
   
   if(!reading) {
     // return the preread mode results, but only in preread mode
     err = SF_scal_save("_svm_load_N", (ST_double)N);
     if(err) {
-      SF_error("Unable to export scalar 'N' to Stata\n");
+      error("Unable to export scalar 'N' to Stata\n");
       return err;
     }
     
     err = SF_scal_save("_svm_load_M", (ST_double)M);
     if(err) {
-      SF_error("Unable to export scalar 'N' to Stata\n");
+      error("Unable to export scalar 'N' to Stata\n");
       return err;
     }
   }
@@ -506,7 +553,7 @@ ST_retcode _load(int argc, char* argv[]) {
 ST_retcode train(int argc, char* argv[]) {
 	
   if(SF_nvars() < 2) {
-    SF_error("svm_train: need one dependent and at least one independent variable.\n");
+    error("svm_train: need one dependent and at least one independent variable.\n");
     return 1;
   }
 
@@ -537,23 +584,22 @@ ST_retcode train(int argc, char* argv[]) {
 	
 	struct svm_problem* prob = stata2libsvm();
   if(prob == NULL) {
-    //assumption: stata2libsvm has already SF_error()ed anything we could
+    //assumption: stata2libsvm has already printed any relevant error messages
     return 1;
   }
-#ifdef DEBUG
-  printf("Parameters to svm_train with:\n");
+
+#ifdef DEBUG //this is wrapped here because svm_*_pprint() don't go through the hooks above
+  debug("Parameters to svm_train with:\n");
   svm_parameter_pprint(&param);
-  printf("Problem to svm_train on:\n");
+  debug("Problem to svm_train on:\n");
   svm_problem_pprint(prob);
 #endif
 
   const char *error_msg = NULL;
 	error_msg = svm_check_parameter(prob,&param);
 	if(error_msg) {
-		char error_buf[256]; //XXX should we strlen() the error message? or should we make this larger?
-		snprintf(error_buf, 256, "Parameter error: %s", error_msg);
-		SF_error((char*)error_buf);
-		return(1);
+		error("SVM problem parameter error: %s", error_msg);
+		return 1;
 	}
 	
 	if(model != NULL) {
@@ -579,12 +625,12 @@ ST_retcode predict(int argc, char* argv[]) {
   ST_retcode err = 0;
 
   if(SF_nvars() < 1) {
-    SF_error("svm_predict: need at least a target\n");
+    error("svm_predict: need at least a target\n");
     return 1;
   }
   
   if(model == NULL) {
-    SF_error("svm_predict: no active model\n");
+    error("svm_predict: no active model\n");
     return 1;
   }
   
@@ -595,7 +641,7 @@ ST_retcode predict(int argc, char* argv[]) {
       //XXX TODO: this code was copied verbatim from stata2libsvm; it needs to be factored instead!!
       struct svm_node* X = calloc(SF_nvars(), sizeof(struct svm_node));
       if(X == NULL) {
-        SF_error("svm_predict: unable to allocate memory\n");
+        error("svm_predict: unable to allocate memory\n");
         return 1;
       }
       
@@ -621,10 +667,7 @@ ST_retcode predict(int argc, char* argv[]) {
       // by convention wtih svm_predict.ado, the 1th variable, i.e. the first on the varlist (not the first in the dataset), is the output location
 		  err = SF_vstore(1 /*stata counts from 1*/, i, y);
 		  if(err) {
-#ifdef DEBUG
-		    printf("unable to store prediction\n");
-#endif
-		    SF_error("unable to store prediction\n");
+		    error("unable to store prediction\n");
 		    return err;
 	    }
       
@@ -638,19 +681,19 @@ ST_retcode predict(int argc, char* argv[]) {
 ST_retcode export(int argc, char* argv[]) {
 
 	if(argc != 1) {
-    SF_error("Wrong number of arguments\n");
+    error("Wrong number of arguments\n");
     return 1;
   }
   
   char* fname = argv[0];
   
   if(model == NULL) {
-    SF_error("no model available to export\n");
+    error("no model available to export\n");
     return 0;
   }
   
 	if(svm_save_model(fname, model)) {
-		SF_error("unable to export fitted model\n");
+		error("unable to export fitted model\n");
 		return 1;
 	}
 	
@@ -662,7 +705,7 @@ ST_retcode export(int argc, char* argv[]) {
 ST_retcode import(int argc, char* argv[]) {
 
 	if(argc != 1) {
-    SF_error("Wrong number of arguments\n");
+    error("Wrong number of arguments\n");
     return 1;
   }
   
@@ -672,7 +715,7 @@ ST_retcode import(int argc, char* argv[]) {
   
   char* fname = argv[0];
 	if((model = svm_load_model(fname)) == NULL) {
-		SF_error("unable to import fitted model\n");
+		error("unable to import fitted model\n");
 		return 1;
 	}
 	
@@ -691,17 +734,16 @@ ST_retcode import(int argc, char* argv[]) {
  */
 STDLL stata_call(int argc, char *argv[])
 {
-#ifdef DEBUG
-	print_stata("Stata-SVM v0.0.1\n") ;
+	debug("Stata-SVM v0.0.1\n") ;
 	for(int i=0; i<argc; i++)
 	{
-		printf("argv[%d]=%s\n",i,argv[i]);
+		debug("argv[%d]=%s\n",i,argv[i]);
 	}
 	
-	printf("Total dataset size: %dx%d. We have been asked operate on [%d:%d,%d].\n", SF_nobs(), SF_nvar(), SF_in1(), SF_in2(), SF_nvars());
-#endif
+	debug("Total dataset size: %dx%d. We have been asked operate on [%d:%d,%d].\n", SF_nobs(), SF_nvar(), SF_in1(), SF_in2(), SF_nvars());
+
 	if(argc < 1) {
-		SF_error(PLUGIN_NAME ": no subcommand specified\n");
+		error(PLUGIN_NAME ": no subcommand specified\n");
 		return(1);
 	}
 	
@@ -717,9 +759,7 @@ STDLL stata_call(int argc, char *argv[])
 		i++;
 	}
 	
-	char err_buf[256];
-	snprintf(err_buf, 256, PLUGIN_NAME ": unrecognized subcommand '%s'\n", command);
-	SF_error(err_buf);
+	error(PLUGIN_NAME ": unrecognized subcommand '%s'\n", command);
 	
 	return 1;
 }
@@ -737,9 +777,9 @@ STDLL pginit(ST_plugin *p)
 {
 	_stata_ = p ;
 	
-	svm_set_print_string_function(print_stata);
-#if HAVE_SVM_PRINT_ERROR
-	svm_set_error_string_function(error_stata);
+	svm_set_print_string_function(libsvm_display);
+#ifdef HAVE_SVM_PRINT_ERROR
+	svm_set_error_string_function(libsvm_error);
 #endif
 	
 	return(SD_PLUGINVER) ;

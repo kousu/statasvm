@@ -1,6 +1,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "stplugin.h"
 #include "stutil.h"
 
@@ -11,7 +12,7 @@ STDLL stata_call(int argc, char *argv[])
     ST_retcode err = 0;
     
     if(argc != 1) {
-        sterror("incorrect number of arguments (%d), can only take 1\n", argc);
+        sterror("_getenv: incorrect number of arguments (%d), can only take 1\n", argc);
         return 1;
     }
     
@@ -22,7 +23,7 @@ STDLL stata_call(int argc, char *argv[])
     
     err = SF_macro_save(OUTPUT, value);
     if(err) {
-      sterror("_getenv: unable to write '%s' to output macro '%s'. err=%d\n", err, value, OUTPUT);
+      sterror("_getenv: unable to write '%s' to output macro '%s'[%d]: \n", err, value, OUTPUT, strerror(err), err);
       return err;
     }
     return 0;

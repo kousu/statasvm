@@ -21,7 +21,6 @@ ifndef DLLEXT #hack: this guards against overwriting DLLEXT:=dll in the MinGW pa
 endif
 
 CFLAGS+=-Wall -Werror
-CFLAGS+=-std=c99 #arrrrgh, this should be the default
 
 # strange, make comes with .LIBPATTERNS yet doesn't come with rules for actually making .so files
 %.$(DLLEXT):

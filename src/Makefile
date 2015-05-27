@@ -145,15 +145,9 @@ bin/$(PLATFORM)/%.plugin: %.$(DLLEXT)
 	@$(MKDIR) bin && cd bin && $(MKDIR) $(PLATFORM)
 	$(LN) $(call FixPath,$<) $(call FixPath,$@)
 
-
 $(PLUGIN).$(DLLEXT): $(OBJECTS)
-
 _getenv.$(DLLEXT): _getenv.o stutil.o stplugin.o
-_setenv.$(DLLEXT): _getenv.o stutil.o stplugin.o
-
-
-#.SECONDARY: bin/$(PLATFORM)/%.plugin
-
+_setenv.$(DLLEXT): _setenv.o stutil.o stplugin.o
 
 # (this would do the 'and then link' step)
 #$(NAME).plugin: $(OS)/$(ARCH)/$(NAME).plugin

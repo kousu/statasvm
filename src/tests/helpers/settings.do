@@ -1,3 +1,4 @@
+quietly {
 * settings.do
 set linesize 119
 * make all platforms consistent in their batch output;
@@ -8,5 +9,7 @@ set linesize 119
 local TRACE : env TRACE /* you can't use env by itself, for some reason */
 if("`TRACE'"!="") {
   set trace on
-  set more off
+  set more off, perm
+}
+
 }

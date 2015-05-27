@@ -52,7 +52,7 @@ PLUGIN:=_svm
 
 # Compiled but unlinked object files
 # These assume POSIX (XXX maybe we should `include posix.mk` unconditionally, and then override it, since most of the builds are basically posix)
-CODE := $(call rwildcard,./,*.c)
+CODE := _svm.c stutil.c
 OBJECTS := $(patsubst %.c,%.o,$(CODE))
 
 LIBS += svm
@@ -130,7 +130,9 @@ plugin: bin/$(PLATFORM)/$(PLUGIN).plugin
 # the proper thing to do would be to edit Stata's path, and I miiight be able to automate what with 'which svm.ado' + 'adopath',
 #  but the tests won't work unless they are run from the Makefile directory anyway
 plugin: $(PLUGIN).plugin
-$(PLUGIN).plugin: bin/$(PLATFORM)/$(PLUGIN).plugin
+
+
+%.plugin: bin/$(PLATFORM)/%.plugin
 	$(LN) $(call FixPath,$<) $(call FixPath,$@)
 
 
@@ -146,8 +148,11 @@ bin/$(PLATFORM)/%.plugin: %.$(DLLEXT)
 
 $(PLUGIN).$(DLLEXT): $(OBJECTS)
 
-%.plugin: bin/$(PLATFORM)/%.plugin
+_getenv.$(DLLEXT): _getenv.o stutil.o stplugin.o
+_setenv.$(DLLEXT): _getenv.o stutil.o stplugin.o
 
+
+#.SECONDARY: bin/$(PLATFORM)/%.plugin
 
 
 # (this would do the 'and then link' step)
@@ -163,7 +168,7 @@ $(PLUGIN).$(DLLEXT): $(OBJECTS)
 .PHONY: clean
 # *.log *should* get cleaned up by the testing recipe, but in case it doesn't or you have made some manually we clean it again here
 clean:
-	-$(RM) $(foreach o,$(OBJECTS),$(wildcard $(o))) *.plugin *.log *.model
+	-$(RM) *.o *.plugin *.log *.model
 	-$(RMDIR) bin
 
 include test.mk

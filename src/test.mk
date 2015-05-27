@@ -30,13 +30,19 @@ TESTS:=$(patsubst %,tests/%,$(TESTS))
   
 #notice: $< means 'the first prerequisite' and is basically a super-special case meant for exactly this sort of usage
 #.PHONY: $(TESTS) #	" Make does not consider implicit rules for PHONY targets" ?? In other words: there is no way to autogenerate .PHONY targets. whyyyyy.
-tests/%: %.log plugin
+tests/%: %.log
 	@echo - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	@echo ---------------------------------------------------------------
 	$(CAT) $(call FixPath,$<)
 	@echo ---------------------------------------------------------------
 	@echo - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+# force tests to do a rebuild (if necessary) before running
+# now that we have multiple things to build this is not so simple
+# XXX is there a cleaner way?
+$(TESTS): _svm.plugin
+tests/getenv: _getenv.plugin
+tests/setenv: _setenv.plugin
 
 .PHONY: tests
 tests: $(TESTS)

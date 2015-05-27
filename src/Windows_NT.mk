@@ -105,6 +105,6 @@ endif
 
 .PHONY: clean-windows
 clean-windows: 
-	-$(RM) *.dll *.lib *.exp
+	-$(RM) *.dll *.lib *.exp *.obj
 
 clean: clean-windows

@@ -22,14 +22,13 @@ program define svm_load
     * This needs to be handled better. Perhaps we should let the user give varlist (but if they don't give it, default to all in the file??)
     if(`=_svm_load_M+1' > `c(max_k_theory)'-1-1) {
       di as error "Warning: your version of Stata will not allow `=_svm_load_M+1' variables nor be able to use the C plugin with that many."
-	  di as error "clip=`clip'"
-	  if("`clip'"!="") {
+      if("`clip'"!="") {
         di as error "Clamping to `=c(max_k_theory)-1-1'."
         scalar _svm_load_M = `=c(max_k_theory)-1-1-1' /*remember: the extra -1 is to account for the Y column, and the extra extra -1 is the leave room for a prediction column*/
       }
-	  else {
-	    exit 1
-	  }
+      else {
+        exit 1
+      }
     }
     
     * handle error cases; I do this explicitly  so 
@@ -106,7 +105,7 @@ program define svm_load_purestata
   
   file read `fd' line
   while r(eof)==0 {
-  	*display "read `line'" /*DEBUG*/
+    *display "read `line'" /*DEBUG*/
   	
   	quiet set obs `=_N+1'
   	
@@ -118,14 +117,14 @@ program define svm_load_purestata
   	* and it puts the results into the table.
   	local j = 1
   	while("`T'" != "") {
-      *if(`j' > 10) continue, break /*DEBUG*/
+          *if(`j' > 10) continue, break /*DEBUG*/
   	  gettoken X T : T
   	  gettoken name X : X, parse(":")
   	  gettoken X value : X, parse(":")
   	  *di "@ `=_N' `name' = `value'" /*DEBUG*/
   	  
-  	  capture quiet generate double x`name' = . /*UNCONDITIONALLY make a new variable*/
-    	capture quiet replace x`name' = `value' in l
+          capture quiet generate double x`name' = . /*UNCONDITIONALLY make a new variable*/
+          capture quiet replace x`name' = `value' in l
   	  if(`=_rc' != 0) continue, break /*something went wrong, probably that we couldn't make a new variable (due to memory or built-in Stata constraints). Just try the next observation*/
   	  
 			local j = `j' + 1

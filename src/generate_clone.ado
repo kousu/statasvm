@@ -1,7 +1,7 @@
 
 /* generate a new variable, cloning the attributes (type, labels, etc) of an old */
 program define generate_clone
-  
+  quietly {
   // the syntax is "generate_clone source target" where source is an existing variable and target is not
   // but the 'syntax' command doesn't (as far as I can see) support this: either it's all new or all old variables
   gettoken source 0 : 0
@@ -23,4 +23,5 @@ program define generate_clone
   label variable `target' "`N'"  //Yes, the setters and getters are
   label value `target' "`V'"     //in fact reverses of each other
   // implicit here: if label or value
+  }
 end

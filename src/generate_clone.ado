@@ -15,13 +15,17 @@ program define generate_clone
                                  // Stata maintains a dictionary of dictionaries, each of which
                                  // maps integers to strings. Multiple variables can share a dictionary,
                                  //though it is rare.
-                                 
+  
   // make new variable
   generate `T' `target' = .
   
-  // set attributes (except for type, which is preset, since it's silly to force a reallocation immediately)
-  label variable `target' "`N'"  //Yes, the setters and getters are
-  label value `target' "`V'"     //in fact reverses of each other
-  // implicit here: if label or value
+  // clone attributes if they exist
+  // (except for type, which always exists and cannot be reassigned without another 'generate' doing an appropriate malloc())
+  if("`N'"!="") {
+    label variable `target' "`N'"  //Yes, the setters and getters are
+  }
+  if("`V'"!="") {
+    label value `target' "`V'"     //in fact reverses of each other
+  }
   }
 end

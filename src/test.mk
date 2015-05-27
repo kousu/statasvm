@@ -31,7 +31,12 @@ TESTS:=$(patsubst %,tests/%,$(TESTS))
 #notice: $< means 'the first prerequisite' and is basically a super-special case meant for exactly this sort of usage
 #.PHONY: $(TESTS) #	" Make does not consider implicit rules for PHONY targets" ?? In other words: there is no way to autogenerate .PHONY targets. whyyyyy.
 tests/%: %.log plugin
+	@echo - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	@echo ---------------------------------------------------------------
 	$(CAT) $(call FixPath,$<)
+	@echo ---------------------------------------------------------------
+	@echo - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 
 .PHONY: tests
 tests: $(TESTS)
@@ -50,10 +55,9 @@ tests: $(TESTS)
 # Hence, these wrapped files are given identical names but stuffed in a subdir to distinguish them.
 #
 # The order of dependencies *is the order the commands are concatenated*.
-tests/wrapped/%.do: tests/wrapped tests/helpers/settings.do tests/%.do tests/helpers/inspect_model.do
-	echo quietly do $(word 2,$^) > $(call FixPath,$@)
-	echo do $(word 3,$^) >> $(call FixPath,$@)
-	echo do $(word 4,$^) >> $(call FixPath,$@)
+tests/wrapped/%.do: tests/wrapped tests/helpers/settings.do tests/%.do
+	echo quietly do tests/helpers/settings.do > $(call FixPath,$@)
+	echo do tests/$*.do >> $(call FixPath,$@)
 	
 # it's a bad idea to have directories as targets, but there's no cross-platform way to say "if directory already exists, don't make it";
 tests/wrapped:

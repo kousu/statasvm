@@ -12,8 +12,8 @@ matrix dir
 capture matrix list e(nSV) /*I can't figure out a better to test if a variable is defined than to try to access it and see if it crashes */
 if(_rc==0) {  
   capture noisily ereturn list /* because of Stata's single-global-return-list design, the only time we can access this data is immediately after a svm_train or svm_import */
-  capture noisily matrix dir /*'matrix list' is for a specific; you need 'dir' to see all defined ones, unlike how 'scalar list' and 'list' work*/
-  capture noisily matrix list e(SVs)   /*this is not defined under svm_import, at least, not as written */
+  capture noisily matrix dir   /* unlike 'scalar list', 'matrix list' shows a *single* matrix and 'dir' shows all */
+  capture noisily matrix list e(SVs)   /* XXX this is not loaded by svm_import, but it should be */
   capture noisily matrix list e(nSV)
   capture noisily matrix list e(labels)
   capture noisily matrix list e(sv_coef)

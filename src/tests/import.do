@@ -1,2 +1,2 @@
 * import.do
-svm_import using "tests/duke.model"
+svm_import using "tests/auto.model"

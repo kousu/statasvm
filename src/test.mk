@@ -10,10 +10,10 @@ tests/%.bz2:
 	wget http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary/$*.bz2 -O $@
 
 # add test-specific files
-tests/load tests/train tests/export tests/preload: tests/duke.svmlight
-$(call FixPath,tests/duke.model): tests/export #the make manual claims on Windows all paths use forward slashes and only forward slashes, but apparently this doesn't apply to targets, only prerequisites.
+tests/preload tests/load: tests/duke.svmlight
+$(call FixPath,tests/auto.model): tests/export #the make manual claims on Windows all paths use forward slashes and only forward slashes, but apparently this doesn't apply to targets, only prerequisites.
      # maybe what I should do is give up and move all this into a sub Makefile and use recursive make to avoid dealing with path separators.
-tests/import: tests/duke.model #for example, this one is created by test_export, and so that has to run first; stating it like this lets make figure that out
+tests/import: tests/auto.model #for example, this one is created by export.do, and so that has to run first; stating it like this lets make figure that out
 
 # for each .do file in tests/, make a .PHONY test_<testname> target which runs Stata and prints the output
 # the meta-target test runs all tests

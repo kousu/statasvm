@@ -74,8 +74,7 @@ static void debug(const char *fmt, ...)
 
     // print to Stata
     va_start(args, fmt);
-    char buf[BUF_MAX] = "Butts";
-    fprintf(stderr, "fmt===%s\n",fmt);
+    char buf[BUF_MAX];
     vsnprintf(buf, sizeof(buf), fmt, args);
     SF_display(buf);    
     va_end(args);

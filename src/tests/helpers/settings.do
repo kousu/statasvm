@@ -1,4 +1,3 @@
-quietly {
 * settings.do
 set linesize 119
 * make all platforms consistent in their batch output;
@@ -12,4 +11,3 @@ if("`TRACE'"!="") {
   set more off, perm
 }
 
-}

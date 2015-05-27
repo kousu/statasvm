@@ -51,7 +51,9 @@ tests: $(TESTS)
 #
 # The order of dependencies *is the order the commands are concatenated*.
 tests/wrapped/%.do: tests/wrapped tests/helpers/settings.do tests/%.do tests/helpers/inspect_model.do
-	$(CAT) $(call FixPath,$(filter-out tests/wrapped,$^)) > $(call FixPath,$@)
+	echo quietly do $(word 2,$^) > $(call FixPath,$@)
+	echo do $(word 3,$^) >> $(call FixPath,$@)
+	echo do $(word 4,$^) >> $(call FixPath,$@)
 	
 # it's a bad idea to have directories as targets, but there's no cross-platform way to say "if directory already exists, don't make it";
 tests/wrapped:

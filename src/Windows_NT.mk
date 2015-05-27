@@ -91,7 +91,7 @@ ifeq ($(STATA),) # an hard
   # subtlety: make is always forward-slashes for directories and backslashes for escapes, even on Windows.
   STATAPATH := $(call FixPath,$(wildcard c:/Program*/Stata*/)) #XXX in the rare case there are two Statapaths (e.g. 32 bit and 64 bit Stata) this breaks badly because Windows has spaces in "Program Files", and wildcard uses spaces as delimiter
   # amend the PATH
-  PATH:=$(PATH);$(STATAPATH)
+  PATH:=$(PATH);$(strip $(STATAPATH))
   export PATH
   
   STATA := Stata

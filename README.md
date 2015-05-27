@@ -9,6 +9,10 @@ Originally written by [Nick Guenther](http://github.com/kousu) and [Professor Ma
 Installation
 ------------
 
+**THIS IS ALPHA CODE. IT IS NOT READY FOR PRODUCTION.
+IT IS NOT YET PUBLISHED IN THE STATA REPOSITORY.
+IF YOU WANT TO USE IT YOU MUST BE COMFORTABLE DEVELOPING IT, TOO.**
+
 In Stata:
 ```
 net search svm

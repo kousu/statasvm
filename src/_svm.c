@@ -610,7 +610,7 @@ ST_retcode train(int argc, char *argv[])
     param.eps = 1e-3;
     param.p = 0.1;
     param.shrinking = 1;
-    param.probability = 0;
+    param.probability = 1; //changed from 0;
     param.nr_weight = 0;
     param.weight_label = NULL;
     param.weight = NULL;
@@ -663,23 +663,51 @@ ST_retcode predict(int argc, char *argv[])
 
     ST_retcode err = 0;
 
-    if (SF_nvars() < 1) {
-        error("svm_predict: need at least a target\n");
-        return 1;
-    }
-
     if (model == NULL) {
         error("svm_predict: no active model\n");
         return 1;
     }
-
-
+    
+    // svm_predict.ado signals that we are in svm_predict_probability() mode by passing an order list of levels
+    // corresponding to a trailing set of variables where writeback goes
+    int no_levels = svm_get_nr_class(model);                 //the number of levels
+    int no_vars = SF_nvars(); //the number of variables, i.e. n+1 in [y; x1; x2; ... ; xn]
+    double *probabilities = NULL;
+    if(argc > 0 && strcmp(argv[0],"probability")==0) {
+        if(!svm_check_probability_model(model)) {
+          error("svm_predict: active model cannot produce probabilities.\n");
+          return 1;
+        }
+        no_vars -= no_levels;
+        
+        probabilities = calloc(no_levels, sizeof(double));
+        if(probabilities == NULL) {
+            error("svm_predict: unable to allocate memory\n");
+            return 1;
+        }
+        
+        // Init probabilities to catch bugs
+        for(int k=0; k<no_levels; k++) {
+          probabilities[k] = NAN;
+        }
+    }
+    
+    debug("svm_predict: no_levels = %d, no_vars = %d, probability mode = %s\n", no_levels, no_vars, probabilities ? "on" : "off");
+    
+    // TODO: error if probabilites is set but the svm_model is not a classification one
+    // (svm_predict_probabilities should do this, but instead it just silently falls back
+    
+    if (no_vars < 1) {
+        error("svm_predict: need at least a target\n");
+        return 1;
+    }
+    
     for (ST_int i = SF_in1(); i <= SF_in2(); i++) {     //respect `in' option
         if (SF_ifobs(i)) {      //respect `if' option
             // Map the current row into a libsvm svm_node list
             //XXX TODO: this code was copied verbatim from stata2libsvm; it needs to be factored instead!!
             struct svm_node *X =
-                calloc(SF_nvars(), sizeof(struct svm_node));
+                calloc(no_vars, sizeof(struct svm_node)); //TODO: optimization: only allocate X once
             if (X == NULL) {
                 error("svm_predict: unable to allocate memory\n");
                 return 1;
@@ -688,23 +716,45 @@ ST_retcode predict(int argc, char *argv[])
             // that means that missing values should not be allocated
             // the length of each row is indicated by index=-1 on the last entry
             int c = 0;          //and the current position within the subarray is tracked here
-            for (int j = 1; j < SF_nvars(); j++) {
+            for (int j = 2; j <= no_vars; j++) {
                 ST_double value;
-                if (SF_vdata(j + 1
-                             /*this +1 accounts for the y variable: variable 2 in the Stata dataset is x1 */
-                             , i, &value) == 0
-                    && !SF_is_missing(value)) {
-                    X[c].index = j;
-                    X[c].value = value;
-                    c++;
+                err = SF_vdata(j, i, &value);
+                //debug("[%d,%d]=%lf\n", i,j,value);
+                if(err) {
+                  error("svm_predict: unable to read observation %d, column %d. err=%d\n", i, j, err);
+                  // XXX memory leak
+                  return 1;
                 }
+                if(SF_is_missing(value)) {
+                  error("svm_predict: svm cannot handle missing data (found at observation %d, column %d).\n", i, j);
+                  // XXX memory leak
+                  return 1;
+                }
+                X[c].index = j-1; //hilarious: if index *doesn't* start from 1, instead of warning or crashing libsvm gives the same results for all predictions
+                X[c].value = value;
+                c++;
             }
             X[c].index = -1;    //mark end-of-row
             X[c].value = SV_missval;    //not strictly necessary, but it makes me feel good
-
+            
             // do the prediction! (one observation at a time)
-            double y = svm_predict(model, X);
-
+            double y;
+            if(!probabilities) {
+              y = svm_predict(model, X);
+            } else {
+              y = svm_predict_probability(model, X, probabilities);
+              
+              for(int k=0; k<no_levels; k++) {
+                err = SF_vstore(no_vars+1+k, i, probabilities[k]);
+                //debug("prob: [%d,%d]=%lf\n", i,no_vars+1+k,probabilities[k]);
+                if(err) {
+                  error("svm_predict: unable to writeback probability for level #%d (target column %d) at observation %d\n", k,  no_vars+1+k, i);
+                  // XXX memory leak
+                  return 1;
+                }
+              }
+            }
+            
             // write back
             // by convention wtih svm_predict.ado, the 1th variable, i.e. the first on the varlist (not the first in the dataset), is the output location
             err = SF_vstore(1 /*stata counts from 1 */ , i, y);
@@ -716,7 +766,9 @@ ST_retcode predict(int argc, char *argv[])
             free(X);
         }
     }
-
+    
+    if(probabilities) { free(probabilities); }
+    
     return 0;
 }
 

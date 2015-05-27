@@ -702,16 +702,23 @@ ST_retcode predict(int argc, char *argv[])
         return 1;
     }
     
+    struct svm_node *X = calloc(no_vars, sizeof(struct svm_node));
+    if (X == NULL) {
+        error("svm_predict: unable to allocate memory\n");
+        err = 1;
+        goto cleanup;
+    }
+    
+    //TODO: C doesn't have a real break outer, but if I factor out the svm_node[] generating loop I can use error returns to fake exceptions
+    //      for now a flag will have to do
+    //      this is used let the inner loop cause the outer loop to skip to the next observation if one of the datapoints is bad
+    bool continue_outer = false;
+    
     for (ST_int i = SF_in1(); i <= SF_in2(); i++) {     //respect `in' option
         if (SF_ifobs(i)) {      //respect `if' option
             // Map the current row into a libsvm svm_node list
-            //XXX TODO: this code was copied verbatim from stata2libsvm; it needs to be factored instead!!
-            struct svm_node *X =
-                calloc(no_vars, sizeof(struct svm_node)); //TODO: optimization: only allocate X once
-            if (X == NULL) {
-                error("svm_predict: unable to allocate memory\n");
-                return 1;
-            }
+            //XXX TODO: this code was copied verbatim from stata2libsvm then tweaked; it needs to be factored instead!!
+            
             // libsvm uses a sparse datastructure
             // that means that missing values should not be allocated
             // the length of each row is indicated by index=-1 on the last entry
@@ -722,17 +729,20 @@ ST_retcode predict(int argc, char *argv[])
                 //debug("[%d,%d]=%lf\n", i,j,value);
                 if(err) {
                   error("svm_predict: unable to read observation %d, column %d. err=%d\n", i, j, err);
-                  // XXX memory leak
-                  return 1;
+                  goto cleanup;
                 }
                 if(SF_is_missing(value)) {
-                  error("svm_predict: svm cannot handle missing data (found at observation %d, column %d).\n", i, j);
-                  // XXX memory leak
-                  return 1;
+                  error("svm_predict: svm cannot handle missing data (found at observation %d, column %d), so skipping.\n", i, j);
+                  continue_outer = true;
+                  break;
                 }
                 X[c].index = j-1; //hilarious: if index *doesn't* start from 1, instead of warning or crashing libsvm gives the same results for all predictions
                 X[c].value = value;
                 c++;
+            }
+            if(continue_outer) {
+              continue_outer = false;
+              continue;
             }
             X[c].index = -1;    //mark end-of-row
             X[c].value = SV_missval;    //not strictly necessary, but it makes me feel good
@@ -749,8 +759,7 @@ ST_retcode predict(int argc, char *argv[])
                 //debug("prob: [%d,%d]=%lf\n", i,no_vars+1+k,probabilities[k]);
                 if(err) {
                   error("svm_predict: unable to writeback probability for level #%d (target column %d) at observation %d\n", k,  no_vars+1+k, i);
-                  // XXX memory leak
-                  return 1;
+                  goto cleanup;
                 }
               }
             }
@@ -763,13 +772,14 @@ ST_retcode predict(int argc, char *argv[])
                 return err;
             }
 
-            free(X);
         }
     }
-    
+
+cleanup:
+    if(X) { free(X); }
     if(probabilities) { free(probabilities); }
     
-    return 0;
+    return err;
 }
 
 

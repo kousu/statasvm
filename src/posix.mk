@@ -3,6 +3,10 @@
 
 # --- config ---
 
+ifndef OBJEXT
+  OBJEXT:=o
+endif
+  
 # extend the list of $(CC), $(YACC), ... with extra standard programs variables
 # so that we can tolerate the POSIX incompatible parts of Windows by override.
 WHICH:=which

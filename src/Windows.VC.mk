@@ -1,8 +1,5 @@
 
-# The
-
-# rewrite $OBJECTS to be VC-style
-OBJECTS := $(call FixPath,$(patsubst %.o,%.obj,$(OBJECTS)))
+OBJEXT:=obj
 
 # VC++ reference:
 # from http://stackoverflow.com/questions/1130479/how-to-build-a-dll-from-the-command-line-in-windows-using-msvccl tells how to build a DLL
@@ -20,6 +17,9 @@ CFLAGS+=/W3 /WX #turn up warnings, and make them crash the compile
 LDFLAGS+=/DLL    #build a DLL instead of an EXE
 LDFLAGS+=/LTCG   #causes whole-DLL optimization 
 
+# /nologo 
+CC:=cl /nologo
+
 # Windows doesn't have uname; instead we have to check the variable set by vcvarsall.bat to figure out what arch we're building for
 # the *output* here *is* in posix uname -m format, though.
 ifeq ($(Platform),X64)
@@ -29,11 +29,12 @@ else
 endif
 
 %.dll:
-	cl /nologo $^ $(foreach L,$(LIBS),$L.lib) /link $(LDFLAGS) /OUT:$@
+#see Windows_NT.mk for why "FIXED_LIBS"
+	$(CC) $^ $(foreach L,$(FIXED_LIBS),$L.lib) /link $(LDFLAGS) /OUT:$@
 
 # this rule compiles a single .c file to a single .obj file
 %.obj: %.c
-	cl /nologo $(CFLAGS) /c $< /Fo$@
+	$(CC) $(CFLAGS) /c $< /Fo$@
 	
 .PHONY: printdeps
 printdeps:

@@ -52,7 +52,7 @@ PLUGIN:=_svm
 
 # Compiled but unlinked object files
 # These assume POSIX (XXX maybe we should `include posix.mk` unconditionally, and then override it, since most of the builds are basically posix)
-CODE := _svm.c stutil.c
+CODE := _svm.c stutil.c libsvm_patches.c
 OBJECTS := $(patsubst %.c,%.o,$(CODE))
 
 LIBS += svm

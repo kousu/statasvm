@@ -5,3 +5,9 @@ Project Reference
 
 * Cross platform build systems:
   * [the git makefile](http://git.kernel.org/cgit/git/git.git/tree/Makefile), though this is only for POSIX variants
+
+
+
+
+* [Pre-defined C/C++ Compiler Macros Wiki](http://sourceforge.net/p/predef/wiki/Home/)
+  SO USEFUL

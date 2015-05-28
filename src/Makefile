@@ -44,18 +44,6 @@ include util.mk
 
 # --- build declarations  ---
 
-NAME:=statasvm
-PKG:=svm
-AUTHOR:=Nick Guenther <nguenthe@uwaterloo.ca> and Matthias Schonlau <schonlau@uwaterloo.ca>
-DESCRIPTION:=Support Vector Machines for both Classification and Regression
-PLUGIN:=_svm
-
-# Compiled but unlinked object files
-# These assume POSIX (XXX maybe we should `include posix.mk` unconditionally, and then override it, since most of the builds are basically posix)
-CODE := $(call rwildcard,./,*.c)
-OBJECTS := $(patsubst %.c,%.o,$(CODE))
-
-LIBS += svm
 
 # --- platform detection ---
 
@@ -123,47 +111,49 @@ endif
 # --- rules ---
 
 
-.PHONY: plugin
-plugin: bin/$(PLATFORM)/$(PLUGIN).plugin
 
-# as a convenience for development, auto-link back the platform-specific plugin to the local directory, so that the tests can find it
-# the proper thing to do would be to edit Stata's path, and I miiight be able to automate what with 'which svm.ado' + 'adopath',
-#  but the tests won't work unless they are run from the Makefile directory anyway
-plugin: $(PLUGIN).plugin
-$(PLUGIN).plugin: bin/$(PLATFORM)/$(PLUGIN).plugin
-	$(LN) $(call FixPath,$<) $(call FixPath,$@)
-
-
-# Stata uses consistent naming across platforms for library files,
+# Stata uses consistent naming across platforms for library files, loading anything ending in ".plugin" with the platform's particular version of dlopen()
 # even if the platforms don't, so we can have a shared target
 # TODO: do platform-specific builds under build/$(OS)/$(ARCH)/ (and then link or copy the final result to ./svm.plugin)
 #       we will ultimately distribute all of $(OS)/$(ARCH)/svm.plugin to everyone, since that's about the best we can do given Stata's simplistic package management system.
-bin/$(PLATFORM)/%.plugin: %.$(DLLEXT)
-#the silent mkdir is awkwardly written twice because windows doesn't have mkdir -p
-	@$(MKDIR) bin && cd bin && $(MKDIR) $(PLATFORM)
-	$(LN) $(call FixPath,$<) $(call FixPath,$@)
 
+# generic plugin chain: _%.c -> %.o -> %.so -> bin/$(PLATFORM)/_%.plugin -> _%.plugin -> phony "plugin" target
+# (except on OS X .so is .dylib and on Windows .o is .obj and .so is .dll) 
 
-$(PLUGIN).$(DLLEXT): $(OBJECTS)
+.PHONY: plugin
+plugin: $(patsubst %.c,bin/$(PLATFORM)/%.plugin,$(wildcard _*.c))
 
 %.plugin: bin/$(PLATFORM)/%.plugin
+	$(LN) $(call FixPath,$<) $(call FixPath,$@)
+
+bin/$(PLATFORM)/%.plugin: %.$(DLLEXT)
+#the silent mkdir is awkwardly written twice because windows doesn't have mkdir -p
+	@-$(MKDIR) bin && cd bin && $(MKDIR) $(PLATFORM)
+	$(LN) $(call FixPath,$<) $(call FixPath,$@)
+
+# append the dependencies for which belong to each specific plugin
+# You'd think you could say %.$(DLLEXT): %.$(OBJEXT) and then attach more depends on for specifics
+# but GNU make keeps pattern rules and explicit rules in almost separate namespaces
+# it would also be nice if you could edit the list of depends as if it was a target-specific variable (which, really, it is), so that I could mix branching and substitution in to autogen the depends
+# ah, I might be at the outer limits of what GNU make is usable for. le sigh.
+_svm.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_svm.c libsvm_patches.c stutil.c)
+_svm.$(DLLEXT): LIBS += svm
+_getenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_getenv.c stutil.c stplugin.c)
+_setenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_setenv.c stutil.c stplugin.c)
 
 
 
-# (this would do the 'and then link' step)
-#$(NAME).plugin: $(OS)/$(ARCH)/$(NAME).plugin
-#	$(CP) $(call FixPath,$<) $(call FixPath,$@)
 
 
 # --- Cleaning ---
 
 # Tip: consider replacing 'rm' with 'git clean -f', if you are using git. It might be dangerously overzealous but if you've used git right,
 # it's much more thorough and reliable about getting your state back to scratch, because it by definition puts the state back to what's checked in.
-	
+
 .PHONY: clean
 # *.log *should* get cleaned up by the testing recipe, but in case it doesn't or you have made some manually we clean it again here
 clean:
-	-$(RM) $(foreach o,$(OBJECTS),$(wildcard $(o))) *.plugin *.log *.model
+	-$(RM) *.o *.plugin *.log *.model
 	-$(RMDIR) bin
 
 include test.mk

@@ -3,6 +3,10 @@
 
 # --- config ---
 
+ifndef OBJEXT
+  OBJEXT:=o
+endif
+  
 # extend the list of $(CC), $(YACC), ... with extra standard programs variables
 # so that we can tolerate the POSIX incompatible parts of Windows by override.
 WHICH:=which
@@ -21,7 +25,6 @@ ifndef DLLEXT #hack: this guards against overwriting DLLEXT:=dll in the MinGW pa
 endif
 
 CFLAGS+=-Wall -Werror
-CFLAGS+=-std=c99 #arrrrgh, this should be the default
 
 # strange, make comes with .LIBPATTERNS yet doesn't come with rules for actually making .so files
 %.$(DLLEXT):

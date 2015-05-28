@@ -107,3 +107,15 @@ To inspect DLL dependencies of a compiled file:
 Windows: _______
 OS X: `otool -L`
 *nix: `readelf -d` (or `objdump -x`)
+
+
+
+
+Plugin Interface
+----------------
+
+The plugin interface is the same as the C main() interface: argc/argv.
+But unlike normal command line programs, we cannot rely on getopt existing everywhere,
+and it is easy to get empty strings as individual arguments since there is no shell in the way.
+
+TODO

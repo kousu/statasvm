@@ -525,36 +525,104 @@ ST_retcode _load(int argc, char *argv[])
 ST_retcode train(int argc, char *argv[])
 {
 
-    if (SF_nvars() < 2) {
-        sterror("svm_train: need one dependent and at least one independent variable.\n");
+    // XXX there is a VERY FIXED set of arguments
+    // corresponding to entries
+    // in a VERY PARTICULAR order
+    // make sure you keep svm_train.ado and this function in sync
+    if(argc != 12) {
+        sterror("_svm_train: expected exactly 12 arguments. Do not try to call the plugin's train routine directly, use svm_train.ado\n");
         return 1;
     }
-
+    
+    if (SF_nvars() < 2) {
+        sterror("_svm_train: need one dependent and at least one independent variable.\n");
+        return 1;
+    }
+    
+    
     struct svm_parameter param;
-    // set up svm_paramet default values
-
-    // TODO: pass (probably name=value pairs on the "command line")
-    param.svm_type = C_SVC;
-    param.kernel_type = RBF;
-    param.degree = 3;
-    param.gamma = 0;
-    param.coef0 = 0;
-    param.nu = 0.5;
-    param.cache_size = 100;
-    param.C = 1;
-    param.eps = 1e-3;
-    param.p = 0.1;
-    param.shrinking = 1;
-    param.probability = 1; //changed from 0;
+    
+    // XXX there is a string<->enum mapping buried in the libsvm code somewhere, but it's got no API :(
+    //     so the mapping is replicated ad naseum
+    // enum { C_SVC, NU_SVC, ONE_CLASS, EPSILON_SVR, NU_SVR };	/* svm_type */
+    if(strncmp(argv[0], "C_SVC", 10)==0) {
+        param.svm_type = C_SVC;
+    } else if(strncmp(argv[0], "NU_SVC", 10)==0) {
+        param.svm_type = NU_SVC;
+    } else if(strncmp(argv[0], "ONE_CLASS", 10)==0) {
+        param.svm_type = ONE_CLASS;
+    } else if(strncmp(argv[0], "EPSILON_SVR", 10)==0) {
+        param.svm_type = EPSILON_SVR;
+    } else if(strncmp(argv[0], "NU_SVR", 10)==0) {
+        param.svm_type = NU_SVR;
+    } else {
+        sterror("_svm_train: unrecognized SVM type '%s'\n", argv[0]);
+        return 1;
+    }
+    argc--; argv++; //shift
+    
+    // XXX ditto: copy-paste danger zone!
+    //enum { LINEAR, POLY, RBF, SIGMOID, PRECOMPUTED }; /* kernel_type */
+    if(strncmp(argv[0], "LINEAR", 10)==0) {
+        param.kernel_type = LINEAR;
+    } else if(strncmp(argv[0], "POLY", 10)==0) {
+        param.kernel_type = POLY;
+    } else if(strncmp(argv[0], "RBF", 10)==0) {
+        param.kernel_type = RBF;
+    } else if(strncmp(argv[0], "SIGMOID", 10)==0) {
+        param.kernel_type = SIGMOID;
+    } else if(strncmp(argv[0], "PRECOMPUTED", 10)==0) {
+        param.kernel_type = PRECOMPUTED;
+    } else {
+        sterror("_svm_train: unrecognized kernel type '%s'\n", argv[0]);
+        return 1;
+    }
+    argc--; argv++; //shift
+    
+    param.degree = atoi(argv[0]);
+    argc--; argv++; //shift
+    
+    param.gamma = atof(argv[0]);
+    argc--; argv++; //shift
+    
+    param.coef0 = atof(argv[0]);
+    argc--; argv++; //shift;
+    
+    param.nu = atof(argv[0]);
+    argc--; argv++; //shift
+    
+    param.p = atof(argv[0]);
+    argc--; argv++; //shift
+    
+    param.C = atof(argv[0]);
+    argc--; argv++; //shift;
+    
+    param.eps = atof(argv[0]);
+    argc--; argv++; //shift
+    
+    // TODO:
     param.nr_weight = 0;
     param.weight_label = NULL;
     param.weight = NULL;
-
+    
+    param.shrinking = atoi(argv[0]);
+    argc--; argv++; //shift
+    
+    param.probability = atoi(argv[0]);
+    argc--; argv++; //shift
+    
+    param.cache_size = atoi(argv[0]);
+    argc--; argv++; //shift
+    
+    // special case: gamma = 0 means gamma = not specified
+    // default it to 1/num_features if not explicitly given
+    // XXX i have no idea what any of these numbers represent in the algorithms
     if (param.gamma == 0) {
-        //gamma is supposed to default 1/num_features if not explicitly given
+        // XXX is -1 correct here?
         param.gamma = ((double) 1) / (SF_nvars() - 1);  // remember: without the cast this does integer division and gives 0
     }
-
+    
+    
     struct svm_problem *prob = stata2libsvm();
     if (prob == NULL) {
         //assumption: stata2libsvm has already printed any relevant error messages

@@ -5,6 +5,7 @@
 #include "stplugin.h"
 #include "stutil.h"
 
+#ifdef _WIN32
 /* from http://stackoverflow.com/questions/17258029/c-setenv-undefined-identifier-in-visual-studio */
 int setenv(const char *name, const char *value, int overwrite)
 {
@@ -20,6 +21,7 @@ int setenv(const char *name, const char *value, int overwrite)
 int unsetenv(const char *name) {
 	return _putenv_s(name, "");
 }
+#endif
 
 STDLL stata_call(int argc, char *argv[])
 {

@@ -635,7 +635,7 @@ ST_retcode train(int argc, char *argv[])
         stdebug("Problem to svm_train on:\n");
         svm_problem_pprint(prob);
     }
-
+    
     const char *error_msg = NULL;
     error_msg = svm_check_parameter(prob, &param);
     if (error_msg) {
@@ -650,8 +650,8 @@ ST_retcode train(int argc, char *argv[])
     model = svm_train(prob, &param);    //a 'model' in libsvm is what I would call a 'fit' (I would call the structure being fitted to---svm---the model), but beggars can't be choosers
 
     svm_destroy_param(&param);  //the model copies 'param' into itself, so we should free it here
-    //svm_problem_free(prob);
-
+    //svm_problem_free(prob);   //but as the libsvm README warns, do not free a problem while its model is still about
+    
     return 0;
 }
 

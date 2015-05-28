@@ -42,6 +42,10 @@ program define svm_train, eclass
     local kernel = "RBF"
   }
   
+  /* make the string variables case insensitive (by forcing them to CAPS and letting the .c deal with them that way) */
+  local type = upper("`type'")
+  local kernel = upper("`kernel'")
+  
   /* translate the boolean flags into integers */
   // the protocol here is silly, because syntax special-cases "no" prefixes:
   // *if* the user gives the no form of the option, a macro is defined with "noprobability" in lower case in it

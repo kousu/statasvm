@@ -6,6 +6,8 @@ set linesize 119
 * ALSO these comments are *after* the set, because it affects how stata prints out comments.
 
 local TRACE : env TRACE /* you can't use env by itself, for some reason */
+// BEWARE: stata resets the trace setting when a do file quits
+//      do running this as "do
 if("`TRACE'"!="") {
   set trace on
   set more off, perm

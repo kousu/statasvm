@@ -24,7 +24,18 @@ echo
 # which makes Stata bail if it can't find a matching one in the platform list,
 # since .plugin modules are the goal of these packaging shennanigans
 # (however, there may be other files, e.g. .dlls, which should not force a failure )
-find $PKG \( -name "bin" -prune -o -true \) -type f | awk '{ print "f " $1 }'
-find $PKG/bin -mindepth 2 -maxdepth 3 -type f  | awk '{ split($1,A,"/"); print "g " A[3] " " $1 }'
-find $PKG/bin -type f -name "*.plugin" -exec basename {} \; | sort | uniq | awk '{ print "h " $1 }'
+#
+# note what capitalization means to .pkg: it forces the file to go into the adopath; otherwise, files that are not in the special magic list are "ancillary" and only come with "net get" and end up in the current directory
+#  most of our files are. ancillary files will go under ancillary/, if any exist.
+#
+if [ -d "$PKG" ]; then
+  find "$PKG" \( -name "bin" -prune -o -true \) -type f | awk '{ print "F " $1 }'
+  if [ -d "$PKG/bin" ]; then
+    find "$PKG/bin" -mindepth 2 -maxdepth 3 -type f  | awk '{ split($1,A,"/"); print "G " A[3] " " $1 }'
+    find "$PKG/bin" -type f -name "*.plugin" -exec basename {} \; | sort | uniq | awk '{ print "h " $1 }'
+  fi
+  if [ -d "$PKG/ancillary" ]; then
+    find "$PKG/ancillary" \( -name "bin" -prune -o -true \) -type f | awk '{ print "f " $1 }'
+  fi
+fi
 ) > $PKG.pkg

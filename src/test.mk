@@ -66,10 +66,10 @@ tests/wrapped/%.do: tests/wrapped tests/helpers/settings.do tests/%.do
 # since half the point of settings.do is 'set trace on'
 # we need to instead frankenstein settings.do inline into the final .do file
 	echo quietly { > $(call FixPath,$@)
-	$(CAT) tests/helpers/settings.do >> $(call FixPath,$@)
+	$(CAT) $(call FixPath,tests/helpers/settings.do) >> $(call FixPath,$@)
 	echo } >> $(call FixPath,$@)
 # now include the actual content
-	echo do tests/$*.do >> $(call FixPath,$@)
+	echo do $(call FixPath,tests/$*.do) >> $(call FixPath,$@)
 	
 # it's a bad idea to have directories as targets, but there's no cross-platform way to say "if directory already exists, don't make it";
 tests/wrapped:

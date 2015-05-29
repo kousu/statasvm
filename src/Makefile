@@ -44,6 +44,8 @@ include util.mk
 
 # --- build declarations  ---
 
+AUTHOR:=Nick Guenther <nguenthe@uwaterloo.ca> and Matthias Schonlau <schonlau@uwaterloo.ca>
+DESCRIPTION:=Support Vector Machines for both Classification and Regression
 
 # --- platform detection ---
 

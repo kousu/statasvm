@@ -206,8 +206,8 @@ ST_retcode export(int argc, char *argv[]) {
                     sterror("export_svmlight: unable to read Stata value at [%d,%d]\n", j, i);
                     goto cleanup;
                 }
-                if(SF_is_missing(value)) { 
-                    continue; //missing values in the Xs are skipped; they are just "sparse"
+                if(SF_is_missing(value)/* || value == 0, uh oh, sklearn's load_svmlight_file() claims SVMLight treats missing entries as 0, *not* missing. TODO: check this outttttt. */) { 
+                    continue; //missing values in the Xs are skipped; they are "sparse"
                 }
                 fprintf(fd, " %d:%lf", j-1, value);
             }

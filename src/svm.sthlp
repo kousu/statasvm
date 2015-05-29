@@ -151,7 +151,7 @@ and for certain kernels this value can be computed straight from the original da
 {pmore2}POLY is (gamma*u'*v + coef0)^degree{p_end}
 {pmore2}RBF stands for Radial Basis Functions, and treats the coefficients as a mean to smoothly approach in a ball, with the form exp(-gamma*|u-v|^2); this kernel tends to be good at [...].{p_end}
 {pmore2}SIGMOID is a kernel which bends the linear kernel to fit in -1 to 1, similar to {help logistic} regression: tanh(gamma*u'*v + coef0){p_end}
-{pmore2}PRECOMPUTED assumes that {depvar} is actually a list of precomputed kernel values.{p_end}
+{pmore2}PRECOMPUTED assumes that {depvar} is actually a list of precomputed kernel values. With effort, you can use this to use custom kernels with your data [TODO].{p_end}
 
 {phang}
 {opt gamma} is used in the non-linear kernels as a scaling factor for the linear part, as seen above.

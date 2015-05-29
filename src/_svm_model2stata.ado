@@ -86,5 +86,7 @@ program define _svm_model2stata, eclass
   quietly capture ereturn matrix rho = rho
   //quietly capture ereturn matrix probA = probA //XXX disabled: these are probably not something you care to look at directly
   //quietly capture ereturn matrix probB = probB //              rather, use "predict, prob"; if a compelling reason to expose these comes up we can
+  capture matrix drop probA
+  capture matrix drop probB
   
 end

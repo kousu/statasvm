@@ -14,7 +14,18 @@ LDFLAGS+=-bundle
 # this *doesn't* use @rpath, but it could, and it might if I reneg on this opinion and switch to bundling.
 # TODO: if we decide to bundle libsvm.dylib, we'll also need to add the current directory to where the .dylib will look for depends, like Windows. On Linux, people often write wrappers that manipulate LD_LIBRARY_PATH before launch, but OS X lets us bundle this information *into the executable*: use `-Wl,-rpath,.` (or maybe `-Wl,-rpath,@executable_path`). See `man ld`
 
-$(PLUGIN).so: $(OBJECTS) # hack: we are trying to build .c -> .o -> .so -> .dylib on Darwin, but .so doesn't gets told to depend on the .o files (instead the dylib does) so building the .so fails. This patches over that with toothpaste and popsicle sticks. Hmmmmmm. I'll have to think about this.
+# hack: we are trying to build .c -> .o -> .so -> .dylib on Darwin, but .so doesn't gets told to depend on the .o files (instead the dylib does) so building the .so fails.
+# This patches over that with toothpaste and popsicle sticks:
+#  it copies the identical lines from the main makefile, which makes the deps
+# This desperately needs to be better
+# - is there a way to get upstream targets feed their dependencies into their dependencies?
+# - the main goal of this was to attach extra commands (otool) to the build
+#   is there a way to augment? maybe by adding extra targets? or..something?????
+# - is this a time for recurisve make?
+_svm.so: $(patsubst %.c,%.$(OBJEXT),_svm.c libsvm_patches.c stutil.c)
+_svm.so: LIBS += svm
+_getenv.so: $(patsubst %.c,%.$(OBJEXT),_getenv.c stutil.c stplugin.c)
+_setenv.so: $(patsubst %.c,%.$(OBJEXT),_setenv.c stutil.c stplugin.c)
 
 %.dylib: %.so
 	mv $< $@

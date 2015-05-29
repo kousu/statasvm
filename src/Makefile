@@ -128,6 +128,7 @@ plugin: $(patsubst %.c,%.plugin,$(wildcard _*.c))
 %.plugin: bin/$(PLATFORM)/%.plugin
 	$(LN) $(call FixPath,$<) $(call FixPath,$@)
 
+.SECONDARY: bin/$(PLATFORM)/%.plugin
 bin/$(PLATFORM)/%.plugin: %.$(DLLEXT)
 #the silent mkdir is awkwardly written twice because windows doesn't have mkdir -p
 	@-$(MKDIR) bin && cd bin && $(MKDIR) $(PLATFORM)

@@ -30,9 +30,9 @@ program define svm_predict, eclass
   if("`probability'"!="") {
     // ensure type is categorical
     local T : type `target'
-    if("`T'"!="byte" & "`T'"!="int" & "`T'"!="long") {
-      di as error "It makes no sense to ask for class probability estimates for `target', as it is a `T'"
-      exit 1
+    if("`T'"=="float" | "`T'"=="double") {
+      di as error "Warning: `target' is a `T' and it makes no sense to ask for class probability estimates for continuous variables."
+      di as error "         Is this really what you intended to do?"
     }
     
     // save the top level description to splay across the stemmed variables

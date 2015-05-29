@@ -17,7 +17,7 @@ endif
 release: ../statasvm.$(RELEASE_FORMAT)
 
 
-DIST:=$(wildcard *.ado) $(wildcard bin/*/*)
+DIST:=$(wildcard *.ado *.sthlp wildcard bin/*/*)
 DIST:=$(patsubst %,dist/svm/%,$(DIST))
 
 ifeq ($(wildcard bin/),) #if bin/ does not not exist

@@ -128,7 +128,8 @@ plugin: $(patsubst %.c,%.plugin,$(wildcard _*.c))
 %.plugin: bin/$(PLATFORM)/%.plugin
 	$(LN) $(call FixPath,$<) $(call FixPath,$@)
 
-.SECONDARY: bin/$(PLATFORM)/%.plugin
+# prevent the platform-specific plugins getting eaten by make
+.SECONDARY: $(patsubst %.c,bin/$(PLATFORM)/%.plugin,$(wildcard _*.c)) #this is ugly because the special targets (like many things in make) can't handle patterns, so we have to generate all the files to mark explicitly
 bin/$(PLATFORM)/%.plugin: %.$(DLLEXT)
 #the silent mkdir is awkwardly written twice because windows doesn't have mkdir -p
 	@-$(MKDIR) bin && cd bin && $(MKDIR) $(PLATFORM)
@@ -145,6 +146,7 @@ _svm.$(DLLEXT): LIBS += svm
 _svmlight.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_svmlight.c sttrampoline.c stutil.c stplugin.c)
 _getenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_getenv.c stutil.c stplugin.c)
 _setenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_setenv.c stutil.c stplugin.c)
+
 
 
 

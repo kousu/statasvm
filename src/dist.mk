@@ -68,6 +68,18 @@ dist/svm/%: %
 	$(CP) $< $@
 	
 
+# quick hack: deploy to my personal account
+# this puts up a Stata repo so that
+# .net from http://csclub.uwaterloo.ca/~$USER/stata/
+# works
+# This can probably be massaged into something more reasonable
+# Of course, proper deployment means publishing in the Stata journal and a posting to the SSC
+# which is not something that can be automated.
+.PHONY: deploy
+deploy: dist
+	ssh csclub.uwaterloo.ca -- rm -r www/stata; scp -r dist/ csclub.uwaterloo.ca:www/stata
+
+
 # --- cleaning ---
 clean: clean-dist
 

@@ -16,7 +16,7 @@ endif
 .PHONY: release
 release: ../statasvm.$(RELEASE_FORMAT)
 
-DIST:=$(wildcard *.ado *.sthlp bin/*/*)
+DIST:=$(wildcard *.ado *.sthlp bin/*/* ancillary/*)
 DIST:=$(patsubst %,dist/svm/%,$(DIST))
 
 ifeq ($(wildcard bin/),) #if bin/ does not not exist

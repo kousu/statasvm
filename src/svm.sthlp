@@ -217,16 +217,14 @@ your {help matsize} may not be large enough for them, so you can disable each in
 
 {pstd}
 After training you can ask svm to {cmd:predict} what it thinks the classes (classification) or values (regression) of given observations into {targetvar}.
-{targetvar} must not exist, so if you want to repredict your choices are {cmd:drop {targetvar}} or to pick a new name, e.g. {cmd:predict {targetvar}2}.
-
-{phang}
-{opt probability} requests, for each observation, the probability of it being each class.
-{targetvar} is used as a stem to generate columns for each class to store the results in.
-This will fail if you specified {opt noprobability} during estimation,
-or if you have a regression model (EPSILON_SVR or NU_SVR).
+{targetvar} must not exist, so if you want to repredict your choices are {cmd:drop {targetvar}} or to pick a new name, e.g. {cmd:predict {targetvar}2}.{p_end}
+{pmore}For classification problems, {opt probability} requests, for each observation, the probability of it being each class.{p_end}
+{pmore}For regression problems, {opt probability} requests [....].{p_end}
+{pmore}In addition to predictions in {targetvar}, {targetvar} is used as a stem for names of new columns for the results.
+This option will fail if you specified {opt noprobability} during estimation.{p_end}
 
 {pstd}
-Prediction automatically uses the same columns as at training, so if you rename or drop columns between commands you will have problems.
+Prediction automatically uses the same {indepvars} as in training, so if you rename or drop columns between commands you will have problems.
 {...}
 {...}
 

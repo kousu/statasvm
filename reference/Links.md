@@ -11,3 +11,6 @@ Project Reference
 
 * [Pre-defined C/C++ Compiler Macros Wiki](http://sourceforge.net/p/predef/wiki/Home/)
   SO USEFUL
+
+* Sergio Correia has a useful batch of stata up on github, including
+  * [the cleanest way to do subcommands](https://github.com/sergiocorreia/stata-misc/blob/master/yaml.ado) (cleaner than e.g. Stata's stdlib import.ado)

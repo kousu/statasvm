@@ -41,7 +41,7 @@ tests/%: %.log
 # now that we have multiple things to build this is not so simple
 # XXX is there a cleaner way?
 $(TESTS): _svm.plugin
-tests/load tests/preload: _svmlight.plugin
+tests/load tests/preload tests/export_svmlight: _svmlight.plugin
 tests/getenv: _getenv.plugin
 tests/setenv: _setenv.plugin
 

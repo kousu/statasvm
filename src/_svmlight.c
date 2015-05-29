@@ -5,6 +5,8 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include <errno.h>
+
 #include "stutil.h"
 #include "_svmlight.h"
 
@@ -169,8 +171,54 @@ ST_retcode import(int argc, char *argv[])
 }
 
 ST_retcode export(int argc, char *argv[]) {
-  sterror("export svmlight: Not Implemented\n");
-  return 1;
+    ST_retcode err = 0;
+    
+    if(argc!=1) {
+        sterror("export_svmlight: expected exactly one argument, the file to write to.\n");
+        return 1;
+    }
+    
+    FILE* fd = fopen(argv[0],"w");
+    if(fd == NULL) {
+        sterror("export_svmlight: unable to open %s: %s.\n", argv[0], strerror(errno));
+        return 1;
+    }
+
+    for (ST_int i = SF_in1(); i <= SF_in2(); i++) {     //respect `in' option
+        if (SF_ifobs(i)) {      //respect `if' option
+            double value;
+            err = SF_vdata(1, i, &value);
+            if(err) { 
+                sterror("export_svmlight: unable to read Stata value at [%d,%d]\n", 1, i);
+                goto cleanup;
+            }
+            if(SF_is_missing(value)) { 
+                sterror("export_svmlight: missing value for outcome variable [%d]; svmlight format cannot handle this\n", i);
+                goto cleanup;
+            }
+            
+            // TODO: is there a way to detect if the outcome is integer or not? it is safe to export, but it would be nice to not have to
+            fprintf(fd, "%lf", value);
+            
+            for(int j=2; j<=SF_nvars(); j++) {
+                err = SF_vdata(j, i, &value);
+                if(err) { 
+                    sterror("export_svmlight: unable to read Stata value at [%d,%d]\n", j, i);
+                    goto cleanup;
+                }
+                if(SF_is_missing(value)) { 
+                    continue; //missing values in the Xs are skipped; they are just "sparse"
+                }
+                fprintf(fd, " %d:%lf", j-1, value);
+            }
+            fprintf(fd, "\n");
+        }
+    }
+  
+cleanup:
+  fclose(fd);
+  
+  return err;
 }
 
 

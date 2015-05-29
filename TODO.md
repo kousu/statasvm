@@ -37,9 +37,15 @@ TODO
  * four: ...are loaded plugins private variables? it sort of seems like they might be!!
 * [ ] make 'svm' a suite of subcommands; put everything into a single file, even, so that users cannot call them directly.
 
+* [ ] svm_predict, prob gives the columns in the order stata gives them, *not* in the order in labels. this is a problem.
+  -->> is sklearn.svm.SVC.classes_ === svm_model->labels[]? if so, i think we should copy their approach.
+* [ ] what does svm_predict_probability do on 
+
 * [ ] Stata doesn't provide any way to work with lists, except as variables in its global data table.
   libsvm returns a list marking which observations are the suppart vectors; probaaaabbly nathe most natural way to return this to the user is to add an extra boolean column to mark them. But I will have to talk to Schonlau
 * [ ] provide svm_classify and svm_regress as s convenience shortcuts to something like "svm
+
+* [ ] On errors, automatically erase newly generated variables.
  
 * [ ] The closest I can get to local variables is to use in Stata tempname, and pass that along in argv to the plugin. Right now I hard-code everything with Globally Unique(TM) prefixes
 

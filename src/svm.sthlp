@@ -196,7 +196,7 @@ so that every column has identical mean and variance
 If enabled, {cmd:predict} will also autonormalize.
 
 {phang}
-{opt probability} enables the use of "predict, prob" as described below. This takes additional CPU and space, so if you can disable it if you don't need it by writing "noprobability" instead.
+{opt probability} enables the use of "predict, prob" as described below. This takes additional CPU and space, slowing down both training and prediction.
 
 {phang}
 {opt cache_size} tweaks an internal libsvm parameter of how much RAM to use during training. Value is given in megabytes (MB).

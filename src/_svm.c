@@ -579,8 +579,6 @@ ST_retcode train(int argc, char *argv[])
     }
     argc--; argv++; //shift
     
-    param.degree = atoi(argv[0]);
-    argc--; argv++; //shift
     
     param.gamma = atof(argv[0]);
     argc--; argv++; //shift
@@ -588,14 +586,19 @@ ST_retcode train(int argc, char *argv[])
     param.coef0 = atof(argv[0]);
     argc--; argv++; //shift;
     
-    param.nu = atof(argv[0]);
+    param.degree = atoi(argv[0]);
     argc--; argv++; //shift
+    
+    
+    param.C = atof(argv[0]);
+    argc--; argv++; //shift;
     
     param.p = atof(argv[0]);
     argc--; argv++; //shift
     
-    param.C = atof(argv[0]);
-    argc--; argv++; //shift;
+    param.nu = atof(argv[0]);
+    argc--; argv++; //shift
+    
     
     param.eps = atof(argv[0]);
     argc--; argv++; //shift
@@ -604,6 +607,7 @@ ST_retcode train(int argc, char *argv[])
     param.nr_weight = 0;
     param.weight_label = NULL;
     param.weight = NULL;
+    
     
     param.shrinking = atoi(argv[0]);
     argc--; argv++; //shift

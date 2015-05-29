@@ -20,12 +20,12 @@ tests/import: tests/auto.model #for example, this one is created by export.do, a
 # TODO: Stata always returns 0 so make doesn't know if a test fails or not, but Stata does print error codes out, so I need to write a wrapper that translates these to OS-level return codes
 
 ## find all tests automatically
-#TESTS:=$(wildcard tests/*.do)
-#TESTS:=$(patsubst %.do,%,$(TESTS))
+TESTS:=$(wildcard tests/*.do)
+TESTS:=$(patsubst %.do,%,$(TESTS))
 
 # hardcode the list of tests explicitly: the advantage is controlling the order without doing weird things to test naming
-TESTS:=$(shell $(CAT) $(call FixPath,tests/order.lst))
-TESTS:=$(patsubst %,tests/%,$(TESTS))
+#TESTS:=$(shell $(CAT) $(call FixPath,tests/order.lst))
+#TESTS:=$(patsubst %,tests/%,$(TESTS))
 
   
 #notice: $< means 'the first prerequisite' and is basically a super-special case meant for exactly this sort of usage
@@ -41,7 +41,7 @@ tests/%: %.log
 # now that we have multiple things to build this is not so simple
 # XXX is there a cleaner way?
 $(TESTS): _svm.plugin
-tests/load tests/preload tests/export_svmlight: _svmlight.plugin
+tests/preimport_svmlight tests/import_svmlight tests/export_svmlight: _svmlight.plugin
 tests/getenv: _getenv.plugin
 tests/setenv: _setenv.plugin
 

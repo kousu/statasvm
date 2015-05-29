@@ -326,7 +326,7 @@ You can proceed by retrying the command with various combinations of "no{matrix}
 If you are really stuck, you can also proceed by giving up on Stata and switching to libsvm's companion {cmd:svm-train} program,
 will have been installed with the libsvm package if you used a package manager, or
 which you can get {browse "http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/libsvm.cgi?+http://www.csie.ntu.edu.tw/~cjlin/libsvm+zip":from its authors};
-you can use {help export svmlight} to extract your dataset for {cmd:svm-train}.
+you can use {help svmlight:export svmlight} to extract your dataset for {cmd:svm-train}.
 
 {pmore}^{browse "https://github.com/kousu/statasvm/pulls":patches} to instead trap errors and restore the previous state are very welcome.
 

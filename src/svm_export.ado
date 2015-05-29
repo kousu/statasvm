@@ -6,7 +6,7 @@ program define svm_export
   syntax using/
   
   // ensure that there (should be) a svm_model in memory
-  if("`e(model)'!="svm") {
+  if("`e(model)'"!="svm") {
     di as error "svm_export: you need to run an svm first\n");
     exit 1;
   }

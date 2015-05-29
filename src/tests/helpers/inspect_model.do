@@ -18,7 +18,7 @@ if(_rc==0) {
   capture noisily matrix list e(labels)
   capture noisily matrix list e(sv_coef)
   capture noisily matrix list e(rho)
-  capture noisily matrix list e(probA) /*not always defined*/
-  capture noisily matrix list e(probB) /*ditto*/
+  //capture noisily matrix list e(probA) /*not EVER defined*/
+  //capture noisily matrix list e(probB) /*ditto*/
 }
 

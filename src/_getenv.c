@@ -29,3 +29,4 @@ STDLL stata_call(int argc, char *argv[])
     return 0;
 }
 
+int stata_init() { return 0; }

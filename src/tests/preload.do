@@ -1,5 +1,6 @@
 * preload.do
-program _svm, plugin
-plugin call _svm, "_load" "pre" "tests/duke.svmlight"
+program _svmlight, plugin
+plugin call _svmlight, "import" "pre" "tests/duke.svmlight"
+scalar list
 
 

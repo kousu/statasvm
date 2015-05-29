@@ -41,7 +41,7 @@ import_svmlight using {filename}
 {title:Description}
 
 {pstd}
-{help svmlight##svmlight} is a SVM software which created a simple de-facto plaintext standard for medium-sized numeric datasets, which was adopted by {help svmlight##libsvm}. The kind libsvm authors even provide an {browse "http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/":archive} of datasets in compressed svmlight format 
+{help svmlight##svmlight} is a SVM software which created a simple de-facto plaintext standard for medium-sized numeric datasets, which was adopted by {help svmlight##libsvm}. The kind libsvm authors even provide an {browse "http://www.google.com":dsffds} of datasets in compressed svmlight format 
 (note: this module does not handle compression; you will need to use an external program for that).
 
 {pstd}

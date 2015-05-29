@@ -1,6 +1,7 @@
 /*
 	stplugin.h, version 2.0.0
 	copyright (c) 2003, 2004, 2006                   StataCorp
+        modified 2015        			         Nick Guenther
 */
 #if !defined(STPLUGIN_H)
 #define STPLUGIN_H
@@ -181,6 +182,7 @@ extern "C" ST_plugin *_stata_ ;
 extern ST_plugin *_stata_ ;
 #endif
 STDLL pginit(ST_plugin *p) ;
+int stata_init(void) ;
 
 #define SF_display(a)		((_stata_)->spoutsml((a)))
 #define SF_error(a)		((_stata_)->spouterr((a)))

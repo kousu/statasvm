@@ -283,7 +283,7 @@ Not currently implemented.
 {title:Stored results}
 
 {pstd}
-{cmd:svm} stores the following in {cmd:e()}:
+{cmd:svm} and {cmd:svm_import} stores the following in {cmd:e()}:
 
 {synoptset 20 tabbed}{...}
 {p2col 5 20 24 2: Scalars}{p_end}

@@ -121,7 +121,7 @@ endif
 # (except on OS X .so is .dylib and on Windows .o is .obj and .so is .dll) 
 
 .PHONY: plugin
-plugin: $(patsubst %.c,bin/$(PLATFORM)/%.plugin,$(wildcard _*.c))
+plugin: $(patsubst %.c,%.plugin,$(wildcard _*.c))
 
 %.plugin: bin/$(PLATFORM)/%.plugin
 	$(LN) $(call FixPath,$<) $(call FixPath,$@)
@@ -136,11 +136,12 @@ bin/$(PLATFORM)/%.plugin: %.$(DLLEXT)
 # but GNU make keeps pattern rules and explicit rules in almost separate namespaces
 # it would also be nice if you could edit the list of depends as if it was a target-specific variable (which, really, it is), so that I could mix branching and substitution in to autogen the depends
 # ah, I might be at the outer limits of what GNU make is usable for. le sigh.
-_svm.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_svm.c libsvm_patches.c stutil.c)
+_svm.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_svm.c sttrampoline.c stutil.c stplugin.c)
+_svm.$(DLLEXT): libsvm_patches.$(OBJEXT)
 _svm.$(DLLEXT): LIBS += svm
+_svmlight.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_svmlight.c sttrampoline.c stutil.c stplugin.c)
 _getenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_getenv.c stutil.c stplugin.c)
 _setenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_setenv.c stutil.c stplugin.c)
-
 
 
 

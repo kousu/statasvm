@@ -288,7 +288,7 @@ Not currently implemented.
 
 {synoptset 20 tabbed}{...}
 {p2col 5 20 24 2: Scalars}{p_end}
-{synopt:{cmd:e(nr_class)}}number of classes (might be [0 if SVR??]){p_end}
+{synopt:{cmd:e(nr_class)}}number of classes, in a classification problem. [??? if SVR??]{p_end}
 {synopt:{cmd:e(l)}}number of support vectors{p_end}
 
 {synoptset 20 tabbed}{...}
@@ -298,18 +298,18 @@ Not currently implemented.
 {synopt:{cmd:e(depvar)}}name of dependent variable{p_end}
 {synopt:{cmd:e(title)}}title in estimation output{p_end}
 {synopt:{cmd:e(model)}}"{cmd:svm}"{p_end}
-{synopt:{cmd:e(svm_type)}}type string, as above{p_end}
+{synopt:{cmd:e(svm_type)}}SVM type string, as above{p_end}
 {synopt:{cmd:e(svm_kernel)}}kernel string, as above{p_end}
 {synopt:{cmd:e(predict)}}program used to implement {cmd:predict}{p_end}
 {* {synopt:{cmd:e(estat_cmd)}}program used to implement {cmd:estat}{p_end} }{...}
 
 {synoptset 20 tabbed}{...}
 {p2col 5 20 24 2: Matrices}(may be missing, depending on options){p_end}
-{synopt:{cmd:e(SVs)}}{p_end}
-{synopt:{cmd:e(nSVs)}}{p_end}
-{synopt:{cmd:e(labels)}}{p_end}
-{synopt:{cmd:e(sv_coef)}}{p_end}
-{synopt:{cmd:e(rho)}}{p_end}
+{synopt:{cmd:e(SVs)}}A list of the support vectors chosen. Numbers are indices into observations of the dataset; this will not exist in models loaded from {cmd:svm_import}.{p_end}
+{synopt:{cmd:e(labels)}}List of the class "labels" (which are integers, as far as libsvm is concerned). This should be the same set as in the original dataset, but libsvm may permute it. [XXX hide this from Stata; just use it to label the]{p_end}
+{synopt:{cmd:e(nSVs)}}The number of support vectors belonging to each class, in a classification problem.{p_end}
+{synopt:{cmd:e(sv_coef)}}???{p_end}
+{synopt:{cmd:e(rho)}}??? something involving multiclass decision boundaries ???{p_end}
 
 
 {* XXX this section name should be more formal}{marker gotchas}{...}

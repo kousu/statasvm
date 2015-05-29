@@ -10,6 +10,6 @@ local TRACE : env TRACE /* you can't use env by itself, for some reason */
 //      do running this as "do
 if("`TRACE'"!="") {
   set trace on
-  set more off, perm
+  set more off
 }
 

@@ -15,22 +15,22 @@ program define svm_train, eclass
            // 
            // also be careful of the mixed-case shenanigans
            
-           type(string)
-           kernel(string)
+           Type(string)
            
-           degree(int 3)
-         
-           gamma(real 0) coef0(real 0) nu(real 0.5)
-           p(real 0.1) c(real 1)
+           Kernel(string)
+           
+           GAMMA(real 0) COEF0(real 0) DEGree(int 3)
+           
+            C(real 1) P(real 0.1) NU(real 0.5)
            
            // weights() --> char* weight_label[], double weight[nr_weight] // how should this work?
            // apparently syntax has a special 'weights' argument which is maybe meant just for this purpose
            // but how to pass it on?
-           eps(real 0.001)
-             
+           EPSilon(real 0.001)
+           
            SHRINKing noPROBability
          
-           cache_size(int 100)
+           CACHE_size(int 100)
          ];
   #delimit cr
   
@@ -41,6 +41,10 @@ program define svm_train, eclass
   if("`kernel'"=="") {
     local kernel = "RBF"
   }
+  
+  /* make the string variables case insensitive (by forcing them to CAPS and letting the .c deal with them that way) */
+  local type = upper("`type'")
+  local kernel = upper("`kernel'")
   
   /* translate the boolean flags into integers */
   // the protocol here is silly, because syntax special-cases "no" prefixes:
@@ -66,10 +70,9 @@ program define svm_train, eclass
   #delimit ;
   plugin call _svm `varlist' `if' `in', "train"
       "`type'" "`kernel'"
-      "`degree'"
-      "`gamma'" "`coef0'" "`nu'"
-      "`p'" "`c'"
-      "`eps'"
+      "`gamma'" "`coef0'" "`degree'"
+      "`c'" "`p'" "`nu'"
+      "`epsilon'"
       "`shrinking'" "`probability'"
       "`cache_size'"
       ;
@@ -78,16 +81,21 @@ program define svm_train, eclass
   /* fixup the e() dictionary */
   ereturn clear
   
-  // set standard Stata regression properties
+  // set standard Stata estimation (e()) properties
   ereturn local cmd = "svm_train"
   ereturn local cmdline = "`e(cmd)' `0'"
-  ereturn local predict = "svm_predict"
-  ereturn local model = "svm `type' `kernel'"
+  ereturn local predict = "svm_predict" //this is a function pointer, or as close as Stata has to that: causes "predict" to run "svm_predict"
+  ereturn local estat = "svm_estat"     //ditto. NOT IMPLEMENTED
+  
   ereturn local title = "Support Vector Machine"
+  ereturn local model = "svm"
+  ereturn local svm_type = "`type'"
+  ereturn local svm_kernel = "`kernel'"
   
-  gettoken depvar : varlist
+  gettoken depvar indepvars : varlist
   ereturn local depvar = "`depvar'"
+  //ereturn local indepvars = "`indepvars'" //XXX Instead svm_predict reparses cmdline. This needs vetting.
   
-  // export the svm_model structure
+  // append the svm_model structure to e()
   _svm_model2stata
 end

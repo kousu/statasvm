@@ -121,7 +121,8 @@ and {help svm##libsvm:implementation paper}.
 Please write us with suggestions for clarification.
 
 {marker options}{...}
-{...}
+{title:Options}
+
 {title:svm}
 
 {pstd}
@@ -427,7 +428,7 @@ Guenther, Nick and Schonlau, Matthias. 2015. Stata-SVM.
 
 {marker svmtutorial}{...}
 {phang}
-[svmtutorial]
+[svmtutorial] TODO
 {p_end}
 
 {marker libsvm}{...}
@@ -435,7 +436,7 @@ Guenther, Nick and Schonlau, Matthias. 2015. Stata-SVM.
 Chang, Chih-Chung and Lin, Chih-Jen. 2011.
 {it:LIBSVM : a library for support vector machines.}
 ACM Transactions on Intelligent Systems and Technology, 2:27:1--27:27.
-{browse "http://www.csie.ntu.edu.tw/~cjlin/papers/libsvm.pdf"}
+{browse "http://www.csie.ntu.edu.tw/~cjlin/papers/libsvm.pdf"}.
 Software available at {browse "http://www.csie.ntu.edu.tw/~cjlin/libsvm"}
 {p_end}
 

@@ -121,7 +121,8 @@ and {help svm##libsvm:implementation paper}.
 Please write us with suggestions for clarification.
 
 {marker options}{...}
-{...}
+{title:Options}
+
 {title:svm}
 
 {pstd}
@@ -282,7 +283,7 @@ Not currently implemented.
 {title:Stored results}
 
 {pstd}
-{cmd:svm} stores the following in {cmd:e()}:
+{cmd:svm} and {cmd:svm_import} stores the following in {cmd:e()}:
 
 {synoptset 20 tabbed}{...}
 {p2col 5 20 24 2: Scalars}{p_end}
@@ -325,7 +326,7 @@ You can proceed by retrying the command with various combinations of "no{matrix}
 If you are really stuck, you can also proceed by giving up on Stata and switching to libsvm's companion {cmd:svm-train} program,
 will have been installed with the libsvm package if you used a package manager, or
 which you can get {browse "http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/libsvm.cgi?+http://www.csie.ntu.edu.tw/~cjlin/libsvm+zip":from its authors};
-you can use {help export svmlight} to extract your dataset for {cmd:svm-train}.
+you can use {help svmlight:export svmlight} to extract your dataset for {cmd:svm-train}.
 
 {pmore}^{browse "https://github.com/kousu/statasvm/pulls":patches} to instead trap errors and restore the previous state are very welcome.
 
@@ -427,7 +428,7 @@ Guenther, Nick and Schonlau, Matthias. 2015. Stata-SVM.
 
 {marker svmtutorial}{...}
 {phang}
-[svmtutorial]
+[svmtutorial] TODO
 {p_end}
 
 {marker libsvm}{...}
@@ -435,7 +436,7 @@ Guenther, Nick and Schonlau, Matthias. 2015. Stata-SVM.
 Chang, Chih-Chung and Lin, Chih-Jen. 2011.
 {it:LIBSVM : a library for support vector machines.}
 ACM Transactions on Intelligent Systems and Technology, 2:27:1--27:27.
-{browse "http://www.csie.ntu.edu.tw/~cjlin/papers/libsvm.pdf"}
+{browse "http://www.csie.ntu.edu.tw/~cjlin/papers/libsvm.pdf"}.
 Software available at {browse "http://www.csie.ntu.edu.tw/~cjlin/libsvm"}
 {p_end}
 

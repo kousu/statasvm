@@ -5,16 +5,16 @@
 * TODO: rename to svm_use and figure out how to support the dual 'svm use filename' and 'svm use varlist using filename' that the built-in use does
 *        it will be possible, just maybe ugly
 
-program _svm, plugin /*load the C extension if not already loaded*/
+program _svmlight, plugin /*load the C extension if not already loaded*/
 
-program define svm_load
+program define import_svmlight
   version 13
   syntax using/, [clip]
 
    quietly {
 
     * Do the pre-loading, to count how much space we need
-    plugin call _svm, "_load" "pre" "`using'"
+    plugin call _svmlight, "import" "pre" "`using'"
     
     * HACK: Stata's various versions all have a hard upper limit on the number of variables; for example StataIC has 2048 (2^11) and StataMP has 2^15
     * ADDITIONALLY, Stata has an off-by-one bug: the max you can actually pass to a C plugin is one less [citation needed]
@@ -72,7 +72,7 @@ program define svm_load
     * "*" means "all variables". We need to pass this in because in addition to C plugins only being able to read and write to variables that already exist,
     * they can only read and write to variables specified in varlist
     * (mata does not have this sort of restriction.)
-    capture plugin call _svm *, "_load" "`using'"
+    capture plugin call _svmlight *, "import" "`using'"
     
   }
 end
@@ -122,7 +122,7 @@ program define svm_load_purestata
   	  gettoken name X : X, parse(":")
   	  gettoken X value : X, parse(":")
   	  *di "@ `=_N' `name' = `value'" /*DEBUG*/
-  	  
+ 	  
           capture quiet generate double x`name' = . /*UNCONDITIONALLY make a new variable*/
           capture quiet replace x`name' = `value' in l
   	  if(`=_rc' != 0) continue, break /*something went wrong, probably that we couldn't make a new variable (due to memory or built-in Stata constraints). Just try the next observation*/

@@ -29,7 +29,7 @@ echo
 #  most of our files are. ancillary files will go under ancillary/, if any exist.
 #
 if [ -d "$PKG" ]; then
-  find "$PKG" \( -name "bin" -prune -o -true \) -type f | awk '{ print "F " $1 }'
+  find "$PKG" \( -name "bin" -prune -o -name "ancillary" -prune -o -true \) -type f | awk '{ print "F " $1 }'
   if [ -d "$PKG/bin" ]; then
     find "$PKG/bin" -mindepth 2 -maxdepth 3 -type f  | awk '{ split($1,A,"/"); print "G " A[3] " " $1 }'
     find "$PKG/bin" -type f -name "*.plugin" -exec basename {} \; | sort | uniq | awk '{ print "h " $1 }'

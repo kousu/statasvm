@@ -797,12 +797,12 @@ ST_retcode export(int argc, char *argv[])
     char *fname = argv[0];
 
     if (model == NULL) {
-        sterror("no model available to export\n");
+        sterror("svm_export: no trained model available to export\n");
         return 0;
     }
 
     if (svm_save_model(fname, model)) {
-        sterror("unable to export fitted model\n");
+        sterror("svm_export: unable to export fitted model\n");
         return 1;
     }
 

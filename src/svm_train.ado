@@ -28,7 +28,7 @@ program define svm_train, eclass
            // but how to pass it on?
            EPSilon(real 0.001)
            
-           SHRINKing noPROBability
+           SHRINKing PROBability
          
            CACHE_size(int 100)
          ];
@@ -59,11 +59,11 @@ program define svm_train, eclass
     local shrinking = 0
   }
   
-  if("`probability'"=="noprobability") {
-    local probability = 0
+  if("`probability'"=="probability") {
+    local probability = 1
   }
   else {
-    local probability = 1
+    local probability = 0
   }
   
   /* call down into C */

@@ -59,7 +59,7 @@ program define svm_train, eclass
     local shrinking = 0
   }
   
-  if("`probability"=="noprobability") {
+  if("`probability'"=="noprobability") {
     local probability = 0
   }
   else {

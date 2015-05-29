@@ -48,6 +48,15 @@ TODO
 
 * [ ] add `make lint`
 
+- [ ] BUG: is sterror() not printing to SF_error()??? what's going wrong?
+
+- [ ] BUG: mark the bin/<platform>/* files as .SECONDARY so they don't get auto-erased by make
+
+* [x] BUG: noprobability isn't working
+
+* [ ] since export writes "total_sv" maybe I should rename l->total_sv, instead??
+
+* [ ] *don't* typecheck in predict, because in principle you could have non-integer classes
 
 - [x] make .sthlp files
    - [ ] svm.sthlp is the primary one, covering svm_train and svm_predict in one (since users should never explicitly call svm_predict themselves)

@@ -44,7 +44,9 @@ def incorrect(X,Y,labels):
 
 
 if __name__ == '__main__':
-    D = pandas.read_csv("classification_bug.csv")
+    import sys
+    
+    D = pandas.read_csv(sys.argv[1] if len(sys.argv)>0 else "classification_bug.csv")
     D["category"], category_labels = D["category"].factorize() #sklearn isn't smart enough to do this for us, of course. and pandas isn't smart enough to keep the value labels attached to the new Series. 
     # split into the form sklearn needs
     Y, X = D.ix[:, 0], D.ix[:, 1:]

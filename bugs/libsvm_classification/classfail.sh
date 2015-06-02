@@ -5,8 +5,6 @@ FIT="_fit.model"
 D=${1:-"classification_bug.svmlight"}
 P="P"
 
-rm -f $FIT $P 2>/dev/null
-
 echo "classfail.sh" &&
 echo &&
 
@@ -21,3 +19,5 @@ svm-predict -b 1 "$D" "$FIT" "$P" &&
   head -n 1 "$P" &&
   tail -n +2 "$P" | cut -f 1 -d " " | sort | uniq -c
 
+
+rm -f $FIT $P 2>/dev/null

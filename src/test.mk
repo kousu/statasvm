@@ -42,6 +42,7 @@ tests/%: %.log
 # XXX is there a cleaner way?
 $(TESTS): _svm.plugin
 tests/preimport_svmlight tests/import_svmlight tests/export_svmlight: _svmlight.plugin
+tests/auto.model: tests/export
 tests/getenv: _getenv.plugin
 tests/setenv: _setenv.plugin
 
@@ -75,7 +76,9 @@ tests/wrapped/%.do: tests/wrapped tests/helpers/settings.do tests/%.do
 # it's a bad idea to have directories as targets, but there's no cross-platform way to say "if directory already exists, don't make it";
 tests/wrapped:
 	$(MKDIR) $(call FixPath,tests/wrapped) 2>$(NULL)
-  
+
+
+
 #  because Stata doesn't have a tty mode, to fake having stdout we cat Stata's <testname>.log (note that this is in the current directory, not the directory the .do file is in!),
 #  which it generates when run in batch mode, and we mark this .INTERMEDIATE so that make knows to delete it immediately
 %.log: tests/wrapped/%.do

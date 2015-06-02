@@ -9,6 +9,7 @@ LDFLAGS+=-shared  #the only reason this isn't in posix.mk is because it's wrong 
 CFLAGS+=-D_USRDLL -D_WINDLL
 CFLAGS+=-O2
 CFLAGS+=-Wall -Werror
+CFLAGS+=-std=c99
 
 # patch the Visual Studio env vars INCLUDE and LIB over to MinGW
 # this is necessary because we depend on an external library, libsvm,

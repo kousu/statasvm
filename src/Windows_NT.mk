@@ -46,7 +46,7 @@ SHELL := cmd
 ARCH:=x86_64
 INCLUDE:=$(INCLUDE);windows
 export INCLUDE
-LIB:=$(INCLUDE);windows\$(ARCH)
+LIB:=$(LIB);windows\$(ARCH)
 export LIB
 
 # edit PATH so that the tests can find the .dlls

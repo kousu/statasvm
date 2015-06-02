@@ -6,14 +6,29 @@
 #include "stutil.h"
 
 #ifdef _WIN32
+
+#ifdef __MINGW32__
+/* MINGW defines _wgetenv_s(), but not getenv_s */
+/* however, it *is* in the runtime .dll, so if we just add it here we're good */
+/* MINGW wants you to use getenv(), I suppose, but getenv() makes */
+errno_t getenv_s( 
+   size_t *pReturnValue,
+   char* buffer,
+   size_t numberOfElements,
+   const char *varname 
+);
+#endif
+
 /* from http://stackoverflow.com/questions/17258029/c-setenv-undefined-identifier-in-visual-studio */
 int setenv(const char *name, const char *value, int overwrite)
 {
-    int errcode = 0;
     if(!overwrite) {
-        size_t envsize = 0;
-        errcode = getenv_s(&envsize, NULL, 0, name);
-        if(errcode || envsize) return errcode;
+		// "if overwrite is zero, [if the name does not exist] the value of name is not changed"
+        if(getenv(name)) {
+			// "(and setenv returns a success status)"
+			return 0;
+		}
+		// i.e. if the name exists and you said "don't overwrite" then bail early and pretend we succeeded
     }
     return _putenv_s(name, value);
 }

@@ -130,10 +130,12 @@ plugin: $(patsubst %.c,%.plugin,$(wildcard _*.c))
 
 # prevent the platform-specific plugins getting eaten by make
 .SECONDARY: $(patsubst %.c,bin/$(PLATFORM)/%.plugin,$(wildcard _*.c)) #this is ugly because the special targets (like many things in make) can't handle patterns, so we have to generate all the files to mark explicitly
-bin/$(PLATFORM)/%.plugin: %.$(DLLEXT)
+bin/$(PLATFORM)/%.plugin: %.$(DLLEXT) bin/$(PLATFORM)
 #the silent mkdir is awkwardly written twice because windows doesn't have mkdir -p
-	@-$(MKDIR) bin && cd bin && $(MKDIR) $(PLATFORM)
 	$(LN) $(call FixPath,$<) $(call FixPath,$@)
+
+bin/$(PLATFORM):
+	$(MKDIR) bin && cd bin && $(MKDIR) $(PLATFORM)
 
 # append the dependencies for which belong to each specific plugin
 # You'd think you could say %.$(DLLEXT): %.$(OBJEXT) and then attach more depends on for specifics

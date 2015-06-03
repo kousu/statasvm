@@ -1,17 +1,29 @@
-/* ensurelib: edit the OS shared library path to ensure shared library dependencies can be found when Stata loads plugins.
- *
- *   This allows you to bundle non-plugin DLLs, which you will have to do to create wrapper plugins
- *   (unless you want to statically link, which is a almost always wrong).
- *   Since Stata usually includes "." in the adopath, you can use this during development as well:
- *   just include your DLLs in your working directory.
- * 
- * Works on Windows, OS X, and Linux (which are the only platforms Stata supports) 
- *
- * Usage:
- * . ensurelib libsvm.dll #TODO: auto-add the extension
+/* ensurelib: edit the OS shared library path to ensure shared library dependencies will be found when Stata loads plugins.
  *
  * Nick Guenther <nguenthe@uwaterloo.ca>, June 2015.
  * BSD License.
+ *
+ * Usage:
+ * . ensurelib libraryname
+ * 
+ * libraryname should be as in your (gcc!) linker commandline: e.g. if you specify "-lsvm" there, specific "svm" here.
+ * This will search your adopath for the file
+ *   Windows: libraryname.dll
+ *   OS X:    liblibraryname.dylib
+ *   *nix:    liblibraryname.so
+ * and add the specific directory that file is in (e.g. C:\ado\plus\l\) to your shared library path
+ *   Windows: %PATH%
+ *   OS X:    $DYLD_LIBRARY_PATH
+ *   *nix:    $LIBRARY_PATH
+ * Since Stata usually includes "." in the adopath, you can use this during development as well:
+ *   just keep the DLLs you plan to bundle in your working directory.
+ * We follow close to [MinGW's rules](http://www.mingw.org/wiki/specify_the_libraries_for_the_linker_to_use), except that since we're only loading DLLs, on Windows, 
+ *
+ *
+ * This allows you to bundle non-plugin DLLs, which you will have to do to create wrapper plugins
+ * (unless you want to statically link, which is a almost always wrong).
+ * 
+ * Works on Windows, OS X, and Linux (which are the only platforms Stata supports) 
  *
  * Dependencies:
  *  _setenv.plugin
@@ -38,14 +50,20 @@ program define ensurelib
   if("`c(os)'"=="Windows") {
     local libvar = "PATH"
     local sep = ";"
+    local dlprefix = ""
+    local dlext = ".dll"
   }
   else if("`c(os)'"=="MacOSX") {
-    local libvar = "LD_LIBRARY_PATH" /* or is this DYLD_FALLBACK_LIBRARY_PATH ?? */
+    local libvar = "DYLD_LIBRARY_PATH" /* or is this DYLD_FALLBACK_LIBRARY_PATH ?? */
     local sep = ":"
+    local dlprefix = "lib"
+    local dlext = ".dylib"
   }
   else if("`c(os)'"=="Unix") { //i.e. Linux, and on Linux really only like Fedora and Ubuntu; Stata doesn't test builds for others.
     local libvar = "LD_LIBRARY_PATH"
     local sep = ":"
+    local dlprefix = "lib"
+    local dlext = ".so"
   }
   else {
     di as error "ensurelib: Unsupported OS `c(os)'"
@@ -55,7 +73,7 @@ program define ensurelib
   // get the full path to the lib:
   // i. try to find it (in the adopath)
   //ii. extract the dirname from the return value
-  quietly findfile "`lib'" /* this will crash if not found */
+  quietly findfile "`lib'`dlext'" /* this will crash if not found */
   local lib = "`r(fn)'"
 
   mata pathsplit("`lib'",libpath="",basename="") //_Stata_ doesn't have pathname manipulation, but _mata_ does. the ="" are to declare variables (variables need to be declared before use, even if they are just for output)

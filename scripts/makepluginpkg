@@ -1,4 +1,6 @@
 #!/bin/bash
+# generate a .pkg file
+# see Stata's [R] net for reference on this format
 
 cd $(dirname $1)
 PKG=$(basename $1 .pkg)

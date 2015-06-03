@@ -7,7 +7,7 @@
 
 #define OUTPUT "__getenv" //two underscores means that it is a local macro (the first underscore) with name "_getenv" (to match the plugin)
 
-const char* EMPTY = "";
+char* EMPTY = "";
 
 STDLL stata_call(int argc, char *argv[])
 {

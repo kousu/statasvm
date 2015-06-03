@@ -1,13 +1,27 @@
 /* ensurelib: edit the OS shared library path to ensure shared library dependencies will be found when Stata loads plugins.
  *
+ * This allows you to bundle non-plugin DLLs, which you will have to do to create wrapper plugins
+ * (unless you want to statically link, which is a almost always wrong).
+ *
  * Nick Guenther <nguenthe@uwaterloo.ca>, June 2015.
  * BSD License.
  *
- * Usage:
- * . ensurelib libraryname
+ * Example usage:
+ * Suppose you have joesstore.plugin which is linked (dynamically) against library joesmeat and veggiegarden.
+ * For Windows, OS X, and *nix joesmeat should be, respectively, compiled to joesmeat.dll, libjoesmeat.dylib,
+ * or libjoesmeat.so, and similarly for veggiegarden. It should be distributed to users' adopaths with the
+ * special *capitalized* .pkg commands
+ *   G WIN joesmeat.dll
+ *   G MACINTEL libjoesmeat.dylib
+ *   G UNIX libjoesmeat.so
+ * Then, in your code
+ *   ensurelib joesmeat
+ *   ensurelib veggiegarden
+ *   program joesstore, plugin
  * 
- * libraryname should be as in your (gcc!) linker commandline: e.g. if you specify "-lsvm" there, specific "svm" here.
- * This will search your adopath for the file
+ *
+ * libraryname should be as in your (gcc!) linker commandline: e.g. if you specify "-ljoesmeat" there, specific "joesmeat" here.
+ * This will search your adopath for the file named
  *   Windows: libraryname.dll
  *   OS X:    liblibraryname.dylib
  *   *nix:    liblibraryname.so
@@ -15,13 +29,21 @@
  *   Windows: %PATH%
  *   OS X:    $DYLD_LIBRARY_PATH
  *   *nix:    $LIBRARY_PATH
+ * But if it does not find the library in your adopath, it will let the system use its usual library directories.
+ *
+ * Roughly, it is as if we have done:
+ *   export LD_LIBARY_PATH=$ADOPATH:$LD_LIBRARY_PATH
+ * but in a cross-platform way which also handles Stata's tricky alphabetical installation chunks ([M-5] adosubdir()).
+ *
  * Since Stata usually includes "." in the adopath, you can use this during development as well:
  *   just keep the DLLs you plan to bundle in your working directory.
- * We follow close to [MinGW's rules](http://www.mingw.org/wiki/specify_the_libraries_for_the_linker_to_use), except that since we're only loading DLLs, on Windows, 
  *
- *
- * This allows you to bundle non-plugin DLLs, which you will have to do to create wrapper plugins
- * (unless you want to statically link, which is a almost always wrong).
+ * We follow close to [MinGW's naming rules](http://www.mingw.org/wiki/specify_the_libraries_for_the_linker_to_use),
+ * except that since we're only loading shared (not static) libraries, on Windows there is only one option just like the rest.
+ * In particular from MinGW's rules, **if your library on Windows is uses the aberrant lib<name>.dll** you will must either:
+ * - special-case your loading on Windows to call "ensurelib lib<name>"**,
+ * - change the naming scheme of the .dll to conform to Windows standard: <name>.dll.
+ * This problem generally only comes up with libraries that have been ported carelessly from *nix.
  * 
  * Works on Windows, OS X, and Linux (which are the only platforms Stata supports) 
  *
@@ -31,73 +53,86 @@
  *                  but it doesn't seem to be live: it just caches the env at boot, not expecting it to be edited)  
  *
  * TODO:
- * [ ] Stata has, essentially, a global install namespace but no dependency tracking.
- *     So what happens if two packages bundle this? Does the second overwrite the first? Get denied? Mysteriously break the first one? And what happens if one package uninstalls?
- * [ ] Is this worth factoring? maybe "prependpath"?
+ * [ ] Pull this into a separate .pkg
+ *     Stata has, essentially, a global install namespace and no dependency tracking.
+ *     So what happens if two packages bundle this? Does the second overwrite the first?
+ *     Get denied? Mysteriously break the first one? And what happens if one package uninstalls?
+ * [ ] Is this worth factoring further? maybe "prependpath" could come out?
  */
 
 program _getenv, plugin
 program _setenv, plugin
+//program _dlopenable, plugin
 
 program define ensurelib
-  gettoken lib 0 : 0
-  if("`lib'"=="") {
+  gettoken libname 0 : 0
+  if("`libname'"=="") {
     di as error "ensurelib: argument required"
     exit 1
   }
   syntax , []/* disallow everything else */
   
+  /* platform-settings */
+  // libvar == platform specific environment variable that can be edited (there may be more than one option)
+  // sep    == platform specific path separator
+  // dl{prefix,ext} == what to wrap the libname in to generate the library filename
   if("`c(os)'"=="Windows") {
     local libvar = "PATH"
     local sep = ";"
     local dlprefix = ""
-    local dlext = ".dll"
+    local dlext = "dll"
   }
   else if("`c(os)'"=="MacOSX") {
     local libvar = "DYLD_LIBRARY_PATH" /* or is this DYLD_FALLBACK_LIBRARY_PATH ?? */
     local sep = ":"
     local dlprefix = "lib"
-    local dlext = ".dylib"
+    local dlext = "dylib"
   }
   else if("`c(os)'"=="Unix") { //i.e. Linux, and on Linux really only like Fedora and Ubuntu; Stata doesn't test builds for others.
     local libvar = "LD_LIBRARY_PATH"
     local sep = ":"
     local dlprefix = "lib"
-    local dlext = ".so"
+    local dlext = "so"
   }
   else {
     di as error "ensurelib: Unsupported OS `c(os)'"
     exit 1
   }
   
-  // get the full path to the lib:
-  // i. try to find it (in the adopath)
-  //ii. extract the dirname from the return value
-  quietly findfile "`lib'`dlext'" /* this will crash if not found */
-  local lib = "`r(fn)'"
-
-  mata pathsplit("`lib'",libpath="",basename="") //_Stata_ doesn't have pathname manipulation, but _mata_ does. the ="" are to declare variables (variables need to be declared before use, even if they are just for output)
-  mata st_global("r(libpath)",libpath)  // getting values out of mata to Stata is inconsistent: numerics in r() go through st_numscalar(), strings have to go through st_global(), however non-r() scalars have to go through st_strscalar
-  mata st_global("r(basename)",basename)
+  /* wrap the library name into a file name */
+  local lib = "`dlprefix'`libname'.`dlext'"
   
-  //di as txt "lib=`lib'" //DEBUG
-  //di as txt "r(libpath)=`r(libpath)'" //DEBUG
-  
-  // prepend libpath, if it doesn't exist yet
-  plugin call _getenv, "`libvar'"
-  local curpath = "`_getenv'"
-  //di as txt "ensurelib: pre: `libvar'=`_getenv'" //DEBUG
-  
-  local k = ustrpos("`curpath'", "`r(libpath)'")
-  if(`k' == 0) {
-    plugin call _setenv, "`libvar'" "`r(libpath)'`sep'`curpath'"
+  /* If the lib is in the adopath, prepend its path to the system library path */
+  capture quietly findfile "`lib'"
+  if(_rc==0) {
+    /* the path to the library on the adopath */
+    local adolib = "`r(fn)'"
+    
+    /* extract the directory from the file path */
+    mata pathsplit("`lib'",adopath="",lib="") //_Stata_ doesn't have pathname manipulation, but _mata_ does. the ="" are to declare variables (variables need to be declared before use, even if they are just for output)
+    mata st_global("r(adopath)",adopath)  // getting values out of mata to Stata is inconsistent: numerics in r() go through st_numscalar(), strings have to go through st_global(), however non-r() scalars have to go through st_strscalar
+    mata st_global("r(lib)",lib)
+    
+    /* prepend the discovered library path (r(adopath)) to the system library path (libvar) */
+    // get the current adopath
+    plugin call _getenv, "`libvar'"
+    local libpath = "`_getenv'"
+    
+    // skip prepending if adopath is already there in `libvar', to prevent explosion
+    local k = ustrpos("`r(libpath)'", "`r(adopath)'")
+    if(`k' == 0) {
+      // prepend
+      plugin call _setenv, "`libvar'" "`r(adopath)'`sep'`libpath'"
+    }
   }
-  else {
-    //di as txt "`r(libpath)' already found in `libvar'" //DEBUG
+  /* Check that the library is now loadable */
+  /* by checking here, we prevent Stata's "unable to load [...].plugin" with an error which points out the actual problem */
+  /* // TODO
+  capture plugin call _dlopenable, "`lib'"
+  if(_rc!=0) {
+    di as error "ensurelib: unable to load `libname'"
+    exit _rc
   }
-  
-  // DEBUG  
-  //plugin call _getenv, "`libvar'"
-  //di as txt "ensurelib: post: `libvar'=`_getenv'"p
+  */
   
 end

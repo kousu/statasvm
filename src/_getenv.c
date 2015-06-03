@@ -18,7 +18,8 @@ STDLL stata_call(int argc, char *argv[])
     
     char* value = getenv(argv[0]);
     if(value == NULL) {
-        return 1;
+        //sterror("_getenv: '%s' not found.\n", argv[0]); //DEBUG
+        return 0;
     }
     
     err = SF_macro_save(OUTPUT, value);

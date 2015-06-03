@@ -134,9 +134,16 @@ bin/$(PLATFORM)/%.plugin: %.$(DLLEXT) bin/$(PLATFORM)
 #the silent mkdir is awkwardly written twice because windows doesn't have mkdir -p
 	$(LN) $(call FixPath,$<) $(call FixPath,$@)
 
-bin/$(PLATFORM):
-	$(MKDIR) bin && cd bin && $(MKDIR) $(PLATFORM)
+# ensure there is somehere
+# suggestions only tell me to do mkdir silently (with @) inside of recipes that need it
+# but Windows mkdir is different from Unix mkdir,
+# and when we are cross-compiling on Windows we'd be running "mkdir bin" twice, which fails
+bin/$(PLATFORM): bin
+	cd bin && $(MKDIR) $(PLATFORM)
 
+bin:
+	$(MKDIR) bin
+	
 # append the dependencies for which belong to each specific plugin
 # You'd think you could say %.$(DLLEXT): %.$(OBJEXT) and then attach more depends on for specifics
 # but GNU make keeps pattern rules and explicit rules in almost separate namespaces
@@ -167,4 +174,3 @@ clean:
 include test.mk
 
 include dist.mk
-

@@ -11,6 +11,8 @@ CFLAGS+=-O2
 CFLAGS+=-Wall -Werror
 CFLAGS+=-std=c99
 
+ARCH:=x86_64 #TODO: detect this by asking MinGW
+
 # patch the Visual Studio env vars INCLUDE and LIB over to MinGW
 # this is necessary because we depend on an external library, libsvm,
 # which cannot be counted on to be in a sensible package manager (because Windows doesn't have one)
@@ -30,3 +32,10 @@ ifdef LIB
   LIBRARY_PATH:=$(LIBRARY_PATH);$(LIB)
   export LIBRARY_PATH
 endif
+
+# include the in-repo Windows build deps
+# XXX this is duplicated over in Windows.VC.mk
+# there's a chicken-or-egg problem if we try to set this in Windows_NT.mk: to set the library path we need to run these sub-makefiles first to find out $(ARCH)
+export CPATH:=windows;$(CPATH)
+export LIBRARY_PATH:=windows\$(ARCH);$(LIBRARY_PATH)
+export PATH:=$(PATH);$(LIBRARY_PATH) # like setting LD_LIBRARY_PATH on Unix: make sure tests can find the DLLs

@@ -28,6 +28,14 @@ else
   ARCH:=i386
 endif
 
+# include the in-repo Windows build deps
+# XXX this is duplicated over in Windows.MinGW.mk, to use its specific vars
+export INCLUDE:=windows;$(INCLUDE)
+export LIB:=windows\$(ARCH);$(LIB)
+export PATH:=$(PATH);$(LIB) # like setting LD_LIBRARY_PATH on Unix: make sure tests can find the DLLs
+
+
+
 %.dll:
 #see Windows_NT.mk for why "FIXED_LIBS"
 	$(CC) $^ $(foreach L,$(FIXED_LIBS),$L.lib) /link $(LDFLAGS) /OUT:$@

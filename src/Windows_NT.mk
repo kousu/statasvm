@@ -36,25 +36,6 @@ SHELL := cmd
 
 
 
-
-
-# include the in-repo Windows build deps
-#XXX chicken-or-egg problem: we need to run Windows.$(COMPILER) to figure out if we're cross-compiling
-# but under MinGW we need to have INCLUDE and LIB defined *before* Windows.MinGW.mk,
-# this is because it is a nod to letting the user set these globally e.g. if they have libsvm installed from source
-# ...tho I guess if I am hard-including these anyway I can't just do this step twice: once for MinGW and once for MSVC...
-ARCH:=x86_64
-INCLUDE:=$(INCLUDE);windows
-export INCLUDE
-LIB:=$(LIB);windows\$(ARCH)
-export LIB
-
-# edit PATH so that the tests can find the .dlls
-PATH:=$(PATH);$(LIB)
-export PATH
-
-
-
 # XXX the Windows shared library naming convention is <name>.lib, whereas Unix uses lib<name>.{so,a}
 # see http://www.mingw.org/wiki/Specify_the_libraries_for_the_linker_to_use
 # libsvm does not respect this convention

@@ -1,4 +1,7 @@
-program _svm, plugin /*load the C extension if not already loaded*/
+
+/* load the C extension */
+ensurelib_aberrance svm // check for libsvm
+program _svm, plugin    // load _svm.plugin, the wrapper for libsvm
 
 * import a libsvm model file
 * XXX because of how the libsvm variable labels don't necessarily align with the Stata ones,

@@ -1,4 +1,7 @@
-program _svm, plugin /*load the C extension if not already loaded*/
+
+/* load the C extension */
+ensurelib_aberrance svm // check for libsvm
+program _svm, plugin    // load _svm.plugin, the wrapper for libsvm
 
 * subroutine to convert the global struct svm_model that lives in the DLL to a mixture of e() entries, variables, and matrices
 * this needs to be its own subroutine because, due to limitations in the Stata C API,th 

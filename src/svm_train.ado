@@ -1,4 +1,7 @@
-program _svm, plugin /*load the C extension if not already loaded*/
+
+/* load the C extension */
+ensurelib_aberrance svm // check for libsvm
+program _svm, plugin    // load _svm.plugin, the wrapper for libsvm
 
 program define svm_train, eclass
   version 13

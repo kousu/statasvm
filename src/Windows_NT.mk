@@ -77,16 +77,6 @@ else
 endif
 
 
-
-# Borland: ....
-# TODO
-
-# Intel: ???
-# TODO
-
-# MinGW: gcc -shared -mno-cygwin $^ -o $@
-# TODO
-
 # --- testing ---
 
 # Locate Stata

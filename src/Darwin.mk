@@ -16,7 +16,7 @@ _svm.$(DLLEXT): LIBS += svm
 _svmlight.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_svmlight.c sttrampoline.c stutil.c stplugin.c)
 _getenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_getenv.c stutil.c stplugin.c)
 _setenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_setenv.c stutil.c stplugin.c)
-
+_dlopenable.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _dlopenable.c stutil.c stplugin.c)
 
 
 DLLEXT:=dylib

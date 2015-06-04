@@ -17,7 +17,15 @@
    which dual print to standard streams
    and to the Stata logfile,
   so that you can see their output as it happens and inline with where it happened relative to the other Stata output
-(if Stata was designed today it would have a CLI printing to stdout that the GUI ran in a subprocess; maybe they think there is some sort of DRM protection by forcing people to only run overnight batch jobs? */
+(if Stata was designed today it would have a CLI printing to stdout that the GUI ran in a subprocess; maybe they think there is some sort of DRM protection by forcing people to only run overnight batch jobs?
+
+ * TODO:
+ * [ ] when Stata is run in console mode (which I think you can only do in the Unix build??) the dual print to std{out,err} and Stata
+       duplicates the prints one after the other, but not in GUI mode where you only see the SF_{display,error}() calls.
+       But it is sometimes very very useful to have the unbuffered output in case of crashes.
+       so, if there could be some way to detect console vs GUI, from C, and disable the extra prints in that case, that would be good?
+       c(console) == "console" when in console mode, "" when not. However, SF_scal_use("c(console)", ....) gives an error. Maybe the Stata forums will know.
+ */
 
 void stdisplay(const char *fmt, ...)
 {

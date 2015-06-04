@@ -7,7 +7,12 @@ program define ensurelib_aberrance
   syntax /* deny further args */
   
   if("`c(os)'"=="Windows") {
-    local lib = "lib`lib'"
+    capture ensurelib "lib`lib'"
+    if(_rc==0) {
+      // success!
+      exit
+    }
   }
-  ensurelib `lib'
+  
+  capture ensurelib `lib'
 end

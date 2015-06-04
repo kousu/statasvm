@@ -26,6 +26,8 @@ program define svm_predict, eclass
   assert "`y'" == "`e(depvar)'"
   
   // make the target column
+  // it is safe to assume that `target' is a valid variable name: "syntax" above enforces that
+  //  and it should be safe to assume the same about `e(depvar)': unless the user is messing with us (in which case, more power to them), it should have been created by svm_train and validated at that point
   generate_clone `e(depvar)' `target'
   
   // allocate space (we use new variables) to put probability estimates for each class for each prediction
@@ -62,10 +64,9 @@ program define svm_predict, eclass
       // *or* give back `c' unchanged if `target' has no labels
       // which is precisely what we want it to do here
       local L : label (`target') `c'
-      // make L safe for use as a variable name. hopefully.
-      local L = subinstr("`L'"," ","_",.)
       // compute the full variable name for level `c'
       local stemmed = "`target'_`L'"
+      local stemmed = strtoname("`stemmed'") //sanitize the new name; this summarily avoids problems like one of your classes being "1.5"
       
       // finally, allocate it
       // unlike `target' which clones its source, we use doubles

@@ -64,6 +64,14 @@ program define svm_train, eclass
   
   if("`probability'"=="probability") {
     local probability = 1
+    
+    // ensure model is a classification
+    if("`type'" != "C_SVC" & "`type'" != "NU_SVC") {
+      // the command line tools *allow* this combination, but at prediction time silently change the parameters
+      // "Errors should never pass silently. Unless explicitly silenced." -- Tim Peters, The Zen of Python
+      di as error "Error: requested model is a `type'. You can only use the probability option with classification models (C_SVC, NU_SVC)."
+      exit 2
+    }
   }
   else {
     local probability = 0

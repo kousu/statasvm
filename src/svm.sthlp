@@ -40,7 +40,7 @@ svm {depvar} [{indepvars}] {ifin} [{it:{help svm##weight:weight}}] [{cmd:,} {it:
 {* XXX the division between 'tuning' and 'model' parameters is hazy; e.g. you could in theory cross-validate to choose degree (and people do this with neural networks), or even to choose the kernel . hmmmmm}{...}
 
 {syntab:Tuning}
-{synopt :{cmdab:C:}}For C_SVC, EPSILON_SVR and NU_SVR SVMs, this is a regularization parameter which weights the slack variables [citation needed]. Default: 1{p_end}
+{synopt :{cmdab:c:}}For C_SVC, EPSILON_SVR and NU_SVR SVMs, this is a regularization parameter which weights the slack variables [citation needed]. Default: 1{p_end}
 {synopt :{cmdab:p:}}For EPSILON_SVR SVMs, this provides the error tolerance boundary [citation needed]. Default: 0.1{p_end}
 {synopt :{cmdab:nu:}}For NU_SVC, ONE_CLASS, and NU_SVR SVMs, .... Default: 0.5{p_end}
 
@@ -168,7 +168,7 @@ Setting this too high will result in overfitting. Setting it too low may result 
 [TODO: tips about choosing this]
 
 {phang}
-{opt C} weights (regularizes) the slack variables used in C_SVC, EPSILON_SVR and NU_SVR
+{opt c} weights (regularizes) the slack variables used in C_SVC, EPSILON_SVR and NU_SVR
 [TODO: tips about choosing this]
 
 {phang}

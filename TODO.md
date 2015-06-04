@@ -58,10 +58,13 @@ TODO
   -> built in strtoname() function
 * [ ] make generate_clone into a more sensible API: "clone new = old, [nocopy]", and get 'syntax' to validate both the new and old varnames for us
 * [ ] what happens if you predict, prob on a continuous variable??
-* [ ] what happens if you predict, prob on an SVR? does it refuse?
+* [x] what happens if you predict, prob on an SVR? does it refuse?
 * [ ] wrap the body of predict and use 'snapshot' so that failures get rolled back.
-* [ ] BUG: silent failure if you mix SVR with "prob";
-* [ ] the libsvm_patches.c::_pprint() functions *should run through the print function stored in libsvm*, obviously.
+* [x] BUG: silent failure if you mix SVR with "prob";
+  -> denied
+  [ ] XXX what is up with double svm_get_svr_probability()? It seems to suggest there is a corner case where it is legal to mix the two!
+      however svm_predict_probability() (silently) falls back on svm_predict() if the model is not a classification, so I stand by what I've done.
+* [x] the libsvm_patches.c::_pprint() functions *should run through the print function stored in libsvm*, obviously.
 
 - [ ] BUG: is sterror() not printing to SF_error()??? what's going wrong?
 
@@ -69,12 +72,13 @@ TODO
 
 * [x] BUG: noprobability isn't working
 
-* [ ] since export writes "total_sv" maybe I should rename l->total_sv, instead??
+* [x] since export writes "total_sv" maybe I should rename l->total_sv, instead??
 
-* [ ] *don't* typecheck in predict, because in principle you could have non-integer classes
+* [x] *don't* typecheck in predict, because in principle you could have non-integer classes
+  -> changed to a warning with sample code showing how to disable the warning.
 
 - [x] make .sthlp files
-   - [ ] svm.sthlp is the primary one, covering svm_train and svm_predict in one (since users should never explicitly call svm_predict themselves)
+   - [x] svm.sthlp is the primary one, covering svm_train and svm_predict in one (since users should never explicitly call svm_predict themselves)
 
 - [ ] renames
   - [ ] svm_train to svm
@@ -82,16 +86,21 @@ TODO
   
 - [x] figure out a way to install the .dll with the package
    - [x] write a plugin to setenv() and then hack up the environment and hope that the loader pays attention to this on loading the real plugin
-   - [ ] write a patch_dependencies.ado file which uses _setenv
-   - [ ] write a plugin that simply calls dlopen() to test if a library is installed
+   - [x] write a patch_dependencies.ado file which uses _setenv
+     -> ensurelib.ado
+   - [x] write a plugin that simply calls dlopen() to test if a library is installed
          because if a DLL is missing all you get is "unable to load plugin" with no explanation of what went wrong.
+     -> _dlopenable
 
-- [ ] pull svm_load out to a separate plugin: _svmlight.plugin
-   - [ ] import_svmlight
-   - [ ] export_svmlight
-   - [ ] make a separate project for this (tho after I see where the factor points are)
+- [ ] make ensurelib a separate project/pkg
+- [ ] make _{get,set}env.plugin a separate project/pkg
 
-- [ ] Use the libsvm API
+- [x] pull svm_load out to a separate plugin: _svmlight.plugin
+   - [x] import_svmlight
+   - [x] export_svmlight
+
+
+- [ ] Use the libsvm API instead of touch
  >  struct svm_model stores the model obtained from the training procedure.
  >  It is not recommended to directly access entries in this structure.
  >  Programmers should use the interface functions to get the values.

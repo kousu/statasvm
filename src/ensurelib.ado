@@ -102,12 +102,9 @@ program define ensurelib
   /* wrap the library name into a file name */
   local lib = "`dlprefix'`libname'.`dlext'"
   
-  di as txt "looking for `lib'"
-  
   /* If the lib is in the adopath, prepend its path to the system library path */
   capture quietly findfile "`lib'"
   if(_rc==0) {
-    di as txt "addddindg to path"
     /* the path to the library on the adopath */
     local adolib = "`r(fn)'"
     

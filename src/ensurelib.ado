@@ -102,27 +102,30 @@ program define ensurelib
   /* wrap the library name into a file name */
   local lib = "`dlprefix'`libname'.`dlext'"
   
+  di as txt "looking for `lib'"
+  
   /* If the lib is in the adopath, prepend its path to the system library path */
   capture quietly findfile "`lib'"
   if(_rc==0) {
+    di as txt "addddindg to path"
     /* the path to the library on the adopath */
     local adolib = "`r(fn)'"
     
     /* extract the directory from the file path */
-    mata pathsplit("`lib'",adopath="",lib="") //_Stata_ doesn't have pathname manipulation, but _mata_ does. the ="" are to declare variables (variables need to be declared before use, even if they are just for output)
-    mata st_global("r(adopath)",adopath)  // getting values out of mata to Stata is inconsistent: numerics in r() go through st_numscalar(), strings have to go through st_global(), however non-r() scalars have to go through st_strscalar
-    mata st_global("r(lib)",lib)
-    
-    /* prepend the discovered library path (r(adopath)) to the system library path (libvar) */
-    // get the current adopath
+    mata pathsplit("`adolib'",adopath="",lib="") //_Stata_ doesn't have pathname manipulation, but _mata_ does. the ="" are to declare variables (variables need to be declared before use, even if they are just for output)
+    mata st_local("adopath",adopath)  // getting values out of mata to Stata is inconsistent: numerics in r() go through st_numscalar(), strings have to go through st_global(), however non-r() scalars have to go through st_strscalar
+    mata st_global("lib",lib)
+	
+    /* prepend the discovered library path (adopath) to the system library path (libvar) */
+    // get the current value of libvar into libpath
     plugin call _getenv, "`libvar'"
     local libpath = "`_getenv'"
-    
+	
     // skip prepending if adopath is already there in `libvar', to prevent explosion
-    local k = ustrpos("`r(libpath)'", "`r(adopath)'")
+    local k = ustrpos("`libpath'", "`adopath'")
     if(`k' == 0) {
       // prepend
-      plugin call _setenv, "`libvar'" "`r(adopath)'`sep'`libpath'"
+      plugin call _setenv, "`libvar'" "`adopath'`sep'`libpath'"
     }
   }
   /* Check that the library is now loadable */

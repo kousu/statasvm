@@ -50,13 +50,13 @@ svm {depvar} [{indepvars}] {ifin} [{it:{help svm##weight:weight}}] [{cmd:,} {it:
 
 
 {syntab:Performance}
-{synopt :{cmdab:prob:ability}}Whether or not to compute extra data needed for "predict, prob". Disable with "noprobability". Default: enabled{p_end}
+{synopt :{cmdab:prob:ability}}Whether or not to precompute the cross-validation runs needed for "predict, prob". Only applicable to classification problems. Default: disabled{p_end}
 {synopt :{cmdab:cache:_size}}The size of the RAM cache used during fitting, in megabytes. Default: 100MB (100){p_end}
-{synopt :{cmdab:SVs:}}Whether or not to return the SVs matrix. NOT IMPLEMENTED. Disable with "noSVs". Default: enabled{p_end}
-{synopt :{cmdab:nSVs:}}Whether or not to return the nSVs matrix. NOT IMPLEMENTED. Disable with "nonSVs". Default: enabled{p_end}
-{synopt :{cmdab:labels:}}Whether or not to return the labels matrix. NOT IMPLEMENTED. Disable with "nolabels". Default: enabled{p_end}
-{synopt :{cmdab:sv_coef:}}Whether or not to return the sv_coef matrix. NOT IMPLEMENTED. Disable with "nosvcoef". Default: enabled{p_end}
-{synopt :{cmdab:rho:}}Whether or not to return the rho matrix. NOT IMPLEMENTED. Disable with "norho". Default: enabled{p_end}
+{synopt :{cmdab:SVs:}}Whether or not to export the SVs matrix to Stata. NOT IMPLEMENTED. Disable with "noSVs". Default: enabled{p_end}
+{synopt :{cmdab:nSVs:}}Whether or not to export the nSVs matrix to Stata. NOT IMPLEMENTED. Disable with "nonSVs". Default: enabled{p_end}
+{synopt :{cmdab:labels:}}Whether or not to export the labels matrix to Stata. NOT IMPLEMENTED. Disable with "nolabels". Default: enabled{p_end}
+{synopt :{cmdab:sv_coef:}}Whether or not to export the sv_coef matrix to Stata. NOT IMPLEMENTED. Disable with "nosvcoef". Default: enabled{p_end}
+{synopt :{cmdab:rho:}}Whether or not to export the rho matrix to Stata. NOT IMPLEMENTED. Disable with "norho". Default: enabled{p_end}
 {* NB: there's no probA or probB options because those are just cruft in support of "predict, prob"... I think. }{...}
 
 {synoptline}

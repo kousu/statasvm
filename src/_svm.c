@@ -489,7 +489,8 @@ ST_retcode train(int argc, char *argv[])
     const char *error_msg = NULL;
     error_msg = svm_check_parameter(prob, &param);
     if (error_msg) {
-        sterror("SVM problem parameter error: %s", error_msg);
+        sterror("SVM parameter error: %s.\n", error_msg);
+        svm_parameter_pprint(&param);
         return 1;
     }
 

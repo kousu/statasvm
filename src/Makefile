@@ -149,12 +149,13 @@ bin:
 # but GNU make keeps pattern rules and explicit rules in almost separate namespaces
 # it would also be nice if you could edit the list of depends as if it was a target-specific variable (which, really, it is), so that I could mix branching and substitution in to autogen the depends
 # ah, I might be at the outer limits of what GNU make is usable for. le sigh.
-_svm.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_svm.c sttrampoline.c stutil.c stplugin.c)
+_svm.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _svm.c sttrampoline.c stutil.c stplugin.c)
 _svm.$(DLLEXT): libsvm_patches.$(OBJEXT)
 _svm.$(DLLEXT): LIBS += svm
-_svmlight.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_svmlight.c sttrampoline.c stutil.c stplugin.c)
-_getenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_getenv.c stutil.c stplugin.c)
-_setenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_setenv.c stutil.c stplugin.c)
+_svmlight.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _svmlight.c sttrampoline.c stutil.c stplugin.c)
+_getenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _getenv.c stutil.c stplugin.c)
+_setenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _setenv.c stutil.c stplugin.c)
+_dlopenable.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _dlopenable.c stutil.c stplugin.c)
 
 
 

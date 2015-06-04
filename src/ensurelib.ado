@@ -62,7 +62,7 @@
 
 program _getenv, plugin
 program _setenv, plugin
-//program _dlopenable, plugin
+program _dlopenable, plugin
 
 program define ensurelib
   gettoken libname 0 : 0
@@ -126,13 +126,13 @@ program define ensurelib
     }
   }
   /* Check that the library is now loadable */
-  /* by checking here, we prevent Stata's "unable to load [...].plugin" with an error which points out the actual problem */
-  /* // TODO
+  /* by checking here, we prevent Stata's "unable to load [...].plugin" with an error which points out the actual problem. */
   capture plugin call _dlopenable, "`lib'"
   if(_rc!=0) {
     di as error "ensurelib: unable to load `libname'"
     exit _rc
   }
-  */
+  
   
 end
+

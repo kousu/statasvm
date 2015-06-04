@@ -54,6 +54,15 @@ TODO
 
 * [ ] add `make lint`
 
+* [x] sanitize variable names before generating new ones
+  -> built in strtoname() function
+* [ ] make generate_clone into a more sensible API: "clone new = old, [nocopy]", and get 'syntax' to validate both the new and old varnames for us
+* [ ] what happens if you predict, prob on a continuous variable??
+* [ ] what happens if you predict, prob on an SVR? does it refuse?
+* [ ] wrap the body of predict and use 'snapshot' so that failures get rolled back.
+* [ ] BUG: silent failure if you mix SVR with "prob";
+* [ ] the libsvm_patches.c::_pprint() functions *should run through the print function stored in libsvm*, obviously.
+
 - [ ] BUG: is sterror() not printing to SF_error()??? what's going wrong?
 
 - [ ] BUG: mark the bin/<platform>/* files as .SECONDARY so they don't get auto-erased by make

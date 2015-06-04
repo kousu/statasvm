@@ -11,8 +11,6 @@ cd $REPO
 echo v 3
 
 # repo description
-# including Distribution-Date in that format enables 'adoupdate'
-# See [R]->net->Format of content and package-description files.
 cat <<EOF
 d $DESCRIPTION
 EOF

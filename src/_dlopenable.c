@@ -1,14 +1,22 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <dlfcn.h>
 #include <string.h>
+
+#ifdef _WIN32
+// Windows
+#include <Windows.h> //for LoadLibrary()
+#else
+//OSX and *nix
+#include <dlfcn.h> //for dlopen()
+#endif
 
 #include "stplugin.h"
 #include "stutil.h"
 
-/* dlopenable: test if
- *
+
+/* dlopenable: test if a given dll is loadable (i.e. readable and the correct architecture) by loading it and immediately unloading it.
+ * beware: this offers a security hole if an attacker can write malicious DLLs, especially on Windows where the current directory is in the library path.
  *
  * TODO:
  * [ ] Write a wrapper layer to map posix calls to Windows so that there's only one code path

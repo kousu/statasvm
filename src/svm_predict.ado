@@ -37,7 +37,7 @@ program define svm_predict, eclass
     local T : type `e(depvar)'
     if("`T'"=="float" | "`T'"=="double") {
       di as error "Warning: `e(depvar)' is a `T', which is usually used for continuous variables."
-      di as error "         It makes no sense to ask for categorical probabilities in that case."
+      di as error "         It makes no sense to ask for category probabilities of continuous variables."
       di as error ""
       di as error "         If your variable is actually categorical, consider storing it as one:"
       di as error "         . tempvar B"
@@ -45,7 +45,7 @@ program define svm_predict, eclass
       di as error "         . drop `e(depvar)'"
       di as error "         . rename \`B' `e(depvar)'"
       di as error " "
-      di as error "         SVM prediction is now being performed, but consider if this is really what you intended."
+      di as error "         SVM prediction is now being performed, but if your results are absurd, check that you have fit the right variable."
     }
     
     // save the top level description to splay across the stemmed variables
@@ -73,7 +73,8 @@ program define svm_predict, eclass
       // because these are meant to hold probabilities
       
       // TODO: what happens if there's a name collision partially through this loop?
-      //       what I want to happen is for any name collision to abort (i.e. rollback) the entire operation
+      //       what I want to happen is for any name collision or other bug to abort (i.e. rollback) the entire operation
+      //       This can be achieved with "snapshot": snapshot; capture {}; if(fail) { rollback to snapshot }"
       quietly generate double `stemmed' = .
       label variable `stemmed' "Probability of `D' being category `L'"
       

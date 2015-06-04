@@ -110,6 +110,19 @@ ifeq ($(PLATFORM),WIN64) #handle the nuisance special case
 endif
 
 
+ifeq ($(OS),Windows_NT)
+# rules for automatically including bundled DLLs in the build
+# this clearly needs to be in Windows_NT.mk, but we don't have PLATFORM computed in there.. ugh
+
+bin/$(PLATFORM)/libsvm.dll: windows/$(ARCH)/libsvm.dll bin/$(PLATFORM)
+	$(LN) $(call FixPath,$<) $(call FixPath,$@)
+
+# specific dist dependencies
+# 1) _svm.plugin depends on libsvm
+bin/$(PLATFORM)/_svm.plugin: bin/$(PLATFORM)/libsvm.dll
+endif
+
+
 # --- rules ---
 
 

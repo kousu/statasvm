@@ -80,11 +80,11 @@ Features
 * [ ] weighting
   * stata's "syntax" provides this as an option; so does libsvm's svm_parameter; I should just have to plug them together
 
-* [ ] use rownames/colnames to label the return matrices with which classes is which 
+* [x] use rownames/colnames to label the return matrices with which classes is which 
   * nSV
   * probA / probB
 
-* [ ] instead of returning the SVs matrix, add a boolean column marking if something is a support vector
+* [x] instead of returning the SVs matrix, add a boolean column marking if something is a support vector
   (to ensure uniqueness, it should be passed as an option; if not passed, don't mark it)
 
 * [ ] provide svm_classify and svm_regress as convenience shortcuts to something like "svm `0', type(C_SVC)"  "svm `0', type(EPSILON_SVR)"
@@ -94,7 +94,7 @@ Features
 * [x] make generate_clone into a more sensible API: "clone new = old, [nocopy]", and get 'syntax' to validate both the new and old varnames for us
 
 
-- [ ] make the matrices in _model2stata all optional
+- [x] make the matrices in _model2stata all optional
       (with capture on the stata side and error catching and discarding on the C side)
       so that if they are too large to allocate you get a warning but not a crash
        (afterall, it's not like the C side of things is artificially memory limited)

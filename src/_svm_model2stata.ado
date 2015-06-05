@@ -57,60 +57,65 @@ program define _svm_model2stata, eclass
   }
   
   if(`e(nr_class)'>1 & `e(l)'>0) {
-    matrix sv_coef = J(e(nr_class)-1,e(l),.)
-    
-    // there doesn't seem to be an easy way to generate a list of strings with a prefix in Stata
-    // so: the inefficient way
-    local cols = ""
-    forval j = 1/`e(l)' {
-      local cols = "`cols' SV`j'"
+    capture noisily {
+      matrix sv_coef = J(e(nr_class)-1,e(l),.)
+      
+      // there doesn't seem to be an easy way to generate a list of strings with a prefix in Stata
+      // so: the inefficient way
+      local cols = ""
+      forval j = 1/`e(l)' {
+        local cols = "`cols' SV`j'"
+      }
+      matrix colnames sv_coef = `cols'
+      
+      // TODO: rows
+      //  there is one row per class *less one*. the rows probably represent decision boundaries, then. I'm not sure what this should be labelled.
+      // matrix rownames sv_coef = class1..class`e(l)'
     }
-    matrix colnames sv_coef = `cols'
-    
-    // TODO: rows
-    //  there is one row per class *less one*. the rows probably represent decision boundaries, then. I'm not sure what this should be labelled.
-    // matrix rownames sv_coef = class1..class`e(l)'
   }
   
   if(`have_rho'==1 & `e(nr_class)'>0) {
-    matrix rho = J(e(nr_class),e(nr_class),.)
+    capture noisily matrix rho = J(e(nr_class),e(nr_class),.)
   }
   if(`have_probA'==1 & `e(nr_class)'>0) {
-    matrix probA = J(e(nr_class),e(nr_class),.)
+    capture noisily matrix probA = J(e(nr_class),e(nr_class),.)
   }
   if(`have_probB'==1 & `e(nr_class)'>0) {
-    matrix probB = J(e(nr_class),e(nr_class),.)
+    capture noisily matrix probB = J(e(nr_class),e(nr_class),.)
   }
   
 
   
   * TODO: also label the rows according to model->label (libsvm's "labels" are just more integers, but it helps to be consistent anyway);
   *  I can easily extract ->label with the same code, but attaching it to the rownames of the other is tricky
-  plugin call _svm `if' `in', "_model2stata" 2
+  capture noisily {
+    plugin call _svm `if' `in', "_model2stata" 2
 
 
-  // Label the resulting matrices and vectors with the 'labels' array, if we have it
-  if("`strLabels'"!="") {
-    capture matrix rownames nSV = `strLabels'
-    
-    capture matrix rownames rho = `strLabels'
-    capture matrix colnames rho = `strLabels'
-    
-    capture matrix rownames probA = `strLabels'
-    capture matrix colnames probA = `strLabels'
-    
-    capture matrix rownames probB = `strLabels'
-    capture matrix colnames probB = `strLabels'
+    // Label the resulting matrices and vectors with the 'labels' array, if we have it
+    if("`strLabels'"!="") {
+      capture matrix rownames nSV = `strLabels'
+      
+      capture matrix rownames rho = `strLabels'
+      capture matrix colnames rho = `strLabels'
+      
+      capture matrix rownames probA = `strLabels'
+      capture matrix colnames probA = `strLabels'
+      
+      capture matrix rownames probB = `strLabels'
+      capture matrix colnames probB = `strLabels'
+    }
   }
-
   
   * Phase 3
   * Export the SVs 
-  if("`sv'"!="") {
-    quietly generate byte `sv' = .
-    quietly replace `sv' `if' `in' = 0  //because the internal format is a list of indices, to translate to indicators we need to *start* with 0s and if we see them in the list, overwrite with 1s 
-    if(`have_sv_indices'==1 & `e(l)'>0) {
-      plugin call _svm `sv' `if' `in', "_model2stata" 3
+  capture noisily {
+    if("`sv'"!="") {
+      quietly generate byte `sv' = .
+      quietly replace `sv' `if' `in' = 0  //because the internal format is a list of indices, to translate to indicators we need to *start* with 0s and if we see them in the list, overwrite with 1s 
+      if(`have_sv_indices'==1 & `e(l)'>0) {
+        plugin call _svm `sv' `if' `in', "_model2stata" 3
+      }
     }
   }
   

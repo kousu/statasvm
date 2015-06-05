@@ -240,7 +240,8 @@ ST_retcode _model2stata(int argc, char *argv[])
     } else if (phase == '2') {
         
         char buf[20];
-        char *strLabels = calloc(model->nr_class, sizeof(buf));
+        int lstrLabels = model->nr_class*sizeof(buf) + 1;
+        char *strLabels = malloc(lstrLabels);
         if(strLabels == NULL) {
             sterror("unable to allocate memory for strLabels\n");
             return 1;
@@ -271,7 +272,7 @@ ST_retcode _model2stata(int argc, char *argv[])
                 
                 /* copy out model->label *as a string of space separated tokens; this is a shortcut for 'matrix rownames' */
                 snprintf(buf, sizeof(buf), " %d", model->label[i]);
-                strncat(strLabels, buf, sizeof(buf));
+                strlcat(strLabels, buf, lstrLabels);
                 stdebug("strLabels now = |%s|\n", strLabels);
             }
         }

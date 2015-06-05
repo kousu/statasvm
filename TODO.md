@@ -149,6 +149,19 @@ Bugs
   -> it doesn't. Stata missing is a particular large floating point number (and Stata is not wise enough to treat it specially in >! instead you 
      i've 
 
+* [ ] In console mode, the duplicate-writes in stutil.c actually show up twice
+      But in non-console mode, I definitely want them to happen twice.
+      Problem: plugins cannot detect if they are in console or non-console mode, since that information is in c(), which is inaccessible to them.
+       tip: Stata C plugins can access only global macros, scalars, and matrices (oh and variables in the current dataset, of course)
+                they can access local macros only because of a quirk which is now enshrined in the API:
+                they are just global macros with "_" prefixed (which get deleted when they go out of scope)
+      Workaround: prefix every "plugin call" with a wrapper that copies everything out of r(), e(), s() and c() into scalars (you can even use strtoname() to canonicalize names)
+         http://www.statalist.org/forums/forum/general-stata-discussion/general/1295308-bundling-dlls-in-pkgs?p=1296985#post1296985
+       tip: you can access the list of existent things programmatically with Mata's st_dir() command, e.g.
+            mata st_dir("e()","macro","*")
+          gets you a list of strings of the names of things in e() which are macros
+          UNFORTUNATELY, (see [M-5] st_dir(), page 844) st_dir() will not let you search c(). So I would have to hardcode the contents of c(). Which is not impossible, but not something I want to do anytime soon.
+       tip: "copyin_plugin_call myplugin, arg1 arg2 -> [do all the copyins, making sure they are *locals*; also maybe set a special one to flag that you were called with copyin_plugin_call]; plugin call `0'"
 
 * [ ] BUG:
  . sysuse auto

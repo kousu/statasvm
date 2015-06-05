@@ -399,24 +399,27 @@ ST_retcode _model2stata(int argc, char *argv[])
             }
             
             // if there are skipped rows (due to if/in) then the Stata indices get out of step with the sv_indices
-            // to fix this, we assume sv_indices is sorted and walk two iterators in partial-lockstep:
-            //  i over Stata rows    and   s over libsvm rows
-            int s = 0;
+            // to fix this, we assume sv_indices is sorted and walk three iterators in partial-lockstep:
+            //  i over Stata rows    and   k over libsvm rows   s over support vectors
+            int s = 0; //the index of sv_indices is 0-based, because it's a C-array
+            int k = 1; //the content of sv_indices is 1-based, because libsvm is weird
             for (ST_int i = SF_in1(); i <= SF_in2(); i++) {     //respect `in' option
                 if (SF_ifobs(i)) {                              //respect `if' option
-                    stdebug("writing SVs: i=%d, s=%d, sv_indices[s]=%d\n", i, s, model->sv_indices[s]);
                     if(s >= model->l) {
-                        sterror("_model2stata phase 3: warning: overflowed sv_indices before all rows filled.\n");
+                        sterror("_model2stata phase 3: warning: overflowed sv_indices before all rows filled. i=%d, s=%d, l=%d\n", i, s, model->l);
                         return 1;
                     }
+                    stdebug("writing SVs: i=%d, s=%d, sv_indices[s]=%d\n", i, s, model->sv_indices[s]);                    
                     
-                    
-                    err = SF_vstore(1, i, (ST_double) 1);
-                    if (err) {
-                        sterror("error writing SVs: [1,%d]=1\n", i);
-                        //return err;
+                    if(model->sv_indices[s] == k) {
+                        err = SF_vstore(1, i, (ST_double) 1);
+                        if (err) {
+                            sterror("error writing SVs: [1,%d]=1\n", i);
+                            //return err;
+                        }
+                        s++;
                     }
-                    s++;
+                    k++;
                 }
             }
         }

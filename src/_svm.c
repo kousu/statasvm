@@ -313,9 +313,11 @@ ST_retcode _model2stata(int argc, char *argv[])
                                  (ST_double) (model->sv_coef[i][j]));
                 if (err) {
                     sterror("error writing to sv_coef\n");
-                    return err;
+                    goto _sv_coef_break; // since sv_coef might not exist, this isn't an error, it's a give-up
+                    //return err;
                 }
             }
+_sv_coef_break:
         }
 
 
@@ -344,7 +346,7 @@ ST_retcode _model2stata(int argc, char *argv[])
                                      (ST_double) (model->rho[c]));
                     if (err) {
                         sterror("error writing to rho\n");
-                        return err;
+                        //return err;
                     }
                 }
 
@@ -356,7 +358,7 @@ ST_retcode _model2stata(int argc, char *argv[])
                                      (ST_double) (model->probA[c]));
                     if (err) {
                         sterror("error writing to probA\n");
-                        return err;
+                        //return err;
                     }
                 }
 
@@ -369,7 +371,7 @@ ST_retcode _model2stata(int argc, char *argv[])
                                      (ST_double) (model->probB[c]));
                     if (err) {
                         sterror("error writing to probB\n");
-                        return err;
+                        //return err;
                     }
                 }
 
@@ -412,7 +414,7 @@ ST_retcode _model2stata(int argc, char *argv[])
                     err = SF_vstore(1, i, (ST_double) 1);
                     if (err) {
                         sterror("error writing SVs: [1,%d]=1\n", i);
-                        return err;
+                        //return err;
                     }
                     s++;
                 }

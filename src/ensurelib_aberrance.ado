@@ -14,5 +14,5 @@ program define ensurelib_aberrance
     }
   }
   
-  capture ensurelib `lib'
+  ensurelib `lib'
 end

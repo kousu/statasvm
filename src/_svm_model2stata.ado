@@ -12,7 +12,7 @@ program define _svm_model2stata, eclass
   version 13
 
   
-  syntax, [SV(string)]
+  syntax [if] [in], [SV(string)]
   
   * as with loading, this has to call in and out of the plugin because chicken/egg:
   *   the plugin doesn't have permission to allocate Stata memory (in this case matrices),
@@ -26,7 +26,7 @@ program define _svm_model2stata, eclass
   
   
   * Phase 1
-  plugin call _svm, "_model2stata" 1
+  plugin call _svm `if' `in', "_model2stata" 1
   
   * the total number of (detected?) classes
   ereturn scalar nr_class = _model2stata_nr_class
@@ -86,7 +86,7 @@ program define _svm_model2stata, eclass
   
   * TODO: also label the rows according to model->label (libsvm's "labels" are just more integers, but it helps to be consistent anyway);
   *  I can easily extract ->label with the same code, but attaching it to the rownames of the other is tricky
-  plugin call _svm, "_model2stata" 2
+  plugin call _svm `if' `in', "_model2stata" 2
 
 
   // Label the resulting matrices and vectors with the 'labels' array, if we have it
@@ -107,9 +107,10 @@ program define _svm_model2stata, eclass
   * Phase 3
   * Export the SVs 
   if("`sv'"!="") {
-    quietly generate byte `sv' = 0 //because the internal format is a list of indices, to translate to indicators we need to *start* with 0s and if we see them in the list, overwrite with 1s 
+    quietly generate byte `sv' = .
+    quietly replace `sv' `if' `in' = 0  //because the internal format is a list of indices, to translate to indicators we need to *start* with 0s and if we see them in the list, overwrite with 1s 
     if(`have_sv_indices'==1 & `e(l)'>0) {
-      plugin call _svm `sv', "_model2stata" 3
+      plugin call _svm `sv' `if' `in', "_model2stata" 3
     }
   }
   

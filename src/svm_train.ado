@@ -144,5 +144,5 @@ program define svm_train, eclass
   //ereturn local indepvars = "`indepvars'" //XXX Instead svm_predict reparses cmdline. This needs vetting.
   
   // append the svm_model structure to e()
-  _svm_model2stata, sv(`sv')
+  _svm_model2stata `_if' `_in', sv(`sv')
 end

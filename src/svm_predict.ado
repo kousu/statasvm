@@ -36,7 +36,7 @@ program define svm_predict, eclass
     // ensure model is a classification
     // this duplicates code over in svm_train, but I think this is safest:
     //  svm_import allows you to pull in svm_models created by other libsvm
-    //  interfaces, and they mostly don't have this protection.
+    //  interfaces, and they mostly don't have this protection. 
     if("`e(svm_type)'" != "C_SVC" & "`e(svm_type)'" != "NU_SVC") {
       // in svm-predict.c, the equivalent section is:
       /*

@@ -145,6 +145,9 @@ Maintenance
 Bugs
 ----
 
+* [x] sv_indices is *relative to the data given*; in particular, data that was dropped on account of an if condition *is mis-counted*
+       run tests/predict_float to see: all but the last 5 are not marked as SVs and there are exactly 5 rows which were skipped due to missing data
+
 * [-] Verify that Stata turns missing values into NaNs before libsvm eats them
   -> it doesn't. Stata missing is a particular large floating point number (and Stata is not wise enough to treat it specially in >! instead you 
      i've 

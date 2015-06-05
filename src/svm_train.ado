@@ -66,7 +66,7 @@ program define svm_train, eclass
       di as error "         (If your category encoding uses floating point levels this will not be enough)"
       di as error
       di as error "         Alternately, consider SV regression: type(EPSILON_SVR) or type(NU_SVR)."
-      
+      di as error
     }
   }
   

@@ -70,6 +70,15 @@ program define svm_train, eclass
     }
   }
   
+  if("`type'" == "ONE_CLASS") {
+    // handle the special-case that one-class is unsupervised and so takes no
+    //  libsvm still reads a Y vector though; it just, apparently, ignores it
+    //  rather than tweaking numbers to be off-by-one, the easiest is to silently
+    //  duplicate the pointer to one of the variables.
+    gettoken Y : varlist
+    local varlist = "`Y' `varlist'"
+  }
+  
   if("`kernel'"=="") {
     local kernel = "RBF"
   }

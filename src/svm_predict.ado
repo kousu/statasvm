@@ -53,14 +53,14 @@ program define svm_predict, eclass
     // save the top level description to splay across the stemmed variables
     local D : variable label `target'
     
-    // loop over the possible (integer) values
-    // this is the construction given at http://www.stata.com/support/faqs/data-management/try-all-values-with-foreach/
-    // trying to loop over r(levels) directly fails with a syntax error because Stata
-    quietly levelsof `e(depvar)', local(levels)
-    // XXX the order of iteration here is critical:
+    // Collect (and create) the probability columns
+    // TODO:  get it to generate the columns in the "levelsof" order, but actually use them in the libsvm order
+    //         -> right now it is in the libsvm order, which is fine. the results are correct. they're just not as convenient. 
+    // BEWARE: the order of iteration here is critical:
     //     it MUST match the order in svm_model->labels or results will silently be permuted
-    //     (and with several classes this becomes a big problem)
-    foreach c of local levels {
+    //     the only way to achieve this is to record the order in svm_model->labels and loop over that explicitly, which is what e(levels) is for
+    assert "`e(levels)'" != ""
+    foreach c in `e(levels)' {
       // this command is obscure; what it does is look up the
       // value label for variable `target' for value `c'
       // *or* give back `c' unchanged if `target' has no labels

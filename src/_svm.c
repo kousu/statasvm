@@ -693,6 +693,7 @@ ST_retcode predict(int argc, char *argv[])
             } else {
               y = svm_predict_probability(model, X, probabilities);
               
+              // PRECONDITION: the variables as presented to the plugin are ordered *in the same order as the levels in model->label and probabilities are ordered* 
               for(int k=0; k<no_levels; k++) {
                 err = SF_vstore(no_vars+1+k, i, probabilities[k]);
                 //stdebug("prob: [%d,%d]=%lf\n", i,no_vars+1+k,probabilities[k]);

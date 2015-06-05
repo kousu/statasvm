@@ -94,6 +94,8 @@ program define _svm_model2stata, eclass
 
     // Label the resulting matrices and vectors with the 'labels' array, if we have it
     if("`strLabels'"!="") {
+      ereturn local levels = strtrim("`strLabels'")
+      
       capture matrix rownames nSV = `strLabels'
       
       capture matrix rownames rho = `strLabels'
@@ -104,6 +106,7 @@ program define _svm_model2stata, eclass
       
       capture matrix rownames probB = `strLabels'
       capture matrix colnames probB = `strLabels'
+      
     }
   }
   

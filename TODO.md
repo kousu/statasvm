@@ -173,9 +173,21 @@ Bugs
  . svm * if !missing(rep78), prob
  . predict P
  . predict P2, prob
- --> P and P2 have *opposite* results. is this because I'm mis-ordering the results somehow???? what happens in sklearn?
-* [ ] svm_predict, prob gives the columns in the order stata gives them, *not* in the order in labels. this is a problem.
+ --> P and P2 have *opposite* results. is this because I'm mis-ordering the results somehow???? what happens in sklearn? or on the command line??
+ 
+
+* [x] svm_predict, prob can gives the columns in the wrong order, so that the listed probabilities appear to disagree with the listed predictions
+   The trouble is that predict_prob() gives results back ordered by the values in labels[] which are ordered by the order Stata ran into the classes
+   the *other* trouble is, those labels are arbitary--they are the values libsvm discovered in the data--, and mapping them to actual columns is tricky because libsvm doesn't 
+   I fixed it sorta by mapping from k -> label[k], on datasets where that the categories are 0-based
+   but in general this will fail
+   hmmm
+   sooooo I need to do something else. I guess I do need to look at labels
+    i need to...
+     insight: strLabels is really strLevels
+              instead of looping over levelsof I loop over strLevels
   -->> is sklearn.svm.SVC.classes_ === svm_model->labels[]? if so, i think we should copy their approach.
+
 
 * [x] sanitize variable names before generating new ones
   -> built in strtoname() function

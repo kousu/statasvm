@@ -24,51 +24,51 @@
 {title:Syntax}
 
 {p 8 16 2}
-svm {depvar} [{indepvars}] {ifin} [{it:{help svm##weight:weight}}] [{cmd:,} {it:options}]
+{help svm##svm:svm} {depvar} {indepvars} {ifin} [{it:{help svm##weight:weight}}] [{cmd:,} {it:options}]
+
+{p 8 16 2}
+{help svm##svm:svm} {indepvars} {ifin} [{it:{help svm##weight:weight}}], type(one_class) [{it:options}]
 
 {synoptset 20 tabbed}{...}
 {synopthdr}
 {synoptline}
 {syntab:Model}
-{synopt :{cmdab:t:ype}}Type of model to fit: C_SVC, NU_SVC, ONE_CLASS, EPSILON_SVR, or NU_SVR. Default: C_SVC{p_end}
-{synopt :{cmdab:k:ernel}}SVM kernel function to use: LINEAR, POLY, RBF, SIGMOID, or PRECOMPUTED. Default: RBF{p_end}
+{synopt :{opth t:ype(svm##type:type)}}Type of model to fit: {opt c_svc}, {opt nu_svc}, {opt one_class}, {opt epsilon_svr}, or {opt nu_svr}. Default: {cmd:type(c_svc)}{p_end}
+{synopt :{opth k:ernel(svm##kernel:kernel)}}SVM kernel function to use: {opt linear}, {opt poly}, {opt rbf}, {opt sigmoid}, or {opt precomputed}. Default: {cmd:kernel(rbf)}{p_end}
 
-{synopt :{cmdab:gamma:}}For POLY, RBF and SIGMOID kernels, a scaling factor for the linear part. Default: 1/[# variables TODO: what's Stata's hidden macro for this?]{p_end}
-{synopt :{cmdab:coef0:}}For POLY and SIGMOID kernels, an intercept term for the linear part. Default: 0{p_end}
-{synopt :{cmdab:deg:ree}}For POLY kernels, the degree of the polynomial to use. Default: cubic (3){p_end}
+{synopt :{opth deg:ree(svm##degree:degree)}}For {opt poly} kernels, the degree of the polynomial to use. Default: cubic ({cmd:degree(3)}){p_end}
 
 {* XXX the division between 'tuning' and 'model' parameters is hazy; e.g. you could in theory cross-validate to choose degree (and people do this with neural networks), or even to choose the kernel . hmmmmm}{...}
 
-{syntab:Features}
-{synopt :{cmdab:prob:ability}}Whether or not to precompute the cross-validation runs needed for "predict, prob". Only applicable to classification problems. Default: disabled{p_end}
-{synopt :{cmdab:sv:}}If given, a variable to generate and with booleans marking each row as a support vector or not. Default: disabled{p_end}
-
-
 {syntab:Tuning}
-{synopt :{cmdab:c:}}For C_SVC, EPSILON_SVR and NU_SVR SVMs, this is a regularization parameter which weights the slack variables [citation needed]. Default: 1{p_end}
-{synopt :{cmdab:p:}}For EPSILON_SVR SVMs, this provides the error tolerance boundary [citation needed]. Default: 0.1{p_end}
-{synopt :{cmdab:nu:}}For NU_SVC, ONE_CLASS, and NU_SVR SVMs, .... Default: 0.5{p_end}
+{synopt :{opth c:(svm##c:c)}}For {opt c_svc}, {opt epsilon_svr} and {opt nu_svr} SVMs, this is a regularization parameter which weights the slack variables. Should be > 0. Default: {cmd:c(1)}{p_end}
+{synopt :{opth p:(svm##p:p)}}For {opt epsilon_svr} SVMs, the margin of error allowed for to count something as a support vector. Default: {cmd:p(0.1)}{p_end}
+{synopt :{opth nu:(svm##nu:nu)}}For {opt nu_svc}, {opt one_class}, and {opt nu_svr} SVMs, tunes the number of supports vectors. Should be in (0, 1]. Default: {cmd:nu(0.5)}{p_end}
 
-{synopt :{cmdab:eps:ilon}}The stopping tolerance used to decide when convergence has happened. Default: 0.001{p_end}
-{synopt :{cmdab:shrink:ing}}Whether or not to use shrinkage heuristics (regularization??) to improve the fit. Default: disabled{p_end}
-{synopt :{cmdab:autonorm:alize}}Whether to center and scale the data. NOT IMPLEMENTED. Default: disabled{p_end}
+{synopt :{opth gamma:(svm##gamma:gamma)}}For {opt poly}, {opt rbf} and {opt sigmoid} kernels, a scaling factor for the linear part of the kernel. Default: {cmd:gamma(1/[# {indepvars}])}{p_end}
+{synopt :{opth coef0:(svm##coef0:coef0)}}For {opt poly} and {opt sigmoid} kernels, a bias ("intercept") term for the linear part of the kernel. Default: {cmd:coef0(0)}{p_end}
+
+{synopt :{opt shrink:ing}}Whether or not to use shrinkage heuristics to attempt to improve the fit. Default: disabled{p_end}
+
+
+{syntab:Features}
+{synopt :{opt norm:alize}}Whether to center and scale the data. NOT IMPLEMENTED. Default: disabled{p_end}
+{synopt :{opt prob:ability}}Whether or not to precompute the cross-validation runs needed for "predict, prob". Only applicable to classification problems. Default: disabled{p_end}
+{synopt :{opth sv:(svm##sv:newvarname)}}If given, a variable to generate and with booleans marking each row as a support vector or not. Default: disabled{p_end}
 
 
 {syntab:Performance}
-{synopt :{cmdab:cache:_size}}The size of the RAM cache used during fitting, in megabytes. Default: 100MB (100){p_end}
-{synopt :{cmdab:nSVs:}}Whether or not to export the nSVs matrix to Stata. NOT IMPLEMENTED. Disable with "nonSVs". Default: enabled{p_end}
-{synopt :{cmdab:labels:}}Whether or not to export the labels matrix to Stata. NOT IMPLEMENTED. Disable with "nolabels". Default: enabled{p_end}
-{synopt :{cmdab:sv_coef:}}Whether or not to export the sv_coef matrix to Stata. NOT IMPLEMENTED. Disable with "nosvcoef". Default: enabled{p_end}
-{synopt :{cmdab:rho:}}Whether or not to export the rho matrix to Stata. NOT IMPLEMENTED. Disable with "norho". Default: enabled{p_end}
-{* NB: there's no probA or probB options because those are just cruft in support of "predict, prob"... I think. }{...}
+{synopt :{opth eps:ilon(svm##epsilon:epsilon)}}The stopping tolerance used to decide when convergence has happened. Default: {cmd:epsilon(0.001)}{p_end}
+{synopt :{opth cache:_size(svm##cache_size:cache)}}The size of the RAM cache used during fitting, in megabytes. Default: 100MB ({cmd:cache_size(100)}){p_end}
 
 {synoptline}
-{pstd}All variables must be numeric (Stata stores categoricals as numerics); use {help encode} to map string variables to classes.{p_end}
+{pstd}All variables must be numeric (including outcome classes, which are typically stored in Stata as integers with value labels attached); use {help encode} if you have classes stored in string variables.{p_end}
 INCLUDE help fvvarlist
 
 
+
 {p 8 16 2}
-predict {targetvar} {ifin}, [{cmdab:prob:ability}]
+{help svm##predict:predict} {newvar} {ifin}, [{cmdab:prob:ability}]
 
 {synoptset 20 tabbed}{...}
 {synopthdr}
@@ -76,11 +76,12 @@ predict {targetvar} {ifin}, [{cmdab:prob:ability}]
 {synopt :{cmdab:prob:ability}}If specified, estimate class probabilities for each observation. This only makes sense for classification problems.{p_end}
 
 
-{p 8 16 2}
-svm_export using {filename}
 
 {p 8 16 2}
-svm_import using {filename}
+{help svm##export:svm_export} using {filename}
+
+{p 8 16 2}
+{help svm##export:svm_import} using {filename}
 
 {synoptset 20 tabbed}{...}
 {synopthdr}
@@ -94,8 +95,9 @@ svm_import using {filename}
 {pstd}
 {cmd:svm} fits a support vector machine (SVM) model of {depvar} on {indepvars}.
 SVM is not one, but several variant models, all based upon splitting hyperplanes and culling unimportant observations.
-The name comes part from how each observation in a dataset can be thought of as a vector in d-dimensional space, where d is the number of {indepvars}
-and part from the culling: the "support vectors" are those observations which the algorithm detects are critical to the fit.
+The name's second part comes from how each observation in a dataset can be thought of as a vector in d-dimensional space, where d is the number of {indepvars},
+and first part from the culling. "Support vectors" are those observations which the algorithm detects are critical to the fit; all others are ignored after fitting is done,
+which makes SVM very memory efficient.
 
 {pstd}
 Not all combinations of options are valid, and you will get an error if you specify an invalid combination.
@@ -126,112 +128,124 @@ Please write us with suggestions for clarification.
 {marker options}{...}
 {title:Options}
 
+{marker svm}{...}
 {title:svm}
 
 {pstd}
 {cmd:svm} does model training, otherwise known as fitting or estimation (depending on your statistical background).
 
 {phang}
-{opt type} specifies what subtype of SVM to run.
-C_SVC and NU_SVC perform classification, and your {depvar} should be a discrete variable, probably stored as byte or int.
-You can tell if you have made this mistake if there is a unique class for each observation.
-libsvm automatically handles multiclass classification using the one-against-all [citation needed].
-ONE_CLASS ignores {depvar} (????) and estimates the support---where in feature space---the data lies [......].
-EPSILON_SVR and NU_SVR perform regression. You can use this with discrete variables, but more commonly you would use it with continuous ones stored as float or double.
-To learn about the NU distinction, see {help svm##nusvm:Chen and Lin's ν-SVM tutorial}.
+{marker type}{...}
+{opt type} specifies what subtype of SVM to run.{p_end}
+{pmore}{opt c_svc} and {opt nu_svc} perform classification.{p_end}
+{pmore2}{depvar} should be a discrete variable.{p_end}
+{pmore2}If you try to use floating point values with classification you will find that they are truncated to only the integer parts.{p_end}
+{pmore2}Further, if you accidentally use a floating point {depvar}, it is easy to end up with as many classes as observations, which is not informative.{p_end}
+
+{pmore2}libsvm automatically handles multiclass classification using the {browse "http://en.wikipedia.org/wiki/Multiclass_classification":one-against-one} method.{p_end}
+
+{pmore}{opt one_class} separates outliers from the bulk of the data.{p_end}
+{pmore2}{opt one_class} does not take a {depvar} because it is a form of unsupervised learning: all the information it uses is in the predictors themselves.{p_end}
+{pmore3}You may use the same {varlist} as with the others: by including your depvar as an indepvar you just give {opt one_class} more information to work with.{p_end}
+{pmore2}Its predictions give 1 for "data" and -1 for "outlier".{p_end}
+
+{pmore}{opt epsilon_svr} and {opt nu_svr} perform regression.{p_end}
+{pmore2}While you can use this with discrete {depvar}s, it is more common to use it with continuous ones.{p_end}
+
+{pmore}To learn about the {opt c}/{opt nu} distinction, see {help svm##nusvm:Chen and Lin's ν-SVM tutorial}.{p_end}
 
 {phang}
+{marker kernel}{...}
 {opt kernel} gives a kernel function to use.
-The basic SVM algorithm finds a linear boundary (a hyperplane), between two classes [XXX how does this apply to SVR?].
-The {browse "https://en.wikipedia.org/wiki/Kernel_Method":kernel trick} attempts to make data linearly-separable by mapping it into a higher dimensional space.
-Additionally, it can handle curved boundaries by effectively bending the lower dimensional space. See {browse "https://www.youtube.com/watch?v=3liCbRZPrZA"} for a visualization of this process.
-The trick is that the fit can be done efficiently because the fit does not care about the points under the mapping, 
-but rather cares about their kernel value <u,x>, a value used in scoring the coefficients u,
+The basic SVM algorithm finds a linear boundary (a hyperplane). For classification, this is a boundary between two classes; for regression it is a line near which correct predictions are expected to cluster--much like in {help regess:OLS}.
+But the {browse "https://en.wikipedia.org/wiki/Kernel_Method":kernel trick} makes SVM more flexible: it can make a space look non-linear by mapping it into a higher dimensional space.
+See {browse "https://www.youtube.com/watch?v=3liCbRZPrZA"} for a visualization of this process.
+The part that makes it a trick is that the fit can be done efficiently without first mapping your observations into the higher dimensional space,
+as the estimation only cares about their kernel value <u,x>, a value used in scoring the coefficients u,
 and for certain kernels this value can be computed straight from the original data without doing the mapping at all.{p_end}
 
 {pmore}Choices of kernels are:{p_end}
-{pmore2}LINEAR means the linear kernel you are probably familiar with from {help regress:OLS}: u'*v{p_end}
-{pmore2}POLY is (gamma*u'*v + coef0)^degree{p_end}
-{pmore2}RBF stands for Radial Basis Functions, and treats the coefficients as a mean to smoothly approach in a ball, with the form exp(-gamma*|u-v|^2); this kernel tends to be good at [...].{p_end}
-{pmore2}SIGMOID is a kernel which bends the linear kernel to fit in -1 to 1, similar to {help logistic} regression: tanh(gamma*u'*v + coef0){p_end}
-{pmore2}PRECOMPUTED assumes that {depvar} is actually a list of precomputed kernel values. With effort, you can use this to use custom kernels with your data [TODO].{p_end}
+{pmore2}{opt linear} means the linear kernel you are probably familiar with from {help regress:OLS}: u'*v{p_end}
+{pmore2}{opt poly} is (gamma*u'*v + coef0)^degree{p_end}
+{pmore2}{opt rbf} stands for Radial Basis Functions, and treats the coefficients as a mean to smoothly approach in a ball, with the form exp(-gamma*|u-v|^2); this kernel tends to be good at [...].{p_end}
+{pmore2}{opt sigmoid} is a kernel which bends the linear kernel to fit in -1 to 1, similar to {help logistic} regression: tanh(gamma*u'*v + coef0){p_end}
+{pmore2}{opt precomputed} assumes that {depvar} is actually a list of precomputed kernel values. With effort, you can use this to use custom kernels with your data [TODO].{p_end}
 
 {phang}
-{opt gamma} is used in the non-linear kernels as a scaling factor for the linear part, as seen above.
-[TODO: tips about choosing this]
-
-{phang}
-Similarly, {opt coef0} is used in the non-linear kernels as a pseudo-intercept term.
-Except it is not used in the RBF kernel as RBF is essentially a distance function, and biasing would be pointless.[???]
-[TODO: tips about choosing this]
-
-{phang}
-{opt degree} selects the degree of the polynomial used by the POLY kernel.
+{marker degree}{...}
+{opt degree} selects the degree of the polynomial used by the {opt poly} kernel.
 Setting this too high will result in overfitting. Setting it too low may result in non-convergence.
 [TODO: tips about choosing this]
 
 {phang}
-{opt c} weights (regularizes) the slack variables used in C_SVC, EPSILON_SVR and NU_SVR
+{marker c}{...}
+{opt c} weights (regularizes) the slack variables used in {opt c_svc}, {opt epsilon_svr} and {opt nu_svr}. This will pre-multiply any sample-specific {opt weight}s.
+
+{phang}
+{marker p}{...}
+{opt p} is the margin of error allowed by {opt epsilon_svr}---the name was already taken by {opt epsilon}. Larger makes your fit more flexible, and can lead to underfitting. Smaller can lead to overfitting.
+
+{phang}
+{marker nu}{...}
+{opt nu} is used in the nu variants. The nu variants are a reparamaterization of regular SVM which lets you directly tune, using {opt nu}, the tradeoff between error and computation. {opt nu} is an upper bound on the fraction of training errors and a lower bound of the fraction of support vectors, so that smaller means ... and larger means ..... See {help svm##nusvm:the ν-SVM tutorial} for details.
+{* ..wait... this doesn't make any sense. nu == 0.1 means there are at most 10% (training) errors and at least 10% are support vectors.}{...}
+{*      nu = 0.9 means there are at most 90% errors and at least 90% SVs.   you should always choose 0, then, to get perfect prediction and zero memory usage}{...}
+
+{phang}
+{marker gamma}{...}
+{opt gamma} is used in the non-linear kernels as a scaling factor for the linear part, as seen above.
 [TODO: tips about choosing this]
 
 {phang}
-{opt p} is the epsilon used by EPSILON_SVR. Larger makes your fit more flexible, and can lead to underfitting[???]. Smaller can lead to overfitting. (the name epsilon was already taken for an option, so the libsvm authors chose "p").
+{marker coef0}{...}
+Similarly, {opt coef0} is used in the non-linear kernels as a pseudo-intercept term.
+Except it is not used in the {opt rbf} kernel as {opt rbf} is essentially a distance function, and biasing would be pointless.[???]
+[TODO: tips about choosing this]
 
 {phang}
-{opt nu} is used in the NU variants. See {help svm##nusvm:the ν-SVM tutorial} for details.
-[TODO: ...]
+{marker shrinking}{...}
+{opt shrinking} invokes libsvm's built-in shrinking heuristics [TODO: what does this mean? shrinkage estimation?]
 
 {phang}
-{opt epsilon} is the stopping tolerance used by the numerical optimizer. You could widen this if you are finding convergence is slow or not occurring, but be aware that this usually non-convergence is a deeper problem in the data versus the kernel.
+SVM tends to be very sensitive to scaling issues, so {opt normalize} instructs the estimation to first center and scale the data so that every variable starts with equal influence.
+This normalizes all data to [0,1] using min-max normalization, as suggested in the {help svm##libsvmguide:libsvm guide}.
+Normalization creates temporary variables, so you may prefer to preprocess the data yourself---destructively and in-place---to save time on re-estimations and memory for variables,
+especially if you are bumping up against your Stata system limits. You may find {cmd:ssc install norm} helpful.
 
 {phang}
-{opt shrinking} invokes libsvm's built-in shrinking heuristics [TODO: what does this mean?]
-
-{phang}
-{opt autonormalize} instructs the fitter to first center and scale the data
-so that every column has identical mean and variance
- as suggested in the {help svm##libsvmguide:libsvm guide}.
- In theory, this should help the results---as measured by cross-validation---
- by weighting each column's effect the same and reducing the chance for numerical error
- but this is not always the case, so it is disabled by default.
-
-{pmore}
-If enabled, {cmd:predict} will also autonormalize.
-
-{phang}
+{marker probability}{...}
 {opt probability} enables the use of "predict, prob" as described below. This takes additional CPU and space, slowing down both training and prediction.
 
 {phang}
-{opt cache_size} tweaks an internal libsvm parameter of how much RAM to use during training. Value is given in megabytes (MB).
-[TODO: what effect does this have?]
+{marker sv}{...}
+{opt sv} creates the given variable and records in it an indicator of whether each row was a support vector or not.
 
 {phang}
-{opt SVs}, 
-{opt nSVs}, 
-{opt labels}, 
-{opt sv_coef}, and
-{opt rho}
-control whether or not these matrices are exported from libsvm to Stata.
-Though libsvm is perfectly capable of allocating space for them, and always does,
-your {help matsize} may not be large enough for them, so you can disable each individually by prefixing "no", e.g. "nosv_coef". See {help svm##gotchas:gotchas}.
+{marker epsilon}{...}
+{opt epsilon} is the stopping tolerance used by the numerical optimizer. You could widen this if you are finding convergence is slow,
+ but be aware that this usually non-convergence is a deeper problem in the interaction of data, kernel, and tuning parameters.
+
+{phang}
+{marker cache_size}{...}
+{opt cache_size} tweaks an internal libsvm parameter which controls a time-memory tradeoff during estimation. Value is how many megabytes (MB) of RAM to set aside. Generally, more is faster, at least until you run out of RAM or cause your machine to start swapping.
+
 {...}
 {...}
 
+{marker predict}{...}
 {title:predict}
 
-{pstd}
-After training you can ask svm to {cmd:predict} what it thinks the classes (classification) or values (regression) of given observations into {targetvar}.
-{targetvar} must not exist, so if you want to repredict your choices are {cmd:drop {targetvar}} or to pick a new name, e.g. {cmd:predict {targetvar}2}.{p_end}
-{pmore}For classification problems, {opt probability} requests, for each observation, the probability of it being each class.{p_end}
-{pmore}For regression problems, {opt probability} requests [....].{p_end}
-{pmore}In addition to predictions in {targetvar}, {targetvar} is used as a stem for names of new columns for the results.
-This option will fail if you specified {opt noprobability} during estimation.{p_end}
+{pstd}After training you can ask svm to {cmd:predict} what it thinks the classes (classification) or values (regression) of given observations into {newvar}.{p_end}
+{pstd}{newvar} must not exist, so if you want to repredict your choices are {cmd:drop {newvar}} or to pick a new name, e.g. {cmd:predict {newvar}2}.{p_end}
+
+{phang}For classification ({opt c_svc}, {opt nu_svc}) problems, {opt probability} requests, for each observation, the probability of it being each class. {newvar} is used as a stem for names of new columns for the results. This option is not valid for other SVM types.{p_end}
 
 {pstd}
-Prediction automatically uses the same {indepvars} as in training, so if you rename or drop columns between commands you will have problems.
+Prediction automatically uses the same {indepvars} as in training, so be careful about renaming or dropping columns between commands.
 {...}
 {...}
 
+{marker export}{...}
 {title:import/export}
 
 {pstd}
@@ -269,6 +283,9 @@ Do not confuse these commands with {cmd:import_svmlight} and {cmd:export_svmligh
 {phang2}{cmd:. webuse regsmpl, clear}{p_end}
         {hline}
         
+{title:Examples:  viewing support vectors}
+
+--- crosstab sv against category and compare to nSV
 
 {title:Examples:  forecasting}
 
@@ -323,7 +340,7 @@ it is easy to inadvertently instruct this package to construct more columns or l
 In this case, you will receive an error and find yourself with a partially allocated set of probability columns or a partial set of {cmd:e()} matrices^.
 
 {pmore}
-You can proceed by retrying the command with various combinations of "no{matrix}" options applied to reduce the output size. If done in the same session you will also need to manually drop the mistake columns with {cmd:drop {targetvar}*}.
+You can proceed by retrying the command with various combinations of "no{matrix}" options applied to reduce the output size. If done in the same session you will also need to manually drop the mistake columns with {cmd:drop {newvar}*}.
 
 {pmore}
 If you are really stuck, you can also proceed by giving up on Stata and switching to libsvm's companion {cmd:svm-train} program,

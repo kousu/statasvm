@@ -72,16 +72,16 @@ Dist
 Documentation
 -------------
 
-- [ ] say "1/[# indepvars]"
-- [ ] add a variant command format for type(ONE_CLASS) -- it shouldn't take a Y
-- [ ] lowercase all the parameter values, which is Stata-style
+- [x] say "1/[# indepvars]"
+- [x] add a variant command format for type(ONE_CLASS) -- it shouldn't take a Y
+- [x] lowercase all the parameter values, which is Stata-style
   - see glm.sthlp for examples
-- [ ] put the parameter values in the option font
+- [x] put the parameter values in the option font
   - see glm.sthlp for examples
-- [ ] add () after options which take them, and inside put a link to their fuller descriptions
+- [x] add () after options which take them, and inside put a link to their fuller descriptions
   - see glm.sthlp for examples
 
-- [ ] param sectioning:
+- [x] param sectioning:
     - model: type, kernel, degree
     - tuning: gamma, coef0
 
@@ -165,7 +165,7 @@ Maintenance
 - [ ] renames
   - [ ] svm_train to svm
   - [ ] svm_predict to svm_p (to match regress_p)
-
+  - {epsilon, p} -> {tol, epsilon}; this is what sklearn did: http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVR.html#sklearn.svm.SVR
 * [ ] Unlike mata, I can't write to r() from a Stata plugin, as far as I can tell
       The closest I can get to encapsulated, local, variables is to use in Stata tempname, and pass that along in argv to the plugin
       (almost like passing a pointer for an out argument in C). But that's tedious and I haven't done it yet.

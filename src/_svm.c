@@ -12,6 +12,23 @@
 
 
 /* ******************************** */
+/* platform cruft */
+#if _WIN32
+
+// TODO: check security ;)
+// TODO: find a posix-to-windows compat libc
+size_t strlcat(char * dst, const char * src, size_t size) {
+	errno_t err = strcat_s(dst, size, src);
+	if(err) {
+		// pass
+	}
+	return strlen(dst) + strlen(src);
+}
+
+
+#endif
+
+/* ******************************** */
 /* libsvm print hooks */
 
 // these exist only to glue the small type variations together

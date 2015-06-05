@@ -50,21 +50,6 @@ program define svm_predict, eclass
       exit 2
     }
     
-    // ensure type is categorical
-    local T : type `e(depvar)'
-    if("`T'"=="float" | "`T'"=="double") {
-      di as error "Warning: `e(depvar)' is a `T', which is usually used for continuous variables."
-      di as error "         It makes no sense to ask for category probabilities of continuous variables."
-      di as error ""
-      di as error "         If your variable is actually categorical, consider storing it as one:"
-      di as error "         . tempvar B"
-      di as error "         . generate byte \`B' = `e(depvar)'"   //CAREFUL: B is meant to be quoted and depvar is meant to be unquoted.
-      di as error "         . drop `e(depvar)'"
-      di as error "         . rename \`B' `e(depvar)'"
-      di as error " "
-      di as error "         SVM prediction is now being performed, but if your results are absurd, check that you have fit the right variable."
-    }
-    
     // save the top level description to splay across the stemmed variables
     local D : variable label `target'
     

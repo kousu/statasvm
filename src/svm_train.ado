@@ -44,11 +44,32 @@ program define svm_train, eclass
   local _varlist = "`varlist'"
   local _if = "`if'"
   local _in = "`in'"
+  gettoken depvar indepvars : _varlist
   
   /* fill in defaults for the string values */
   if("`type'"=="") {
     local type = "C_SVC"
   }
+  
+  if("`type'" == "C_SVC" | "`type'" == "NU_SVC" /* | "`type'" == "ONE_CLASS" ???? */) {
+    // "ensure" type is categorical
+    local T : type `depvar'
+    if("`T'"=="float" | "`T'"=="double") {
+      di as error "Warning: `depvar' is a `T', which is usually used for continuous variables."
+      di as error "         SV classification will cast real numbers to integers before fitting." //<-- this is done by libsvm with no control from us
+      di as error
+      di as error "         If your outcome is actually categorical, consider storing it as one:"
+      di as error "         . tempvar B"
+      di as error "         . generate byte \`B' = `depvar'"   //CAREFUL: B is meant to be quoted and depvar is meant to be unquoted.
+      di as error "         . drop `depvar'"
+      di as error "         . rename \`B' `depvar'"
+      di as error "         (If your category encoding uses floating point levels this will not be enough)"
+      di as error
+      di as error "         Alternately, consider SV regression: type(EPSILON_SVR) or type(NU_SVR)."
+      
+    }
+  }
+  
   if("`kernel'"=="") {
     local kernel = "RBF"
   }
@@ -69,7 +90,7 @@ program define svm_train, eclass
   else {
     local shrinking = 0
   }
-  
+
   if("`probability'"=="probability") {
     local probability = 1
     
@@ -119,7 +140,6 @@ program define svm_train, eclass
   ereturn local svm_type = "`type'"
   ereturn local svm_kernel = "`kernel'"
   
-  gettoken depvar indepvars : _varlist
   ereturn local depvar = "`depvar'"
   //ereturn local indepvars = "`indepvars'" //XXX Instead svm_predict reparses cmdline. This needs vetting.
   

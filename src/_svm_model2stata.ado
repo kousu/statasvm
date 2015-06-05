@@ -91,7 +91,6 @@ program define _svm_model2stata, eclass
 
   // Label the resulting matrices and vectors with the 'labels' array, if we have it
   if("`strLabels'"!="") {
-    di as text "strLabels=|`strLabels'|"
     capture matrix rownames nSV = `strLabels'
     
     capture matrix rownames rho = `strLabels'

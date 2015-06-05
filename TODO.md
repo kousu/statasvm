@@ -201,6 +201,7 @@ Bugs
 
 * [x] *don't* typecheck in predict, because in principle you could have non-integer classes
   -> changed to a warning with sample code showing how to disable the warning.
+* [x] move the warning to svm_train, because that's really where it belongs (note: the way libsvm handles classification of floating points is to silently cast them to ints first)
 
 
 - [x] BUG: svm_predict_probability() gives opposite answers to svm_predict()

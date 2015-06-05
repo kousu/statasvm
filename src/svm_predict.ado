@@ -28,7 +28,7 @@ program define svm_predict, eclass
   // make the target column
   // it is safe to assume that `target' is a valid variable name: "syntax" above enforces that
   //  and it should be safe to assume the same about `e(depvar)': unless the user is messing with us (in which case, more power to them), it should have been created by svm_train and validated at that point
-  clone `target' `e(depvar)' if 0 //'if 0' leaves the values as missing, which is important: we don't want a bug in the plugin to translate to source values sitting in the variable (and thus inflating the observed prediction rate)
+  quietly clone `target' `e(depvar)' if 0 //'if 0' leaves the values as missing, which is important: we don't want a bug in the plugin to translate to source values sitting in the variable (and thus inflating the observed prediction rate)
   
   // allocate space (we use new variables) to put probability estimates for each class for each prediction
   // this only makes sense in a classification problem, but we do not check for that

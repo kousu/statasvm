@@ -77,7 +77,10 @@ dist/svm/%: %
 # which is not something that can be automated.
 .PHONY: deploy
 deploy: dist
-	ssh csclub.uwaterloo.ca -- rm -r www/stata; scp -r dist/ csclub.uwaterloo.ca:www/stata
+	ssh csclub.uwaterloo.ca -- rm -r www/stata
+	scp -r dist/ csclub.uwaterloo.ca:www/stata
+	ssh csclub.uwaterloo.ca -- 'find www/stata -type d -exec chmod 755 {} \;'
+	ssh csclub.uwaterloo.ca -- 'find www/stata -type f -exec chmod 644 {} \;'
 
 
 # --- cleaning ---

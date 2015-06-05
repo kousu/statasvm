@@ -69,8 +69,51 @@ Dist
   * [x] export_svmlight
 
 
+Documentation
+-------------
+
+- [ ] say "1/[# indepvars]"
+- [ ] add a variant command format for type(ONE_CLASS) -- it shouldn't take a Y
+- [ ] lowercase all the parameter values, which is Stata-style
+  - see glm.sthlp for examples
+- [ ] put the parameter values in the option font
+  - see glm.sthlp for examples
+- [ ] add () after options which take them, and inside put a link to their fuller descriptions
+  - see glm.sthlp for examples
+
+- [ ] param sectioning:
+    - model: type, kernel, degree
+    - tuning: gamma, coef0
+
+- [x] make .sthlp files
+   - [x] svm.sthlp is the primary one, covering svm_train and svm_predict in one (since users should never explicitly call svm_predict themselves)
+   - [ ] svmlight.sthlp (how do I make 'help import svmlight' bring this up?)
+
+- [ ] clone.sthlp
+- [ ] _env.sthlp
+- [ ] ensurelib.sthlp
+- [ ] ensureado.sthlp
+
 Features
 --------
+
+* [ ] 'normalize' to automatically normalize the data
+   -> implement this with a library, like the 'norm' function
+   -> can I check for and autoinstall dependencies from ssc as needed? I can use 'which' to find if it's installed (unreliably)
+
+* [ ] 'verbose' option which sets/unsets svm_print_function as required.
+    this is what sklearn does: 
+```
+    /* provide convenience wrapper */
+void set_verbosity(int verbosity_flag){
+	if (verbosity_flag)
+		svm_set_print_string_function(&print_string_stdout);
+	else
+		svm_set_print_string_function(&print_null);
+}
+```
+* [ ] 
+* [ ] 'seed' option for seeding the RNG
 
 * [x] write svmload.ado which handles reading svmlight format files
    * -> "a plugin cannot create
@@ -80,6 +123,7 @@ Features
 
 * [ ] weighting
   * stata's "syntax" provides this as an option; so does libsvm's svm_parameter; I should just have to plug them together
+  * sklearn has an 'auto' mode where it weights classes by their proportion in the dataset. this is a good idea.
 
 * [x] use rownames/colnames to label the return matrices with which classes is which 
   * nSV
@@ -88,7 +132,12 @@ Features
 * [x] instead of returning the SVs matrix, add a boolean column marking if something is a support vector
   (to ensure uniqueness, it should be passed as an option; if not passed, don't mark it)
 
-* [ ] provide svm_classify and svm_regress as convenience shortcuts to something like "svm `0', type(C_SVC)"  "svm `0', type(EPSILON_SVR)"
+* [ ] convenience shortcuts:
+   sv_classify
+   sv_regress
+   sv_oneclass
+ 
+ as convenience shortcuts to something like "svm `0', type(C_SVC)"  "svm `0', type(EPSILON_SVR)"
    -> and if you specify 'nu' as an option, trigger nu-SVM instead (NU_SVC, NU_SVR)
    -> this is a nicetohave/prematureoptimization, so leave it for version 2
 
@@ -107,12 +156,7 @@ Features
 
 - [ ] handle fvs (i.varname, etc)
   - plugin call can't handle fvs, but I can use xi: to fudge them
-    however there is a strange bug: xi doesn't work as advertised; is it just with plugin call??
-
-
-- [x] make .sthlp files
-   - [x] svm.sthlp is the primary one, covering svm_train and svm_predict in one (since users should never explicitly call svm_predict themselves)
-   - [ ] svmlight.sthlp (how do I make 'help import svmlight' bring this up?)
+    however there is a strange bug: xi doesn't work as advertised; is it just with 
 
 Maintenance
 -----------
@@ -145,6 +189,31 @@ Maintenance
 
 Bugs
 ----
+
+* [ ] okay, i';m 99% sure judging from tracing the sklearn source code that in OneClass mode, Y is *ignored*. sklearn passes an empty array, which gets translated to a 0-length memoryview which should get translated to a NULL pointer internally, and then is copied verbatim (as NULL) into the svm_problem
+  so what this means for me is that right now:
+ 
+I should probably do this:
+ 
+ svm `varlist', type(ONE_CLASS) -->
+ tempvar B
+ svm `B' `varlist', type(ONE_CLASS)
+
+* [ ] from sklearn/svm/base.py: "
+        # In binary case, we need to flip the sign of coef, intercept and
+        # decision function. Use self._intercept_ and self._dual_coef_ internally."
+
+* [ ] SVR doesn't output strLabels. which makes sense: there's no labels to output. but it does output 'rho' (but only a single rho long?? maybe we should output a scalar in this case??) and 
+  * it also sets nr_class, even though there's no classes to speak of?? libsvm quirk??
+
+* [ ] there's an off-by-one-ish bug in the new exporting SVs code, which crops up if the list of SVs doesn't include the last sample.
+This code will trigger it:
+. sysuse auto
+. drop make
+. order gear_ratio
+. svm * if !missing(rep78), sv(Is_SV) type(EPSILON_SVR)
+_model2stata phase 3: warning: overflowed sv_indices before all rows filled. i=74, s=49, l=49
+ and it seems that if this happens it also breaks labelling of 
 
 * [x] sv_indices is *relative to the data given*; in particular, data that was dropped on account of an if condition *is mis-counted*
        run tests/predict_float to see: all but the last 5 are not marked as SVs and there are exactly 5 rows which were skipped due to missing data

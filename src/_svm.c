@@ -317,8 +317,8 @@ ST_retcode _model2stata(int argc, char *argv[])
                     //return err;
                 }
             }
-_sv_coef_break:
         }
+        _sv_coef_break: (void)strLabels /*NOP*/;
 
 
         /* from the libsvm README:

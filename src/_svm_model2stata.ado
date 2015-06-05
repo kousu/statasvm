@@ -10,6 +10,7 @@ program _svm, plugin    // load _svm.plugin, the wrapper for libsvm
 * if passed, SV specifies a column to create and record svm_model->sv_indecies into
 program define _svm_model2stata, eclass
   version 13
+
   
   syntax, [SV(string)]
   
@@ -17,6 +18,7 @@ program define _svm_model2stata, eclass
   *   the plugin doesn't have permission to allocate Stata memory (in this case matrices),
   *   but we don't know how much to allocate before interrogating the svm_model
   
+  local strLabels = ""
   local have_sv_indices = 0
   local have_rho = 0
   local have_probA = 0 /*an undefined macro will inconsistently cause an eval error because `have_rho'==1 will eval to ==1 will eval to "unknown variable"*/
@@ -42,6 +44,7 @@ program define _svm_model2stata, eclass
   *TODO: SV and sv_indices are probably best translated jointly by adding an indicator variable column to the original dataset telling if that observation was chosen as a support vector (of course, this will mean we need to further clamp the upper limit)
   
   
+
   * nSV tells how many support vectors went into each class
   * The sum of the entries in nSV should be l
   matrix nSV = J(e(nr_class),1,.)
@@ -55,6 +58,18 @@ program define _svm_model2stata, eclass
   
   if(`e(nr_class)'>1 & `e(l)'>0) {
     matrix sv_coef = J(e(nr_class)-1,e(l),.)
+    
+    // there doesn't seem to be an easy way to generate a list of strings with a prefix in Stata
+    // so: the inefficient way
+    local cols = ""
+    forval j = 1/`e(l)' {
+      local cols = "`cols' SV`j'"
+    }
+    matrix colnames sv_coef = `cols'
+    
+    // TODO: rows
+    //  there is one row per class *less one*. the rows probably represent decision boundaries, then. I'm not sure what this should be labelled.
+    // matrix rownames sv_coef = class1..class`e(l)'
   }
   
   if(`have_rho'==1 & `e(nr_class)'>0) {
@@ -67,10 +82,28 @@ program define _svm_model2stata, eclass
     matrix probB = J(e(nr_class),e(nr_class),.)
   }
   
+
   
   * TODO: also label the rows according to model->label (libsvm's "labels" are just more integers, but it helps to be consistent anyway);
   *  I can easily extract ->label with the same code, but attaching it to the rownames of the other is tricky
   plugin call _svm, "_model2stata" 2
+
+
+  // Label the resulting matrices and vectors with the 'labels' array, if we have it
+  if("`strLabels'"!="") {
+    di as text "strLabels=|`strLabels'|"
+    capture matrix rownames nSV = `strLabels'
+    
+    capture matrix rownames rho = `strLabels'
+    capture matrix colnames rho = `strLabels'
+    
+    capture matrix rownames probA = `strLabels'
+    capture matrix colnames probA = `strLabels'
+    
+    capture matrix rownames probB = `strLabels'
+    capture matrix colnames probB = `strLabels'
+  }
+
   
   * Phase 3
   * Export the SVs 
@@ -89,9 +122,11 @@ program define _svm_model2stata, eclass
   * All of these are silenced because various things might kill any of them, and we want failures to be independent of each other
   
   //quietly capture ereturn matrix SVs = SVs
+  capture matrix drop SVs
   
   quietly capture ereturn matrix nSV = nSV
-  quietly capture ereturn matrix labels = labels
+  //quietly capture ereturn matrix labels = labels
+  capture matrix drop labels
   
   quietly capture ereturn matrix sv_coef = sv_coef
   quietly capture ereturn matrix rho = rho

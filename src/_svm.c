@@ -233,7 +233,15 @@ ST_retcode _model2stata(int argc, char *argv[])
         }
 
     } else if (phase == '2') {
-
+        
+        char buf[20];
+        char *strLabels = calloc(model->nr_class, sizeof(buf));
+        if(strLabels == NULL) {
+            sterror("unable to allocate memory for strLabels\n");
+            return 1;
+        }
+        strLabels[0] = '\0';
+        
         for (int i = 0; i < model->nr_class; i++) {
             /* copy out model->nSV */
             if (model->nSV) {
@@ -245,15 +253,30 @@ ST_retcode _model2stata(int argc, char *argv[])
                     return err;
                 }
             }
+            
+            
             if (model->label) {
                 /* copy out model->label */
                 err = SF_mat_store("labels", i + 1, 1, (ST_double) (model->label[i]));  /* the name has been intentionally changed for readability */
                 if (err) {
                     sterror("error writing to labels\n");
+                    //XXX memory leak
                     return err;
                 }
+                
+                /* copy out model->label *as a string of space separated tokens; this is a shortcut for 'matrix rownames' */
+                snprintf(buf, sizeof(buf), " %d", model->label[i]);
+                strncat(strLabels, buf, sizeof(buf));
+                stdebug("strLabels now = |%s|\n", strLabels);
             }
         }
+        err = SF_macro_save("_strLabels", strLabels);
+        if(err) {
+            sterror("error writing to strLabels\n");
+            // XXX memory leak
+            return err;
+        }
+        free(strLabels);
 
         /* copy out model->sv_coef */
         for (int i = 0; i < model->nr_class - 1; i++) { //the -1 is taken directly from <svm.h>! (plus this segfaults if it tries to read a next row). Because...between k classes there's k-1 decisions? or something? I wish libsvm actually explained itself.
@@ -328,6 +351,8 @@ ST_retcode _model2stata(int argc, char *argv[])
             }
 
         }
+      
+    
     } else if(phase == '3') {
         /* copy out model->sv_indices */
         /* see comments in _svm_model2stata.ado for why this is only a stop-gap */

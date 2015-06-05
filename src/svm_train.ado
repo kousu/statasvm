@@ -39,6 +39,8 @@ program define svm_train, eclass
            SV(string)
          ];
   #delimit cr
+  // stash because we run syntax again below, which will smash these
+  local cmd = "`0'"
   local _varlist = "`varlist'"
   local _if = "`if'"
   local _in = "`in'"
@@ -108,7 +110,7 @@ program define svm_train, eclass
   
   // set standard Stata estimation (e()) properties
   ereturn local cmd = "svm_train"
-  ereturn local cmdline = "`e(cmd)' `0'"
+  ereturn local cmdline = "`e(cmd)' `cmd'"
   ereturn local predict = "svm_predict" //this is a function pointer, or as close as Stata has to that: causes "predict" to run "svm_predict"
   ereturn local estat = "svm_estat"     //ditto. NOT IMPLEMENTED
   
@@ -117,7 +119,7 @@ program define svm_train, eclass
   ereturn local svm_type = "`type'"
   ereturn local svm_kernel = "`kernel'"
   
-  gettoken depvar indepvars : varlist
+  gettoken depvar indepvars : _varlist
   ereturn local depvar = "`depvar'"
   //ereturn local indepvars = "`indepvars'" //XXX Instead svm_predict reparses cmdline. This needs vetting.
   

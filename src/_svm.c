@@ -271,6 +271,7 @@ ST_retcode _model2stata(int argc, char *argv[])
         
         for (int i = 0; i < model->nr_class; i++) {
             /* copy out model->nSV */
+            // TODO: this should first check if the matrix exists (by trying to read it?)
             if (model->nSV) {
                 err =
                     SF_mat_store("nSV", i + 1, 1,
@@ -284,6 +285,7 @@ ST_retcode _model2stata(int argc, char *argv[])
             
             if (model->label) {
                 /* copy out model->label */
+                // TODO: destroy me, since strLabels serves the same purpose more conveniently
                 err = SF_mat_store("labels", i + 1, 1, (ST_double) (model->label[i]));  /* the name has been intentionally changed for readability */
                 if (err) {
                     sterror("error writing to labels\n");
@@ -306,6 +308,7 @@ ST_retcode _model2stata(int argc, char *argv[])
         free(strLabels);
 
         /* copy out model->sv_coef */
+        // TODO: this should first check if the matrix exists (by trying to read it?)
         for (int i = 0; i < model->nr_class - 1; i++) { //the -1 is taken directly from <svm.h>! (plus this segfaults if it tries to read a next row). Because...between k classes there's k-1 decisions? or something? I wish libsvm actually explained itself.
             for (int j = 0; j < model->l; j++) {
                 err =
@@ -335,6 +338,7 @@ ST_retcode _model2stata(int argc, char *argv[])
            formula to map the array index to matrix indecies or vice versa, this loop simply
            walks *three* variables together: i,j are the matrix index, c is the array index.
          */
+            // TODO: this should first check if the matrices exists (by trying to read them?) and not write them if they don't. and after that, I should *reenable* the 'return err's since the only error we let pass is the non-existent-matrix error
         int c = 0;
         for (int i = 0; i < model->nr_class; i++) {
             for (int j = i + 1; j < model->nr_class; j++) {

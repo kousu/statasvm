@@ -627,7 +627,7 @@ ST_retcode predict(int argc, char *argv[])
         
         // Init probabilities to catch bugs
         for(int k=0; k<no_levels; k++) {
-          probabilities[k] = NAN;
+          probabilities[k] = SV_missval;
         }
     }
     

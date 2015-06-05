@@ -40,7 +40,7 @@ tests/%: %.log
 # force tests to do a rebuild (if necessary) before running
 # now that we have multiple things to build this is not so simple
 # XXX is there a cleaner way?
-$(TESTS): _svm.plugin
+$(TESTS): plugin
 tests/preimport_svmlight tests/import_svmlight tests/export_svmlight: _svmlight.plugin
 tests/auto.model: tests/export
 tests/getenv: _getenv.plugin

@@ -14,6 +14,9 @@ CFLAGS+=-fPIC
 
 LDFLAGS+=-shared  #the only reason this isn't in posix.mk is because it's wrong on OS X (XXX is it?)
 
+_svm.$(DLLEXT): LIBS += bsd
+
+
 # --- testing ---
 
 printdeps:

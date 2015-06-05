@@ -5,6 +5,10 @@
 #include <stdbool.h>
 #include <math.h>               //for NAN
 
+#if __linux__
+#include <bsd/string.h>
+#endif
+
 #include "libsvm_patches.h"
 #include "stutil.h"
 #include "_svm.h"

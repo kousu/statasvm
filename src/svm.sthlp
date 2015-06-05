@@ -39,6 +39,11 @@ svm {depvar} [{indepvars}] {ifin} [{it:{help svm##weight:weight}}] [{cmd:,} {it:
 
 {* XXX the division between 'tuning' and 'model' parameters is hazy; e.g. you could in theory cross-validate to choose degree (and people do this with neural networks), or even to choose the kernel . hmmmmm}{...}
 
+{syntab:Features}
+{synopt :{cmdab:prob:ability}}Whether or not to precompute the cross-validation runs needed for "predict, prob". Only applicable to classification problems. Default: disabled{p_end}
+{synopt :{cmdab:sv:}}If given, a variable to generate and with booleans marking each row as a support vector or not. Default: disabled{p_end}
+
+
 {syntab:Tuning}
 {synopt :{cmdab:c:}}For C_SVC, EPSILON_SVR and NU_SVR SVMs, this is a regularization parameter which weights the slack variables [citation needed]. Default: 1{p_end}
 {synopt :{cmdab:p:}}For EPSILON_SVR SVMs, this provides the error tolerance boundary [citation needed]. Default: 0.1{p_end}
@@ -50,9 +55,7 @@ svm {depvar} [{indepvars}] {ifin} [{it:{help svm##weight:weight}}] [{cmd:,} {it:
 
 
 {syntab:Performance}
-{synopt :{cmdab:prob:ability}}Whether or not to precompute the cross-validation runs needed for "predict, prob". Only applicable to classification problems. Default: disabled{p_end}
 {synopt :{cmdab:cache:_size}}The size of the RAM cache used during fitting, in megabytes. Default: 100MB (100){p_end}
-{synopt :{cmdab:SVs:}}Whether or not to export the SVs matrix to Stata. NOT IMPLEMENTED. Disable with "noSVs". Default: enabled{p_end}
 {synopt :{cmdab:nSVs:}}Whether or not to export the nSVs matrix to Stata. NOT IMPLEMENTED. Disable with "nonSVs". Default: enabled{p_end}
 {synopt :{cmdab:labels:}}Whether or not to export the labels matrix to Stata. NOT IMPLEMENTED. Disable with "nolabels". Default: enabled{p_end}
 {synopt :{cmdab:sv_coef:}}Whether or not to export the sv_coef matrix to Stata. NOT IMPLEMENTED. Disable with "nosvcoef". Default: enabled{p_end}

@@ -13,5 +13,5 @@ program define svm_import, eclass
   plugin call _svm, "import" "`using'"
   
   ereturn clear
-  _svm_model2stata /*fixup the e() dictionary, as if we'd just called svm_train*/
+  _svm_model2stata /*fixup the e() dictionary, as if we'd just called svm_train; except in this path we don't have a dataset linked, so we don't pass sv() and we don't expect to get */
 end

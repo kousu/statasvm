@@ -32,10 +32,16 @@ program define svm_train, eclass
            EPSilon(real 0.001)
            
            SHRINKing PROBability
-         
+           
            CACHE_size(int 100)
+           
+           // if specified, a column to generate to mark which rows were detected as SVs
+           SV(string)
          ];
   #delimit cr
+  local _varlist = "`varlist'"
+  local _if = "`if'"
+  local _in = "`in'"
   
   /* fill in defaults for the string values */
   if("`type'"=="") {
@@ -77,9 +83,17 @@ program define svm_train, eclass
     local probability = 0
   }
   
+  // fail-fast on name errors in sv()
+  if("`sv'"!="") {
+    local 0 = "`sv'"
+    syntax newvarname
+    
+  }
+  
+  
   /* call down into C */
   #delimit ;
-  plugin call _svm `varlist' `if' `in', "train"
+  plugin call _svm `_varlist' `_if' `_in', "train"
       "`type'" "`kernel'"
       "`gamma'" "`coef0'" "`degree'"
       "`c'" "`p'" "`nu'"
@@ -108,5 +122,5 @@ program define svm_train, eclass
   //ereturn local indepvars = "`indepvars'" //XXX Instead svm_predict reparses cmdline. This needs vetting.
   
   // append the svm_model structure to e()
-  _svm_model2stata
+  _svm_model2stata, sv(`sv')
 end

@@ -233,20 +233,6 @@ ST_retcode _model2stata(int argc, char *argv[])
         }
 
     } else if (phase == '2') {
-        /* copy out model->sv_indices */
-        /* see comments in _svm_model2stata.ado for why this is only a stop-gap */
-        for (int i = 0; i < model->l; i++) {
-            //printf("SVs[%d] = %d\n", i, model->sv_indices[i]);
-            if (model->sv_indices) {
-                err = SF_mat_store("SVs", i + 1, 1, (ST_double) (model->sv_indices[i]));        /* the name has been intentionally changed for readability */
-                if (err) {
-                    sterror("error writing to SVs\n");
-                    return err;
-                }
-            }
-        }
-
-
 
         for (int i = 0; i < model->nr_class; i++) {
             /* copy out model->nSV */
@@ -341,6 +327,20 @@ ST_retcode _model2stata(int argc, char *argv[])
                 c++;            //step the array.
             }
 
+        }
+    } else if(phase == '3') {
+        /* copy out model->sv_indices */
+        /* see comments in _svm_model2stata.ado for why this is only a stop-gap */
+    
+        if (model->sv_indices) {
+            for (int i = 0; i < model->l; i++) {
+                printf("SVs[%d] = %d\n", i, model->sv_indices[i]);
+                err = SF_vstore(1, (model->sv_indices[i]), (ST_double) 1);        /* I *believe* libsvm's sv_indices is 1-based, like Stata */
+                if (err) {
+                    sterror("error writing SVs: [1,%d]=1\n", model->sv_indices[i]);
+                    return err;
+                }
+            }
         }
     }
 

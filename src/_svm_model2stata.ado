@@ -7,9 +7,12 @@ program _svm, plugin    // load _svm.plugin, the wrapper for libsvm
 * this needs to be its own subroutine because, due to limitations in the Stata C API,th 
 * it does an awkward dance where _svm.plugin writes to the (global!) scalar dict and then this code copies those entries to r()
 * as with svm_load, the extension function is called multiple times with sub-sub-commands, because it doesn't have permission to perform all the operations needed
+* if passed, SV specifies a column to create and record svm_model->sv_indecies into
 program define _svm_model2stata, eclass
   version 13
-
+  
+  syntax, [SV(string)]
+  
   * as with loading, this has to call in and out of the plugin because chicken/egg:
   *   the plugin doesn't have permission to allocate Stata memory (in this case matrices),
   *   but we don't know how much to allocate before interrogating the svm_model
@@ -38,10 +41,6 @@ program define _svm_model2stata, eclass
   
   *TODO: SV and sv_indices are probably best translated jointly by adding an indicator variable column to the original dataset telling if that observation was chosen as a support vector (of course, this will mean we need to further clamp the upper limit)
   
-  if(`have_sv_indices'==1 & `e(l)'>0) {
-    matrix SVs = J(e(l),1,.) /*but for now we can just copy out sv_indices*/
-    matrix colnames SVs = "SVs"
-  }
   
   * nSV tells how many support vectors went into each class
   * The sum of the entries in nSV should be l
@@ -74,13 +73,22 @@ program define _svm_model2stata, eclass
   plugin call _svm, "_model2stata" 2
   
   * Phase 3
+  * Export the SVs 
+  if("`sv'"!="") {
+    quietly generate byte `sv' = 0 //because the internal format is a list of indices, to translate to indicators we need to *start* with 0s and if we see them in the list, overwrite with 1s 
+    if(`have_sv_indices'==1 & `e(l)'>0) {
+      plugin call _svm `sv', "_model2stata" 3
+    }
+  }
+  
+  * Phase 4
   * Export the rest of the values to e()
   * We *cannot* export matrices to e() from the C interface, hence we have to do this very explicit thing
   * NOTE: 'ereturn matrix' erases the old name (unless you specify ,copy), which is why we don't have to explicitly drop things
   *       'ereturn scalar' doesn't do this, because Stata loves being consistent. Just go read the docs for 'syntax' and see how easy it is. 
   * All of these are silenced because various things might kill any of them, and we want failures to be independent of each other
   
-  quietly capture ereturn matrix SVs = SVs
+  //quietly capture ereturn matrix SVs = SVs
   
   quietly capture ereturn matrix nSV = nSV
   quietly capture ereturn matrix labels = labels

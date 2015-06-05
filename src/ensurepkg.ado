@@ -3,15 +3,15 @@
  * syntax:
  * ensureado cmd, [pkg(package_name) from(url)]
  *
- * cmd:  Stata will look for "cmd.ado" in its adopath to detect if pkg is installed.
+ * cmd:  to detect if the package is installed, look for either of "`cmd" and "`cmd'.ado" in the adopath.
  * pkg:  specify pkg explicitly if the command and package do not have the same name.
- * from: if needed, install pkg from this URL; if not given, installs come from the ssc.
+ * from: if needed, install pkg from this URL; if not given, attemps first StataCorp and then the ssc.
  *       if the package exists, *this is ignored*.
  * 
- * This is a rolling-release system: `pkg' will always be updated to the most recent version.
- * (One gotcha: if the package does not declare a Distribution-Date
- *     *and* the user already has the package installed, the package
- *     will *not* update even if it has been changed)
+ * This is a rolling-release system: `pkg' will always be updated to the most recent version if it can.
+ *   If the package does not declare a Distribution-Date it will never update.
+ *   If the network is down, the old version will be used silently.
+ *   These may or may not cause confusion and bugs for your users.
  *
  * 
  * ensurepkg is meant to glue over the lack of dependency tracking in Stata's .pkg format.
@@ -21,6 +21,7 @@
  * ensurepkg norm                                     // Ansari & Mussida normalization subroutine
  * ensurepkg psid, pkg(psidtools)                     // Kohler's panel income data API
  * ensurepkg boost, from("http://schonlau.net/stata") // Schonlau's machine learning boosting library
+ * ensurepkg _getenv.plugin, pkg(env)                 // Guenther's environment accessors
  * program define example {
  *   ...
  *   norm x
@@ -32,9 +33,9 @@
  * Nick Guenther <nguenthe@uwaterloo.ca> 2015
  * BSD License
  */
-program define ensureado
+program define ensurepkg
   // parse arguments
-  syntax name, [pkg(string) from(string)]
+  syntax name, [pkg(string) from(string) noupdate]
   local ado = "`namelist'"
   
   if("`pkg'"=="") {
@@ -42,8 +43,8 @@ program define ensureado
   }
   
   // test if `ado' is installed
-  // it would be nice if we could use 'ado dir' to find out if 'pkg' is installed,
-  // but 'ado dir' doesn't seem to offer a programming interface, just stdout (which I can't even grep)
+  // it would be nice if we could use instead 'ado dir'
+  // but 'ado dir' doesn't offer a programmatic interface.
   // Maybe there's something in Mata...
   capture which `ado'
   if(_rc!=0) {
@@ -52,7 +53,10 @@ program define ensureado
       net install `pkg', from(`from')
     }
     else {
-      ssc install `pkg'
+      capture noisily net install `pkg'
+      if(_rc!=0) {
+        ssc install `pkg'
+      }
     }
     
     // recurse, to double-check the installation worked
@@ -60,16 +64,24 @@ program define ensureado
     //              if the remote package exists but
     //              does not include the named command.
     //   (but Stata has bigger security problems in its package system than a DoS)
-    quietly ensureado `ado'
+    quietly ensurepkg `ado'
   }
   else {
     // if already installed
-    // make sure package is at the latest version
-    // This only works with packages that have properly
-    // declared "d Distribution-date: "
-    // This is qui'd because
-    qui adoupdate `pkg', update
-    // special case: if the network is down, adoupdate *succeeds* and assumes 
-    return list
+    if("`update'"=="noupdate") {
+      exit
+    }
+    
+    // make sure package is at the latest version.
+    capture adoupdate `pkg', update
+    if(_rc==631 | _rc==677) {
+      // special case: if the network is down, *succeed*
+      // 631 - DNS failed
+      // 677 - TCP failed
+      exit
+    }
+    else {
+      exit _rc
+    }
   }
 end

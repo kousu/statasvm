@@ -61,6 +61,7 @@ Dist
 
 
 * [ ] make ensurelib a separate project/pkg
+* [ ] make ensurepkg a separate package
 * [ ] make _{get,set}env.plugin a separate project/pkg
 
 * [x] pull svm_load out to a separate plugin: _svmlight.plugin

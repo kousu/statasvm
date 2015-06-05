@@ -91,7 +91,7 @@ Features
    -> and if you specify 'nu' as an option, trigger nu-SVM instead (NU_SVC, NU_SVR)
    -> this is a nicetohave/prematureoptimization, so leave it for version 2
 
-* [ ] make generate_clone into a more sensible API: "clone new = old, [nocopy]", and get 'syntax' to validate both the new and old varnames for us
+* [x] make generate_clone into a more sensible API: "clone new = old, [nocopy]", and get 'syntax' to validate both the new and old varnames for us
 
 
 - [ ] make the matrices in _model2stata all optional

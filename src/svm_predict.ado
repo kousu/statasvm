@@ -22,13 +22,13 @@ program define svm_predict, eclass
   local 0 = "`e(cmdline)'"
   gettoken cmd 0 : 0 /*remove the command which was artificially tacked on by svm_train*/
   syntax varlist [if] [in], * //* puts the remainder in `options' and allows this code to be isolated from svm_train (it's not like we actually could tweak anything, since the svm_model is stored on the plugin's C heap)
-  gettoken y varlist : varlist /*remove the first column*/
-  assert "`y'" == "`e(depvar)'"
+  gettoken y varlist : varlist // remove the first column to check
+  assert "`y'" == "`e(depvar)'" // consistency with the svm_train
   
   // make the target column
   // it is safe to assume that `target' is a valid variable name: "syntax" above enforces that
   //  and it should be safe to assume the same about `e(depvar)': unless the user is messing with us (in which case, more power to them), it should have been created by svm_train and validated at that point
-  generate_clone `e(depvar)' `target'
+  clone `target' `e(depvar)' if 0 //'if 0' leaves the values as missing, which is important: we don't want a bug in the plugin to translate to source values sitting in the variable (and thus inflating the observed prediction rate)
   
   // allocate space (we use new variables) to put probability estimates for each class for each prediction
   // this only makes sense in a classification problem, but we do not check for that

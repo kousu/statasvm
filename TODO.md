@@ -166,7 +166,7 @@ Bugs
           UNFORTUNATELY, (see [M-5] st_dir(), page 844) st_dir() will not let you search c(). So I would have to hardcode the contents of c(). Which is not impossible, but not something I want to do anytime soon.
        tip: "copyin_plugin_call myplugin, arg1 arg2 -> [do all the copyins, making sure they are *locals*; also maybe set a special one to flag that you were called with copyin_plugin_call]; plugin call `0'"
 
-* [ ] BUG:
+* [-] BUG:
  . sysuse auto
  . order foreign //put foreign first
  . drop make //forget string vars
@@ -174,7 +174,17 @@ Bugs
  . predict P
  . predict P2, prob
  --> P and P2 have *opposite* results. is this because I'm mis-ordering the results somehow???? what happens in sklearn? or on the command line??
- 
+It's not a bug in my code: it's libsvm being weird again. The equivalent command lines (after a suitable export_svmlight) give
+```
+[kousu@galleon src]$ svm-train -q -b 1 tests/auto.svmlight 
+[kousu@galleon src]$ svm-predict -b 0 tests/auto.svmlight auto.svmlight.model P
+Model supports probability estimates, but disabled in prediction.
+Accuracy = 100% (69/69) (classification)
+[kousu@galleon src]$ svm-predict -b 1 tests/auto.svmlight auto.svmlight.model P2
+Accuracy = 0% (0/69) (classification)
+[kousu@galleon src]$ 
+ ```
+
 
 * [x] svm_predict, prob can gives the columns in the wrong order, so that the listed probabilities appear to disagree with the listed predictions
    The trouble is that predict_prob() gives results back ordered by the values in labels[] which are ordered by the order Stata ran into the classes

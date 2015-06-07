@@ -190,6 +190,15 @@ Maintenance
 Bugs
 ----
 
+* [ ] SVR produces nr_class=2 for some reason, which means that my code allocates a 2x2 rho and a 2x1 nSV,
+   but then nSV doesn't get filled in (presumably this is my safeties kicking in: something screws)
+   and rho just has a single entry
+   it would be better if they weren't constructed at all, if that's how it's going to be
+   i need to investigate what's going on here
+    and possibly
+     - axe nSV and nr_class
+     - replace rho with a scalar (since it only has one entry)
+
 * [?] okay, i';m 99% sure judging from tracing the sklearn source code that in OneClass mode, Y is *ignored*. sklearn passes an empty array, which gets translated to a 0-length memoryview which should get translated to a NULL pointer internally, and then is copied verbatim (as NULL) into the svm_problem
   so what this means for me is that right now:
  

@@ -190,7 +190,7 @@ Maintenance
 Bugs
 ----
 
-* [ ] okay, i';m 99% sure judging from tracing the sklearn source code that in OneClass mode, Y is *ignored*. sklearn passes an empty array, which gets translated to a 0-length memoryview which should get translated to a NULL pointer internally, and then is copied verbatim (as NULL) into the svm_problem
+* [?] okay, i';m 99% sure judging from tracing the sklearn source code that in OneClass mode, Y is *ignored*. sklearn passes an empty array, which gets translated to a 0-length memoryview which should get translated to a NULL pointer internally, and then is copied verbatim (as NULL) into the svm_problem
   so what this means for me is that right now:
  
 I should probably do this:
@@ -206,14 +206,14 @@ I should probably do this:
 * [ ] SVR doesn't output strLabels. which makes sense: there's no labels to output. but it does output 'rho' (but only a single rho long?? maybe we should output a scalar in this case??) and 
   * it also sets nr_class, even though there's no classes to speak of?? libsvm quirk??
 
-* [ ] there's an off-by-one-ish bug in the new exporting SVs code, which crops up if the list of SVs doesn't include the last sample.
+* [x] there's an off-by-one-ish bug in the new exporting SVs code, zwhich crops up if the list of SVs doesn't include the last sample.
 This code will trigger it:
 . sysuse auto
 . drop make
 . order gear_ratio
 . svm * if !missing(rep78), sv(Is_SV) type(EPSILON_SVR)
 _model2stata phase 3: warning: overflowed sv_indices before all rows filled. i=74, s=49, l=49
- and it seems that if this happens it also breaks labelling of 
+ and it seems that if this happens it also breaks labelling of
 
 * [x] sv_indices is *relative to the data given*; in particular, data that was dropped on account of an if condition *is mis-counted*
        run tests/predict_float to see: all but the last 5 are not marked as SVs and there are exactly 5 rows which were skipped due to missing data

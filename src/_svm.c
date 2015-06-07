@@ -395,36 +395,48 @@ ST_retcode _model2stata(int argc, char *argv[])
         }
     
         if (model->sv_indices) {
+            // sort the indices, in place (libsvm does not guarantee this)
+            // XXX is it safe to do this? does libsvm make assumptions about its array being unsorted?
             qsort(model->sv_indices, model->l, sizeof(*model->sv_indices), cmp_int);
-            
-            // DEBUG
-            for(int j=0; j<model->l; j++) {
-              stdebug("sv_indices[%d]=%d\n", j, model->sv_indices[j]);
-            }
             
             // if there are skipped rows (due to if/in) then the Stata indices get out of step with the sv_indices
             // to fix this, we assume sv_indices is sorted and walk three iterators in partial-lockstep:
-            //  i over Stata rows    and   k over libsvm rows   s over support vectors
-            int s = 0; //the index of sv_indices is 0-based, because it's a C-array
+            //  i over Stata rows
+            //  k over libsvm rows -- which are a subset of the Stata rows, but with different indices because
+            //   in svm_train only the subset matching if/in got fed to libsvm
+            //   => PRECONDITION: the if/in conditions fed to model2stata() are identical to those fed to train() 
+            //  s over support vectors, as stored in sv_indices
+            ST_int i;
             int k = 1; //the content of sv_indices is 1-based, because libsvm is weird
-            for (ST_int i = SF_in1(); i <= SF_in2(); i++) {     //respect `in' option
+            int s = 0; //the index of sv_indices is 0-based, because it's a C-array
+            for (i = SF_in1(); i <= SF_in2(); i++) {     //respect `in' option
+                stdebug("_model2stata phase 3: i=%d, k=%d, s=%d, \t sv_indices[%d]=%d (l=%d)\n", i, k, s,    s, model->sv_indices[s], model->l); 
                 if (SF_ifobs(i)) {                              //respect `if' option
                     if(s >= model->l) {
-                        sterror("_model2stata phase 3: warning: overflowed sv_indices before all rows filled. i=%d, s=%d, l=%d\n", i, s, model->l);
-                        return 1;
-                    }
-                    stdebug("writing SVs: i=%d, s=%d, sv_indices[s]=%d\n", i, s, model->sv_indices[s]);                    
+                        // we ran out of SVs before we ran out of rows
+                        // because we sorted, this simply means that the remainder are not support vectors:
+                        // afterall, we just crossed the largest-index support vector.
+                        break;
+                    }                   
                     
-                    if(model->sv_indices[s] == k) {
+                    if(k == model->sv_indices[s]) {
+                        // when the (libsvm) row equals one of the recorded indices, we have found an SV.
+                        // hurray!  Write the result back...
                         err = SF_vstore(1, i, (ST_double) 1);
                         if (err) {
-                            sterror("error writing SVs: [1,%d]=1\n", i);
+                            sterror("_model2stata phase 3: error writing SV[%d]=1\n", i);
                             //return err;
                         }
+                        // ...and advance which SV we're looking for.
                         s++;
                     }
                     k++;
                 }
+            }
+            if(s != model->l) {
+                // this should be impossible
+                sterror("_model2stata phase 3: did not exhaust SV array by i=%d, k=%d. s=%d but there are %d SVs.\n", i, k, s, model->l);
+                return 1;
             }
         }
     }

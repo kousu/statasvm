@@ -151,6 +151,7 @@ Please write us with suggestions for clarification.
 
 {pmore}{opt epsilon_svr} and {opt nu_svr} perform regression.{p_end}
 {pmore2}While you can use this with discrete {depvar}s, it is more common to use it with continuous ones.{p_end}
+{pmore2}See {help svm##svr_tutorial:the SVR tutorial} for more details.{p_end}
 
 {pmore}To learn about the {opt c}/{opt nu} distinction, see {help svm##nusvm:Chen and Lin's ν-SVM tutorial}.{p_end}
 
@@ -218,7 +219,7 @@ especially if you are bumping up against your Stata system limits. You may find 
 
 {phang}
 {marker sv}{...}
-{opt sv} creates the given variable and records in it an indicator of whether each row was a support vector or not.
+{opt sv} records in the given variable a boolean indicating whether each observation was a support vector or not.
 
 {phang}
 {marker epsilon}{...}
@@ -227,7 +228,9 @@ especially if you are bumping up against your Stata system limits. You may find 
 
 {phang}
 {marker cache_size}{...}
-{opt cache_size} tweaks an internal libsvm parameter which controls a time-memory tradeoff during estimation. Value is how many megabytes (MB) of RAM to set aside. Generally, more is faster, at least until you run out of RAM or cause your machine to start swapping.
+{opt cache_size} controls a time-memory tradeoff during estimation.
+Value is how many megabytes (MB) of RAM to set aside for caching data points as the optimizer is iterated.
+Generally, more is faster, at least until you run out of RAM or cause your machine to start swapping.
 
 {...}
 {...}
@@ -235,13 +238,16 @@ especially if you are bumping up against your Stata system limits. You may find 
 {marker predict}{...}
 {title:predict}
 
-{pstd}After training you can ask svm to {cmd:predict} what it thinks the classes (classification) or values (regression) of given observations into {newvar}.{p_end}
+{pstd}After training you can ask svm to {cmd:predict} what the category (classification) or outcome value (regression)
+      should be for each given observation. Results are placed into {newvar}.{p_end}
 {pstd}{newvar} must not exist, so if you want to repredict your choices are {cmd:drop {newvar}} or to pick a new name, e.g. {cmd:predict {newvar}2}.{p_end}
 
-{phang}For classification ({opt c_svc}, {opt nu_svc}) problems, {opt probability} requests, for each observation, the probability of it being each class. {newvar} is used as a stem for names of new columns for the results. This option is not valid for other SVM types.{p_end}
+{phang}For classification ({opt c_svc}, {opt nu_svc}) problems, {opt probability} requests, for each observation, the probability of it being each class.
+{newvar} is used as a stem for names of new columns for the results.
+This option is not valid for other SVM types.{p_end}
 
 {pstd}
-Prediction automatically uses the same {indepvars} as in training, so be careful about renaming or dropping columns between commands.
+Prediction automatically uses the same {indepvars} as during training, so be careful about renaming or dropping columns between commands.
 {...}
 {...}
 
@@ -249,13 +255,17 @@ Prediction automatically uses the same {indepvars} as in training, so be careful
 {title:import/export}
 
 {pstd}
-libsvm has an ad-hoc format it uses to save trained models. The command line programs {cmd:svm-train} and {cmd:svm-predict} that come with libsvm communicate via it. We support it for completeness. Those programs use the '.model' file extension by default, and we suggest you follow this convention.
+libsvm has an ad-hoc format it uses to save trained models.
+The command line programs {cmd:svm-train} and {cmd:svm-predict} which come with libsvm communicate via it.
+We support this format for interoperability.
 
 {pstd}
 {cmd:svm_export} will write a fitted model to disk.
+Though it is your choice, the libsvm convention is to use the '.model' file extension.
 
 {pstd}
-{cmd:svm_import} will load a model from disk, replacing any previous in-memory fit. When you import, [some properties] will be missing because the import was done without reference to any dataset.
+{cmd:svm_import} will load a model from disk, replacing any previous in-memory fit.
+When you import, [TODO: some properties] will be missing because the import was done without reference to any dataset.
 
 {pstd}
 Do not confuse these commands with {cmd:import_svmlight} and {cmd:export_svmlight}.
@@ -335,7 +345,8 @@ Not currently implemented.
 {title:Gotchas}
 
 {pstd}
-{bf:Memory Limits}: The cheaper versions of stata support allow less memory to be used. As machine learning problems typically are on very large datasets,
+{bf:Memory Limits}: The cheaper versions of Stata allow only allow less variables and smaller matrices to be used.
+As machine learning problems typically are on very large datasets,
 it is easy to inadvertently instruct this package to construct more columns or larger matrices than you can afford.
 In this case, you will receive an error and find yourself with a partially allocated set of probability columns or a partial set of {cmd:e()} matrices^.
 
@@ -430,7 +441,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 {pstd}
 Though the license does not obligate you in any way to do so, if you find
-this software useful we would be curious and appreciative to hear about your adventures in machine learning through Stata.{p_end}
+this software useful we would be curious and appreciative to hear about your
+adventures in machine learning with Stata.{p_end}
 {pmore}Thank you.
 
 {pmore}* Nick Guenther <nguenthe@uwaterloo.ca>{p_end}
@@ -442,19 +454,23 @@ this software useful we would be curious and appreciative to hear about your adv
 
 {marker sourcecode}{...}
 {phang}
-Guenther, Nick and Schonlau, Matthias. 2015. Stata-SVM.
-{browse "https://github.com/kousu/statasvm/"}
+Guenther, Nick and Schonlau, Matthias. 2015.
+{it:Stata-SVM}.
+.{browse "https://github.com/kousu/statasvm/"}.
 {p_end}
 
 {marker svmtutorial}{...}
 {phang}
-[svmtutorial] TODO
+Bennett, Kristin P., and Colin Campbell. 2000.
+{it:Support Vector Machines: Hype or Hallelujah?}
+SIGKDD Explor. Newsl. 2.2: 1–13.
+{browse "http://www.svms.org/tutorials/BennettCampbell2000.pdf"}.
 {p_end}
 
 {marker libsvm}{...}
 {phang}
 Chang, Chih-Chung and Lin, Chih-Jen. 2011.
-{it:LIBSVM : a library for support vector machines.}
+{it:LIBSVM: a library for support vector machines.}
 ACM Transactions on Intelligent Systems and Technology, 2:27:1--27:27.
 {browse "http://www.csie.ntu.edu.tw/~cjlin/papers/libsvm.pdf"}.
 Software available at {browse "http://www.csie.ntu.edu.tw/~cjlin/libsvm"}
@@ -462,17 +478,26 @@ Software available at {browse "http://www.csie.ntu.edu.tw/~cjlin/libsvm"}
 
 {marker libsvmguide}{...}
 {phang}
-Chih-Wei Hsu, Chih-Chung Chang, and Chih-Jen Lin.
-{it:A Practical Guide to Support Vector Classification.}
-April 15, 2010.
-{browse "http://www.csie.ntu.edu.tw/~cjlin/papers/guide/guide.pdf"}
+Hsu, Chih-Wei, Chang, Chih-Chung, and Lin, Chih-Jen. April 15, 2010.
+{it:A Practical Guide to Support Vector Classification}.
+{browse "http://www.csie.ntu.edu.tw/~cjlin/papers/guide/guide.pdf"}.
+{p_end}
+
+{marker svr_tutorial}{...}
+{phang}
+Smola, Alex J., and Schölkopf, Bernhard. 2004.
+{it:A tutorial on support vector regression}.
+Statistics and Computing 14.3: 199–222.
+{* This one is behind a paywall, so the best we can do is a give a DOI link }{...}
+{browse "http://dx.doi.org/10.1023/b:stco.0000035301.49549.88"}.
 {p_end}
 
 {marker nusvm}{...}
 {phang}
-Pai-Hsuen Chen, Chih-Jen Lin, and Bernhard Schölkopf.
+Chen, Pai-Hsuen, Lin Chih-Jen, and Schölkopf, Bernhard. 2005.
 {it:A Tutorial on ν-Support Vector Machines}.
-{browse "http://www.csie.ntu.edu.tw/~cjlin/papers/nusvmtutorial.pdf"}
+Applied Stochastic Models in Business and Industry 21.2: 111–136.
+{browse "http://www.csie.ntu.edu.tw/~cjlin/papers/nusvmtutorial.pdf"}.
 {p_end}
 
 

@@ -316,11 +316,6 @@ Not currently implemented.
 {cmd:svm} and {cmd:svm_import} stores the following in {cmd:e()}:
 
 {synoptset 20 tabbed}{...}
-{p2col 5 20 24 2: Scalars}{p_end}
-{synopt:{cmd:e(nr_class)}}number of classes, in a classification problem. [??? if SVR??]{p_end}
-{synopt:{cmd:e(l)}}number of support vectors{p_end}
-
-{synoptset 20 tabbed}{...}
 {p2col 5 20 24 2: Macros}{p_end}
 {synopt:{cmd:e(cmd)}}"{cmd:svm}"{p_end}
 {synopt:{cmd:e(cmdline)}}command as typed{p_end}
@@ -333,12 +328,21 @@ Not currently implemented.
 {* {synopt:{cmd:e(estat_cmd)}}program used to implement {cmd:estat}{p_end} }{...}
 
 {synoptset 20 tabbed}{...}
+{* Note: svm_model components left unexposed: }{...}
+{*      - SV, the actual SVs found. If you want this in a new fit, you can use the sv() option; the use case of inspecting old SVs on an imported fit is rare, we assume, and we do not support it; (they will still be loaded to memory }{...}
+{*      - sv_indices, the indexes of which support vectors were found; exposed indirectly with the sv() option }{...}
+{*      - probA, probB, the coefficients used for predict, prob; these are not, by themselves, interesting }{...}
+{*      - label, the "labels" of the classes (which are the integers libsvm casts out of the initial dataset; exported with strLabels to be used for labelling rho and sv_coef, but otherwise not directly interesting and  }{...}
+{*      - nSV, the number of SVs per class; this is only interesting for classifications, and it duplicates what you can get out of "tab `e(depvar)' SV" }{...}
+{*      - free_sv, internal libsvm flag which is a hack to stretch svm_model to handle creation from both svm_train() and svm_import() }{...}
+{p2col 5 20 24 2: Scalars}{p_end}
+{synopt:{cmd:e(nr_class)}}number of classes, in a classification problem. [??? if SVR??]{p_end}
+{synopt:{cmd:e(l)}}number of support vectors{p_end}
+
+{synoptset 20 tabbed}{...}
 {p2col 5 20 24 2: Matrices}(may be missing, depending on options){p_end}
-{synopt:{cmd:e(SVs)}}A list of the support vectors chosen. Numbers are indices into observations of the dataset; this will not exist in models loaded from {cmd:svm_import}.{p_end}
-{synopt:{cmd:e(labels)}}List of the class "labels" (which are integers, as far as libsvm is concerned). This should be the same set as in the original dataset, but libsvm may permute it. [XXX hide this from Stata; just use it to label the]{p_end}
-{synopt:{cmd:e(nSVs)}}The number of support vectors belonging to each class, in a classification problem.{p_end}
-{synopt:{cmd:e(sv_coef)}}???{p_end}
-{synopt:{cmd:e(rho)}}??? something involving multiclass decision boundaries ???{p_end}
+{synopt:{cmd:e(sv_coef)}}The coefficients of the support vectors for each fitted hyperplane. [TODO]{p_end}
+{synopt:{cmd:e(rho)}}The intercept term for each fitted hyperplane. It is lower-triangular and {cmd:e(nr_class)}^2 large, with each entry [i,j] representing the hyperplane between class i and class j.{p_end}
 
 
 {* XXX this section name should be more formal}{marker gotchas}{...}

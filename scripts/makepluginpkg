@@ -16,7 +16,7 @@ echo d $PKG
 echo d $DESCRIPTION
 echo d $AUTHOR
 # including Distribution-Date in that format enables 'adoupdate'
-# See [R]->net->Format of content and package-description files.
+# See "[R]->net->Format of content and package-description files"
 echo d Distribution-Date: `date +%Y%m%d`
 echo
 

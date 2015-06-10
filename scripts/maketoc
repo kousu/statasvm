@@ -26,6 +26,6 @@ find . -type f -name "*.pkg" | cut -c 3- | while read PKG; do
   PKG_DESCRIPTION=$(egrep "^d " $PKG | head -n 2 | tail -n 1 | cut -c 3-)
   # note it down in the table of contents
   PKG=$(echo $PKG | sed 's/\(.*\)\.pkg/\1/')
-  echo "p $PKG $PKG_DESCRIPTION"
+  echo "p $PKG - $PKG_DESCRIPTION"
 done
 ) > stata.toc

@@ -378,18 +378,6 @@ Not currently implemented.
 {cmd:svm} and {cmd:svm_import} stores the following in {cmd:e()}:
 
 {synoptset 20 tabbed}{...}
-{p2col 5 20 24 2: Macros}{p_end}
-{synopt:{cmd:e(cmd)}}"{cmd:svm}"{p_end}
-{synopt:{cmd:e(cmdline)}}command as typed{p_end}
-{synopt:{cmd:e(depvar)}}name of dependent variable{p_end}
-{synopt:{cmd:e(title)}}title in estimation output{p_end}
-{synopt:{cmd:e(model)}}"{cmd:svm}"{p_end}
-{synopt:{cmd:e(svm_type)}}SVM type string, as above{p_end}
-{synopt:{cmd:e(svm_kernel)}}kernel string, as above{p_end}
-{synopt:{cmd:e(predict)}}program used to implement {cmd:predict}{p_end}
-{* {synopt:{cmd:e(estat_cmd)}}program used to implement {cmd:estat}{p_end} }{...}
-
-{synoptset 20 tabbed}{...}
 {* Note: svm_model components left unexposed: }{...}
 {*      - SV, the actual SVs found. If you want this in a new fit, you can use the sv() option; the use case of inspecting old SVs on an imported fit is rare, we assume, and we do not support it; (they will still be loaded to memory }{...}
 {*      - sv_indices, the indexes of which support vectors were found; exposed indirectly with the sv() option }{...}
@@ -403,6 +391,19 @@ Not currently implemented.
 {synopt:{cmd:e(N_SV)}}number of support vectors.
 If {opt e(N_SV)}/{opt e(N)} is close to 100% your fit is inefficient; perhaps you need to adjust your {help svm##kernel:kernel}.
 {p_end}
+
+{synoptset 20 tabbed}{...}
+{p2col 5 20 24 2: Macros}{p_end}
+{synopt:{cmd:e(cmd)}}"{cmd:svm}"{p_end}
+{synopt:{cmd:e(cmdline)}}command as typed{p_end}
+{synopt:{cmd:e(depvar)}}name of dependent variable{p_end}
+{synopt:{cmd:e(title)}}title in estimation output{p_end}
+{synopt:{cmd:e(model)}}"{cmd:svm}"{p_end}
+{synopt:{cmd:e(svm_type)}}SVM type string, as above{p_end}
+{synopt:{cmd:e(svm_kernel)}}kernel string, as above{p_end}
+{synopt:{cmd:e(predict)}}program used to implement {cmd:predict}{p_end}
+{synopt:{cmd:e(levels)}}list of the classes detected, in the order they were detected, if applicable{p_end}
+{* {synopt:{cmd:e(estat_cmd)}}program used to implement {cmd:estat}{p_end} }{...}
 
 {synoptset 20 tabbed}{...}
 {p2col 5 20 24 2: Matrices}({help svm##gotchas:may be missing}){p_end}

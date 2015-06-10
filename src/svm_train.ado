@@ -24,12 +24,12 @@ program define svm_train, eclass
            
            GAMMA(real 0) COEF0(real 0) DEGree(int 3)
            
-            C(real 1) P(real 0.1) NU(real 0.5)
+            C(real 1) EPSilon(real 0.1) NU(real 0.5)
            
            // weights() --> char* weight_label[], double weight[nr_weight] // how should this work?
            // apparently syntax has a special 'weights' argument which is maybe meant just for this purpose
            // but how to pass it on?
-           EPSilon(real 0.001)
+           TOLerance(real 0.001)
            
            SHRINKing PROBability
            
@@ -124,12 +124,13 @@ program define svm_train, eclass
   
   
   /* call down into C */
+  /* CAREFUL: epsilon() => svm_param->p and tol() => svm_param->epsilon */ 
   #delimit ;
   plugin call _svm `_varlist' `_if' `_in', "train"
       "`type'" "`kernel'"
       "`gamma'" "`coef0'" "`degree'"
-      "`c'" "`p'" "`nu'"
-      "`epsilon'"
+      "`c'" "`epsilon'" "`nu'"
+      "`tolerance'"
       "`shrinking'" "`probability'"
       "`cache_size'"
       ;

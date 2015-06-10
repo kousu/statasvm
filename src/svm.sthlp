@@ -42,7 +42,7 @@
 
 {syntab:Tuning}
 {synopt :{opth c:(svm##c:c)}}For {opt c_svc}, {opt epsilon_svr} and {opt nu_svr} SVMs, this is a regularization parameter which weights the slack variables. Should be > 0. Default: {cmd:c(1)}{p_end}
-{synopt :{opth p:(svm##p:p)}}For {opt epsilon_svr} SVMs, the margin of error allowed for to count something as a support vector. Default: {cmd:p(0.1)}{p_end}
+{synopt :{opth eps:ilon(svm##epsilon:eps)}}For {opt epsilon_svr} SVMs, the margin of error allowed for to count something as a support vector. Default: {cmd:p(0.1)}{p_end}
 {synopt :{opth nu:(svm##nu:nu)}}For {opt nu_svc}, {opt one_class}, and {opt nu_svr} SVMs, tunes the number of supports vectors. Should be in (0, 1]. Default: {cmd:nu(0.5)}{p_end}
 
 {synopt :{opth gamma:(svm##gamma:gamma)}}For {opt poly}, {opt rbf} and {opt sigmoid} kernels, a scaling factor for the linear part of the kernel. Default: {cmd:gamma(1/[# {indepvars}])}{p_end}
@@ -58,7 +58,8 @@
 
 
 {syntab:Performance}
-{synopt :{opth eps:ilon(svm##epsilon:epsilon)}}The stopping tolerance used to decide when convergence has happened. Default: {cmd:epsilon(0.001)}{p_end}
+{synopt :{opth tol:erance(svm##tolerance:tol)}}The stopping tolerance used to decide when convergence has happened. Default: {cmd:epsilon(0.001)}{p_end}
+{synopt :{opt v:erbose}}Turns on {help svm##verbose:verbose mode}. NOT IMPLEMENTED. Default: disabled{p_end}
 {synopt :{opth cache:_size(svm##cache_size:cache)}}The size of the RAM cache used during fitting, in megabytes. Default: 100MB ({cmd:cache_size(100)}){p_end}
 
 {synoptline}
@@ -95,7 +96,7 @@ INCLUDE help fvvarlist
 {title:Description}
 
 {pstd}
-{cmd:svm} fits a support vector machine (SVM) model of {depvar} on {indepvars}.
+{cmd:svm} fits a support vector machine (SVM) model.
 SVM is not one, but several, variant models each based upon the principles of
 splitting hyperplanes and the culling of unimportant observations.
 The name comes from these two parts:
@@ -145,7 +146,8 @@ Then please write us with suggestions for clarification.
 {dlgtab:svm}{* this is a misuse of dlgtab because I have no corresponding dialog, but it drastically helps readability }
 
 {pstd}
-{cmd:svm} does model training, otherwise known as fitting or estimation (depending on your statistical background).
+{cmd:svm} does SVM model training, otherwise known as fitting or estimation (depending on your statistical background),
+of {depvar} on predictors {indepvars}.
 
 {* MODEL PARAMS: }
 {phang}
@@ -219,9 +221,10 @@ If your fit is poor, try cranking this up.
 {* XXX NOT TRUE: This will pre-multiply any sample-specific {opt weight}s. }
 
 {phang}
-{marker p}{...}
-{opt p} is the margin of error allowed by {opt epsilon_svr} (the intuitive name was already taken by {opt epsilon}).
-Larger makes your fit more flexible, and can lead to underfitting. Smaller can lead to overfitting.
+{marker epsilon}{...}
+{opt epsilon} is the margin of error allowed by {opt epsilon_svr}.
+Larger makes your fit more able to incorporate more observations, but can lead to underfitting.
+Smaller can lead to overfitting.
 
 {phang}
 {marker nu}{...}
@@ -241,7 +244,7 @@ See {help svm##nusvm:the ν-SVM tutorial} for details.
 
 {phang}
 {marker coef0}{...}
-Similarly, {opt coef0} is used in the non-linear kernels as a pseudo-intercept term.
+{opt coef0} similarly is used in the non-linear kernels as a pseudo-intercept term.
 Except it is not used in the {opt rbf} kernel as {opt rbf} is essentially a distance function, and biasing would be pointless.[???]
 [TODO: tips about choosing this]
 
@@ -254,7 +257,8 @@ variance of the estimates can be reduced, which is sometimes better overall.
 {* FEATURE PARAMS: }
 {marker normalize}{...}
 {phang}
-SVM tends to be very sensitive to scaling issues, so {opt normalize} instructs the estimation to first center and scale the data so that every variable starts with equal influence.
+{opt normalize} instructs the estimation to first center and scale the data
+as SVM tends to be very sensitive to scaling issues.
 This normalizes all data to [0,1] using min-max normalization, as suggested in the {help svm##libsvmguide:libsvm guide}.
 Normalization creates temporary variables, so you may prefer to preprocess the data yourself---destructively and in-place---to save time on re-estimations and memory for variables,
 especially if you are bumping up against your Stata system limits. You may find {cmd:ssc install norm} helpful.
@@ -272,13 +276,13 @@ and so takes a great deal of additional CPU and RAM.
 
 {* PERFORMANCE PARAMS: }
 {phang}
-{marker epsilon}{...}
-{opt epsilon} is the stopping tolerance used by the numerical optimizer. You could widen this if you are finding convergence is slow,
+{marker tolerance}{...}
+{opt tolerance} is the stopping tolerance used by the numerical optimizer. You could widen this if you are finding convergence is slow,
  but be aware that this usually non-convergence is a deeper problem in the interaction of data, kernel, and tuning parameters.
 
 {phang}
 {marker verbose}{...}
-{opt verbose} enables output from the low level libsvm code.
+{opt verbose} enables output from the low level libsvm code for the duration of the operation.
 
 {phang}
 {marker cache_size}{...}
@@ -319,7 +323,8 @@ We support this format for interoperability.
 
 {pstd}
 {cmd:svm_export} will write a fitted model to disk.
-Though it is your choice, the libsvm convention is to use the '.model' file extension.
+This can only be run if there is one in memory, either from {help svm##svm:svm} or {help svm##export:svm_import}.
+Conventionally you should name your file with '.model' for a file extension.
 
 {pstd}
 {cmd:svm_import} will load a model from disk, replacing any previous in-memory fit.

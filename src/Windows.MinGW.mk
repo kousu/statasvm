@@ -11,7 +11,8 @@ CFLAGS+=-O2
 CFLAGS+=-Wall -Werror
 CFLAGS+=-std=c99
 
-ARCH:=x86_64 #TODO: detect this by asking MinGW
+#TODO: detect this by asking MinGW
+ARCH:=x86_64
 
 # patch the Visual Studio env vars INCLUDE and LIB over to MinGW
 # this is necessary because we depend on an external library, libsvm,

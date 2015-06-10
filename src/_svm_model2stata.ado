@@ -18,21 +18,26 @@ program define _svm_model2stata, eclass
   *   the plugin doesn't have permission to allocate Stata memory (in this case matrices),
   *   but we don't know how much to allocate before interrogating the svm_model
   
-  local strLabels = ""
-  local have_sv_indices = 0
-  local have_rho = 0
-  local have_probA = 0 /*an undefined macro will inconsistently cause an eval error because `have_rho'==1 will eval to ==1 will eval to "unknown variable"*/
-  local have_probB = 0 /*so just define them ahead of time to be safe*/
-  
   
   * Phase 1
+  
   * the total number of observations
-  * this would have been set by train(); it doesn't exist for a model loaded via import
-  * nevertheless it is in this file, not svm_train.ado, because it is more similar to what else is here
+  * this gets set by _svm.c::train(); it doesn't exist for a model loaded via import().
+  * nevertheless it is in this file instead of svm_train.ado, because it is most similar here
+  * but we cap { } around it so the other case is tolerable
   capture {
     ereturn scalar N = _model2stata_N
     scalar drop _model2stata_N
   }
+  
+  
+  /*an undefined macro will inconsistently cause an eval error because `have_rho'==1 will eval to ==1 will eval to "unknown variable"*/
+  /*so just define them ahead of time to be safe*/
+  local have_sv_indices = 0
+  local have_sv_coef = 0
+  local have_rho = 0
+  local labels = ""
+  
   
   plugin call _svm `if' `in', "_model2stata" 1
   
@@ -48,13 +53,7 @@ program define _svm_model2stata, eclass
   
   * Phase 2
   * Allocate Stata matrices and copy the libsvm matrices and vectors
-  
-  if(`e(N_class)'>0) {
-    matrix labels = J(e(N_class),1,.)
-    matrix colnames labels = "labels"
-  }
-  
-  if(`e(N_class)'>1 & `e(N_SV)'>0) {
+  if(`have_sv_coef'==1 & `e(N_class)'>1 & `e(N_SV)'>0) {
     capture noisily {
       matrix sv_coef = J(e(N_class)-1,e(N_SV),.)
       
@@ -82,14 +81,13 @@ program define _svm_model2stata, eclass
   *  I can easily extract ->label with the same code, but attaching it to the rownames of the other is tricky
   capture noisily {
     plugin call _svm `if' `in', "_model2stata" 2
-
-
+	
     // Label the resulting matrices and vectors with the 'labels' array, if we have it
-    if("`strLabels'"!="") {
-      ereturn local levels = strtrim("`strLabels'")
+    if("`labels'"!="") {
+      ereturn local levels = strtrim("`labels'")
       
-      capture matrix rownames rho = `strLabels'
-      capture matrix colnames rho = `strLabels'
+      capture matrix rownames rho = `labels'
+      capture matrix colnames rho = `labels'
     }
   }
   
@@ -99,7 +97,7 @@ program define _svm_model2stata, eclass
     if("`sv'"!="") {
       quietly generate byte `sv' = .
       quietly replace `sv' `if' `in' = 0  //because the internal format is a list of indices, to translate to indicators we need to *start* with 0s and if we see them in the list, overwrite with 1s 
-      if(`have_sv_indices'==1 & `e(l)'>0) {
+      if(`have_sv_indices'==1 & `e(N_SV)'>0) {
         plugin call _svm `sv' `if' `in', "_model2stata" 3
       }
     }

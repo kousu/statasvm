@@ -226,13 +226,19 @@ ST_retcode _model2stata(int argc, char *argv[])
 
         /* copy out model->l */
         SF_scal_save("_model2stata_l", model->l);
-
-        /* take a break from this C routine (think of this as a coroutine, sort of) to communicate to the Stata routine what needs to be Stata-allocated */
+		
         /* these macros have underscores because, according to the official docs, Stata actually only has a single global namespace for macros and just prefixes locals with _ */
         if (model->sv_indices != NULL) {
             err = SF_macro_save("_have_sv_indices", "1");
             if (err) {
                 sterror("error writing to have_sv_indices\n");
+                return err;
+            }
+        }
+        if (model->sv_coef != NULL) {
+            err = SF_macro_save("_have_sv_coef", "1");
+            if (err) {
+                sterror("error writing to have_sv_coef\n");
                 return err;
             }
         }
@@ -243,24 +249,10 @@ ST_retcode _model2stata(int argc, char *argv[])
                 return err;
             }
         }
-        if (model->probA != NULL) {
-            SF_macro_save("_have_probA", "1");
-            if (err) {
-                sterror("error writing to have_probA\n");
-                return err;
-            }
-        }
-        if (model->probB != NULL) {
-            SF_macro_save("_have_probB", "1");
-            if (err) {
-                sterror("error writing to have_probB\n");
-                return err;
-            }
-        }
 
     } else if (phase == '2') {
         
-        char buf[20];
+        char buf[20]; //XXX is 20 big enough?
         int lstrLabels = model->nr_class*sizeof(buf) + 1;
         char *strLabels = malloc(lstrLabels);
         if(strLabels == NULL) {
@@ -269,21 +261,9 @@ ST_retcode _model2stata(int argc, char *argv[])
         }
         strLabels[0] = '\0';
         
-        for (int i = 0; i < model->nr_class; i++) {
-            /* copy out model->nSV */
-            // TODO: this should first check if the matrix exists (by trying to read it?)
-            if (model->nSV) {
-                err =
-                    SF_mat_store("nSV", i + 1, 1,
-                                 (ST_double) (model->nSV[i]));
-                if (err) {
-                    sterror("error writing to nSV\n");
-                    break;
-                }
-            }
-            
-            
-            if (model->label) {
+		
+        if (model->label) {
+            for (int i = 0; i < model->nr_class; i++) {
                 /* copy out model->label */
                 // TODO: destroy me, since strLabels serves the same purpose more conveniently
                 err = SF_mat_store("labels", i + 1, 1, (ST_double) (model->label[i]));  /* the name has been intentionally changed for readability */
@@ -296,12 +276,12 @@ ST_retcode _model2stata(int argc, char *argv[])
                 /* copy out model->label *as a string of space separated tokens; this is a shortcut for 'matrix rownames' */
                 snprintf(buf, sizeof(buf), " %d", model->label[i]);
                 strlcat(strLabels, buf, lstrLabels);
-                stdebug("strLabels now = |%s|\n", strLabels);
+                stdebug("labels now = |%s|\n", strLabels);
             }
         }
-        err = SF_macro_save("_strLabels", strLabels);
+        err = SF_macro_save("_labels", strLabels);
         if(err) {
-            sterror("error writing to strLabels\n");
+            sterror("error writing to _labels\n");
             // XXX memory leak
             return err;
         }

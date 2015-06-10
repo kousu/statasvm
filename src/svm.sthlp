@@ -53,8 +53,8 @@
 
 {syntab:Features}
 {synopt :{opt norm:alize}}Whether to {help svm##normalize:center and scale} the data. NOT IMPLEMENTED. Default: disabled{p_end}
-{synopt :{opt prob:ability}}Whether to prepare for "predict, prob" during estimation. Only applicable to classification problems. Default: disabled{p_end}
-{synopt :{opth sv:(svm##sv:newvarname)}}If given, a variable to generate and with booleans marking each row as a support vector or not. Default: disabled{p_end}
+{synopt :{opt prob:ability}}Whether to {help svm##probability:prepare} for "predict, prob" during estimation. Only applicable to classification problems. Default: disabled{p_end}
+{synopt :{opth sv:(svm##sv:newvarname)}}If given, an indicator variable to generate to mark each row as a support vector or not. Default: disabled{p_end}
 
 
 {syntab:Performance}
@@ -62,7 +62,9 @@
 {synopt :{opth cache:_size(svm##cache_size:cache)}}The size of the RAM cache used during fitting, in megabytes. Default: 100MB ({cmd:cache_size(100)}){p_end}
 
 {synoptline}
-{pstd}All variables must be numeric (including outcome classes, which are typically stored in Stata as integers with value labels attached); use {help encode} if you have classes stored in string variables.{p_end}
+{pstd}All variables must be numeric, including categorical variables,
+which may appear to be strings if they have have {help label values:value labels} attached, but are probably actually stored as {help byte}s.
+If you in fact have categories stored in string variables use {help encode}.{p_end}
 INCLUDE help fvvarlist
 
 
@@ -176,6 +178,8 @@ You do not need to do anything special to invoke it.{p_end}
 
 {pmore}To learn about the {opt c}/{opt nu} distinction, see {help svm##nusvm:Chen and Lin's ν-SVM tutorial}.{p_end}
 
+{pmore}{opt type} is case insensitive.{p_end}
+
 {phang}
 {marker kernel}{...}
 {opt kernel} gives a kernel function to use.
@@ -197,6 +201,8 @@ from the original data without doing the expensive high-dimensional mapping at a
 {pmore2}{opt rbf} stands for Radial Basis Functions, and treats the coefficients as a mean to smoothly approach in a ball, with the form exp(-gamma*|u-v|^2); this kernel tends to be good at [...].{p_end}
 {pmore2}{opt sigmoid} is a kernel which bends the linear kernel to fit in -1 to 1, similar to {help logistic} regression: tanh(gamma*u'*v + coef0){p_end}
 {pmore2}{opt precomputed} assumes that {depvar} is actually a list of precomputed kernel values. With effort, you can use this to use custom kernels with your data [TODO].{p_end}
+
+{pmore}{opt kernel} is case insensitive.{p_end}
 
 {phang}
 {marker degree}{...}

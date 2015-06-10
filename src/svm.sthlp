@@ -399,15 +399,15 @@ Not currently implemented.
 {*      - free_sv, internal libsvm flag which is a hack to stretch svm_model to handle creation from both svm_train() and svm_import() }{...}
 {p2col 5 20 24 2: Scalars}{p_end}
 {synopt:{cmd:e(N)}}number of observations{p_end}
-{synopt:{cmd:e(nr_class)}}number of classes, in a classification problem. {opt 2} in a regression problem.{p_end}
-{synopt:{cmd:e(N_sv)}}number of support vectors.
-If {opt e(N_sv)}/{opt e(N)} is close to 100% your fit is inefficient; perhaps you need to adjust your {help svm##kernel:kernel}.
+{synopt:{cmd:e(N_class)}}number of classes, in a classification problem. {opt 2} in a regression problem.{p_end}
+{synopt:{cmd:e(N_SV)}}number of support vectors.
+If {opt e(N_SV)}/{opt e(N)} is close to 100% your fit is inefficient; perhaps you need to adjust your {help svm##kernel:kernel}.
 {p_end}
 
 {synoptset 20 tabbed}{...}
 {p2col 5 20 24 2: Matrices}({help svm##gotchas:may be missing}){p_end}
 {synopt:{cmd:e(sv_coef)}}The coefficients of the support vectors for each fitted hyperplane. [TODO]{p_end}
-{synopt:{cmd:e(rho)}}The intercept term for each fitted hyperplane. It is lower-triangular and {cmd:e(nr_class)}^2 large, with each entry [i,j] representing the hyperplane between class i and class j.{p_end}
+{synopt:{cmd:e(rho)}}The intercept term for each fitted hyperplane. It is lower-triangular and {cmd:e(N_class)}^2 large, with each entry [i,j] representing the hyperplane between class i and class j.{p_end}
 
 
 {* XXX this section title should be more formal}{...}

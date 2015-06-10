@@ -278,7 +278,7 @@ ST_retcode _model2stata(int argc, char *argv[])
                                  (ST_double) (model->nSV[i]));
                 if (err) {
                     sterror("error writing to nSV\n");
-                    return err;
+                    break;
                 }
             }
             
@@ -290,7 +290,7 @@ ST_retcode _model2stata(int argc, char *argv[])
                 if (err) {
                     sterror("error writing to labels\n");
                     //XXX memory leak
-                    return err;
+                    //return err;
                 }
                 
                 /* copy out model->label *as a string of space separated tokens; this is a shortcut for 'matrix rownames' */
@@ -321,7 +321,7 @@ ST_retcode _model2stata(int argc, char *argv[])
                 }
             }
         }
-        _sv_coef_break: (void)strLabels /*NOP*/;
+        _sv_coef_break: (void)strLabels /*NOP, just so this label compiles*/;
 
 
         /* from the libsvm README:
@@ -597,9 +597,13 @@ ST_retcode train(int argc, char *argv[])
     }
     model = svm_train(prob, &param);    //a 'model' in libsvm is what I would call a 'fit' (I would call the structure being fitted to---svm---the model), but beggars can't be choosers
 
+	// export r(N)
+	SF_scal_save("_model2stata_N", (ST_double)prob->l);
+	
     svm_destroy_param(&param);  //the model copies 'param' into itself, so we should free it here
     //svm_problem_free(prob);   //but as the libsvm README warns, do not free a problem while its model is still about
     
+	
     return 0;
 }
 

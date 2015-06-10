@@ -26,14 +26,22 @@ program define _svm_model2stata, eclass
   
   
   * Phase 1
+  * the total number of observations
+  * this would have been set by train(); it doesn't exist for a model loaded via import
+  * nevertheless it is in this file, not svm_train.ado, because it is more similar to what else is here
+  capture {
+    ereturn scalar N = _model2stata_N
+    scalar drop _model2stata_N
+  }
+  
   plugin call _svm `if' `in', "_model2stata" 1
   
   * the total number of (detected?) classes
-  ereturn scalar nr_class = _model2stata_nr_class
+  ereturn scalar N_class = _model2stata_nr_class
   scalar drop _model2stata_nr_class
   
   * the number of support vectors
-  ereturn scalar l = _model2stata_l
+  ereturn scalar N_SV = _model2stata_l
   scalar drop _model2stata_l
   
   
@@ -41,47 +49,31 @@ program define _svm_model2stata, eclass
   * Phase 2
   * Allocate Stata matrices and copy the libsvm matrices and vectors
   
-  *TODO: SV and sv_indices are probably best translated jointly by adding an indicator variable column to the original dataset telling if that observation was chosen as a support vector (of course, this will mean we need to further clamp the upper limit)
-  
-  
-
-  * nSV tells how many support vectors went into each class
-  * The sum of the entries in nSV should be l
-  matrix nSV = J(e(nr_class),1,.)
-  matrix colnames nSV = "nSV"
-  /*matrix rownames nSV = . . */
-  
-  if(`e(nr_class)'>0) {
-    matrix labels = J(e(nr_class),1,.)
+  if(`e(N_class)'>0) {
+    matrix labels = J(e(N_class),1,.)
     matrix colnames labels = "labels"
   }
   
-  if(`e(nr_class)'>1 & `e(l)'>0) {
+  if(`e(N_class)'>1 & `e(N_SV)'>0) {
     capture noisily {
-      matrix sv_coef = J(e(nr_class)-1,e(l),.)
+      matrix sv_coef = J(e(N_class)-1,e(N_SV),.)
       
       // there doesn't seem to be an easy way to generate a list of strings with a prefix in Stata
       // so: the inefficient way
       local cols = ""
-      forval j = 1/`e(l)' {
+      forval j = 1/`e(N_SV)' {
         local cols = "`cols' SV`j'"
       }
       matrix colnames sv_coef = `cols'
       
       // TODO: rows
       //  there is one row per class *less one*. the rows probably represent decision boundaries, then. I'm not sure what this should be labelled.
-      // matrix rownames sv_coef = class1..class`e(l)'
+      // matrix rownames sv_coef = class1..class`e(N_SV)'
     }
   }
   
-  if(`have_rho'==1 & `e(nr_class)'>0) {
-    capture noisily matrix rho = J(e(nr_class),e(nr_class),.)
-  }
-  if(`have_probA'==1 & `e(nr_class)'>0) {
-    capture noisily matrix probA = J(e(nr_class),e(nr_class),.)
-  }
-  if(`have_probB'==1 & `e(nr_class)'>0) {
-    capture noisily matrix probB = J(e(nr_class),e(nr_class),.)
+  if(`have_rho'==1 & `e(N_class)'>0) {
+    capture noisily matrix rho = J(e(N_class),e(N_class),.)
   }
   
 
@@ -96,17 +88,8 @@ program define _svm_model2stata, eclass
     if("`strLabels'"!="") {
       ereturn local levels = strtrim("`strLabels'")
       
-      capture matrix rownames nSV = `strLabels'
-      
       capture matrix rownames rho = `strLabels'
       capture matrix colnames rho = `strLabels'
-      
-      capture matrix rownames probA = `strLabels'
-      capture matrix colnames probA = `strLabels'
-      
-      capture matrix rownames probB = `strLabels'
-      capture matrix colnames probB = `strLabels'
-      
     }
   }
   
@@ -128,19 +111,7 @@ program define _svm_model2stata, eclass
   * NOTE: 'ereturn matrix' erases the old name (unless you specify ,copy), which is why we don't have to explicitly drop things
   *       'ereturn scalar' doesn't do this, because Stata loves being consistent. Just go read the docs for 'syntax' and see how easy it is. 
   * All of these are silenced because various things might kill any of them, and we want failures to be independent of each other
-  
-  //quietly capture ereturn matrix SVs = SVs
-  capture matrix drop SVs
-  
-  quietly capture ereturn matrix nSV = nSV
-  //quietly capture ereturn matrix labels = labels
-  capture matrix drop labels
-  
+    
   quietly capture ereturn matrix sv_coef = sv_coef
   quietly capture ereturn matrix rho = rho
-  //quietly capture ereturn matrix probA = probA //XXX disabled: these are probably not something you care to look at directly
-  //quietly capture ereturn matrix probB = probB //              rather, use "predict, prob"; if a compelling reason to expose these comes up we can
-  capture matrix drop probA
-  capture matrix drop probB
-  
 end

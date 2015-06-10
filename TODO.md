@@ -97,6 +97,11 @@ Documentation
 Features
 --------
 
+* [ ] sklearn's fork of libsvm adds
+  * [ ] svm_param->max_iter
+  * [ ] svm_param->random_state (i.e. RNG seed)
+ either get this in upstream or just switch to sklearn's fork
+
 * [ ] 'normalize' to automatically normalize the data
    -> implement this with a library, like the 'norm' function
    -> can I check for and autoinstall dependencies from ssc as needed? I can use 'which' to find if it's installed (unreliably)

@@ -28,7 +28,7 @@
 export_svmlight {varlist} using {filename}
 
 {p 8 16 2}
-import_svmlight using {filename}
+import_svmlight {using} {filename}
 
 {synoptset 20 tabbed}{...}
 {synopthdr}
@@ -41,7 +41,8 @@ import_svmlight using {filename}
 {title:Description}
 
 {pstd}
-{help svmlight##svmlight} is a SVM software which created a simple de-facto plaintext standard for medium-sized numeric datasets, which was adopted by {help svmlight##libsvm}. The kind libsvm authors even provide an {browse "http://www.google.com":dsffds} of datasets in compressed svmlight format 
+{help svmlight##svmlight} is a SVM software which created a simple de-facto plaintext standard for medium-sized numeric datasets, which was adopted by {help svmlight##libsvm}.
+The kind libsvm authors even provide a {browse "http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/":repository} of datasets in compressed svmlight format 
 (note: this module does not handle compression; you will need to use an external program for that).
 
 {pstd}
@@ -59,8 +60,7 @@ Missing data in your dataset will be skipped during export, and missing "feature
 {title:Examples:  Loading a dataset}
 
 {phang2}{cmd:. !wget http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary/duke.bz2}{p_end}
-{phang2}{cmd:. !bunzip2 duke.bz2 -o}{p_end}
-{phang2}{cmd:. mv duke duke.svmlight}{p_end}
+{phang2}{cmd:. !bunzip2 duke.bz2 -c > duke.svmlight}{p_end}
 {phang2}{cmd:. import_svmlight using "duke.svmlight"}{p_end}
 {phang2}{cmd:. list}{p_end}
 

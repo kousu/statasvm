@@ -24,10 +24,10 @@
 {title:Syntax}
 
 {p 8 16 2}
-{help svm##svm:svm} {depvar} {indepvars} {ifin} [{it:{help svm##weight:weight}}] [{cmd:,} {it:options}]
+{help svm##svm:svm} {depvar} {indepvars} {ifin}{* [{it:{help svm##weight:weight}}] } [{cmd:,} {it:options}]
 
 {p 8 16 2}
-{help svm##svm:svm} {indepvars} {ifin} [{it:{help svm##weight:weight}}], type(one_class) [{it:options}]
+{help svm##svm:svm} {indepvars} {ifin}{* [{it:{help svm##weight:weight}}] }, type({help svm##one_class:one_class}) [{it:options}]
 
 {synoptset 20 tabbed}{...}
 {synopthdr}
@@ -53,7 +53,7 @@
 
 {syntab:Features}
 {synopt :{opt norm:alize}}Whether to center and scale the data. NOT IMPLEMENTED. Default: disabled{p_end}
-{synopt :{opt prob:ability}}Whether or not to precompute the cross-validation runs needed for "predict, prob". Only applicable to classification problems. Default: disabled{p_end}
+{synopt :{opt prob:ability}}Whether to enable "predict, prob". Only applicable to classification problems. Default: disabled{p_end}
 {synopt :{opth sv:(svm##sv:newvarname)}}If given, a variable to generate and with booleans marking each row as a support vector or not. Default: disabled{p_end}
 
 
@@ -129,11 +129,12 @@ Please write us with suggestions for clarification.
 {title:Options}
 
 {marker svm}{...}
-{title:svm}
+{dlgtab:svm}{* this is a misuse of dlgtab because I have no corresponding dialog, but it drastically helps readability }
 
 {pstd}
 {cmd:svm} does model training, otherwise known as fitting or estimation (depending on your statistical background).
 
+{* MODEL PARAMS: }
 {phang}
 {marker type}{...}
 {opt type} specifies what subtype of SVM to run.{p_end}
@@ -144,6 +145,7 @@ Please write us with suggestions for clarification.
 
 {pmore2}libsvm automatically handles multiclass classification using the {browse "http://en.wikipedia.org/wiki/Multiclass_classification":one-against-one} method.{p_end}
 
+{marker one_class}{...}
 {pmore}{opt one_class} separates outliers from the bulk of the data.{p_end}
 {pmore2}{opt one_class} does not take a {depvar} because it is a form of unsupervised learning: all the information it uses is in the predictors themselves.{p_end}
 {pmore3}You may use the same {varlist} as with the others: by including your depvar as an indepvar you just give {opt one_class} more information to work with.{p_end}
@@ -158,14 +160,17 @@ Please write us with suggestions for clarification.
 {phang}
 {marker kernel}{...}
 {opt kernel} gives a kernel function to use.
-The basic SVM algorithm finds a linear boundary (a hyperplane). For classification, this is a boundary between two classes; for regression it is a line near which correct predictions are expected to cluster--much like in {help regess:OLS}.
-But the {browse "https://en.wikipedia.org/wiki/Kernel_Method":kernel trick} makes SVM more flexible: it can make a space look non-linear by mapping it into a higher dimensional space.
+The basic SVM idea is to find a linear boundary in high-dimensional space (a hyperplane):
+for classification, this is a boundary between two classes;
+for regression it is a line near which correct predictions are expected to cluster--much like in {help regess:OLS}.
+Much real data is not straight but the {browse "https://en.wikipedia.org/wiki/Kernel_Method":kernel trick} makes SVM
+flexible by making a space non-linear under a high-dimensional mapping.
 See {browse "https://www.youtube.com/watch?v=3liCbRZPrZA"} for a visualization of this process.
-The part that makes it a trick is that the fit can be done efficiently without first mapping your observations into the higher dimensional space,
-as the estimation only cares about their kernel value <u,x>, a value used in scoring the coefficients u,
+The part that makes it a {it:trick} is that the fit can be done efficiently without constructing the high-dimensional points,
+as the estimation only cares about a scalar value, the output of the kernel function, used in scoring the fit [CITATION NEEDED],
 and for certain kernels this value can be computed straight from the original data without doing the mapping at all.{p_end}
 
-{pmore}Choices of kernels are:{p_end}
+{pmore}Kernels available in this implementation are:{p_end}
 {pmore2}{opt linear} means the linear kernel you are probably familiar with from {help regress:OLS}: u'*v{p_end}
 {pmore2}{opt poly} is (gamma*u'*v + coef0)^degree{p_end}
 {pmore2}{opt rbf} stands for Radial Basis Functions, and treats the coefficients as a mean to smoothly approach in a ball, with the form exp(-gamma*|u-v|^2); this kernel tends to be good at [...].{p_end}
@@ -178,6 +183,8 @@ and for certain kernels this value can be computed straight from the original da
 Setting this too high will result in overfitting. Setting it too low may result in non-convergence.
 [TODO: tips about choosing this]
 
+
+{* TUNING PARAMS: }
 {phang}
 {marker c}{...}
 {opt c} weights (regularizes) the slack variables used in {opt c_svc}, {opt epsilon_svr} and {opt nu_svr}. This will pre-multiply any sample-specific {opt weight}s.
@@ -207,6 +214,8 @@ Except it is not used in the {opt rbf} kernel as {opt rbf} is essentially a dist
 {marker shrinking}{...}
 {opt shrinking} invokes libsvm's built-in shrinking heuristics [TODO: what does this mean? shrinkage estimation?]
 
+
+{* FEATURE PARAMS: }
 {phang}
 SVM tends to be very sensitive to scaling issues, so {opt normalize} instructs the estimation to first center and scale the data so that every variable starts with equal influence.
 This normalizes all data to [0,1] using min-max normalization, as suggested in the {help svm##libsvmguide:libsvm guide}.
@@ -215,16 +224,24 @@ especially if you are bumping up against your Stata system limits. You may find 
 
 {phang}
 {marker probability}{...}
-{opt probability} enables the use of "predict, prob" as described below. This takes additional CPU and space, slowing down both training and prediction.
+{opt probability} enables the use of "{help svm##predict_prob:predict, prob}".
+This requires precomputing class-against-class probability estimates with a 5-fold cross-validation,
+and so takes a great deal of additional CPU and RAM.
 
 {phang}
 {marker sv}{...}
 {opt sv} records in the given variable a boolean indicating whether each observation was a support vector or not.
 
+
+{* PERFORMANCE PARAMS: }
 {phang}
 {marker epsilon}{...}
 {opt epsilon} is the stopping tolerance used by the numerical optimizer. You could widen this if you are finding convergence is slow,
  but be aware that this usually non-convergence is a deeper problem in the interaction of data, kernel, and tuning parameters.
+
+{phang}
+{marker verbose}{...}
+{opt verbose} enables output from the low level libsvm code.
 
 {phang}
 {marker cache_size}{...}
@@ -236,15 +253,19 @@ Generally, more is faster, at least until you run out of RAM or cause your machi
 {...}
 
 {marker predict}{...}
-{title:predict}
+{dlgtab:predict}
 
 {pstd}After training you can ask svm to {cmd:predict} what the category (classification) or outcome value (regression)
       should be for each given observation. Results are placed into {newvar}.{p_end}
 {pstd}{newvar} must not exist, so if you want to repredict your choices are {cmd:drop {newvar}} or to pick a new name, e.g. {cmd:predict {newvar}2}.{p_end}
 
+{marker predict_prob}{...}
 {phang}For classification ({opt c_svc}, {opt nu_svc}) problems, {opt probability} requests, for each observation, the probability of it being each class.
 {newvar} is used as a stem for names of new columns for the results.
 This option is not valid for other SVM types.{p_end}
+
+{phang}
+{opt verbose}: see {help svm##verbose}.
 
 {pstd}
 Prediction automatically uses the same {indepvars} as during training, so be careful about renaming or dropping columns between commands.
@@ -252,7 +273,7 @@ Prediction automatically uses the same {indepvars} as during training, so be car
 {...}
 
 {marker export}{...}
-{title:import/export}
+{dlgtab:import/export}
 
 {pstd}
 libsvm has an ad-hoc format it uses to save trained models.
@@ -266,6 +287,9 @@ Though it is your choice, the libsvm convention is to use the '.model' file exte
 {pstd}
 {cmd:svm_import} will load a model from disk, replacing any previous in-memory fit.
 When you import, [TODO: some properties] will be missing because the import was done without reference to any dataset.
+
+{phang}
+{opt verbose}: see {help svm##verbose}.
 
 {pstd}
 Do not confuse these commands with {cmd:import_svmlight} and {cmd:export_svmlight}.
@@ -303,6 +327,13 @@ Do not confuse these commands with {cmd:import_svmlight} and {cmd:export_svmligh
 --- train on one set of data, generate more observations, predict
         {hline}
 
+
+{title:Examples:  custom kernel}
+
+        {hline}
+--- use hacks + kernel(precomputed)
+        {hline}
+
 {title:Example:  weighted regression}
 
 {pstd}
@@ -336,8 +367,9 @@ Not currently implemented.
 {*      - nSV, the number of SVs per class; this is only interesting for classifications, and it duplicates what you can get out of "tab `e(depvar)' SV" }{...}
 {*      - free_sv, internal libsvm flag which is a hack to stretch svm_model to handle creation from both svm_train() and svm_import() }{...}
 {p2col 5 20 24 2: Scalars}{p_end}
+{synopt:{cmd:e(N)}}number of observations{p_end}
 {synopt:{cmd:e(nr_class)}}number of classes, in a classification problem. [??? if SVR??]{p_end}
-{synopt:{cmd:e(l)}}number of support vectors{p_end}
+{synopt:{cmd:e(N_sv)}}number of support vectors{p_end}
 
 {synoptset 20 tabbed}{...}
 {p2col 5 20 24 2: Matrices}(may be missing, depending on options){p_end}
@@ -345,25 +377,23 @@ Not currently implemented.
 {synopt:{cmd:e(rho)}}The intercept term for each fitted hyperplane. It is lower-triangular and {cmd:e(nr_class)}^2 large, with each entry [i,j] representing the hyperplane between class i and class j.{p_end}
 
 
-{* XXX this section name should be more formal}{marker gotchas}{...}
+{* XXX this section title should be more formal}{...}
+{marker gotchas}{...}
 {title:Gotchas}
 
 {pstd}
 {bf:Memory Limits}: The cheaper versions of Stata allow only allow less variables and smaller matrices to be used.
 As machine learning problems typically are on very large datasets,
 it is easy to inadvertently instruct this package to construct more columns or larger matrices than you can afford.
-In this case, you will receive an error and find yourself with a partially allocated set of probability columns or a partial set of {cmd:e()} matrices^.
+If you overflow the number of variables, you will receive an error and the dataset will be left untouched.
+If you overflow the matrix size, the matrix that caused the problem---likely sv_coef---will be missing, but the other features should work.
 
 {pmore}
-You can proceed by retrying the command with various combinations of "no{matrix}" options applied to reduce the output size. If done in the same session you will also need to manually drop the mistake columns with {cmd:drop {newvar}*}.
-
-{pmore}
-If you are really stuck, you can also proceed by giving up on Stata and switching to libsvm's companion {cmd:svm-train} program,
+If this limitation is an impossible hurdle, you can also proceed by giving up on Stata and switching to libsvm's companion {cmd:svm-train} program,
 will have been installed with the libsvm package if you used a package manager, or
 which you can get {browse "http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/libsvm.cgi?+http://www.csie.ntu.edu.tw/~cjlin/libsvm+zip":from its authors};
-you can use {help svmlight:export svmlight} to extract your dataset for {cmd:svm-train}.
+you can use {help svmlight:export svmlight} to extract your dataset for use with {cmd:svm-train}.
 
-{pmore}^{browse "https://github.com/kousu/statasvm/pulls":patches} to instead trap errors and restore the previous state are very welcome.
 
 {marker copyright}{...}
 {title:Copyright}

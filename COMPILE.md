@@ -61,6 +61,8 @@ libsvm
 
 ### Windows
 
+TODO: this is out of date. the repo has `windows/libsvm.{lib,dll}` which makes this; but it is still useful to know how to compile libsvm for Windows, in case of version bumps, so for now this stays. Sorry. I'll clean this up later.
+
 To compile against a DLL on Windows, you must have its associated .lib file. Unless the library author provides it [citation needed] the only way source for them is as a by-product of compiling that DLL.
 The proper way to do this is to compile and 'install' libsvm manually:
 0) Install Visual Studio (libsvm does not yet come with a MinGW build script)
@@ -109,13 +111,22 @@ $ make
 
 (If the build fails for you **please file bug reports**. We are a small team and cannot cover all platforms at all times, but we will address your problem and help you to help us improve the package.)
 
+As you make changes, you can just do `make` again to update the code.
+However, as usual, you can get rid of the build cruft if you need to start from a known state with
+```
+$ make clean
+```
+(you have to do this, for example, when you change the Makefile, as make doesn't track its own Makefile)
 
-Installation/Deployment
+Development Installation
 -----------------------
 
-The proper way to install Stata-SVM is to use the [install instructions](INSTALL.md). However, if you want to use the development version in your normal Stata usage, follow these; if you are familiar with python, these are similar to using `python setup.py develop`.
+The proper way to install Stata-SVM is to use the [install instructions](INSTALL.md).
+However, for development you want to be able to use the code in the repository.
+The simplest way and most replicable way to do this is to write a test case for every feature, bug, or change, and use `make tests`.
+But if that is too slow for you---it is for me---or if you want to use bleeding edge in your daily Stata usage, follow these instructions; if you are familiar with python, these are similar to using `python setup.py develop`.
 
-To use the, we will add the build directory to Stata's adopath, using [`profile.do`](http://www.stata.com/manuals13/gswb.pdf#B.3ExecutingcommandseverytimeStataisstarted). **If you have already customized your profile.do, you should edit the one you already have as Stata only runs one**.  If not, you can make `profile.do` in your home folder; this is typically `/home/<username>' on Unix, '/Users/<username>' on OS X, and 'C:\Users\<username>' on Windows. See the linked Stata documentation if you need more help.
+We will add the build directory to Stata's adopath, using [`profile.do`](http://www.stata.com/manuals13/gswb.pdf#B.3ExecutingcommandseverytimeStataisstarted). **If you have already customized your profile.do, you should edit the one you already have as Stata only runs one**.  If not, you can make `profile.do` in your home folder; this is typically `/home/<username>/ado' on Unix, '/Users/<username>/ado' on OS X, and 'C:\Users\<username>\Documents' on Windows. See the linked Stata documentation if you need more help.
 
 Once you have found your `profile.do`, add this one line:
 ```
@@ -146,5 +157,53 @@ If instead you see
 . program _svm, plugin
 Could not load plugin: .\_svm.plugin
 ```
-then the plugin is corrupted; especially if you are on Windows, you probably have cross-compiled without realizing it and need to switch toolchains:
-you must build for the same architecture as your copy of Stata, because Stata links your DLL into its own memory.
+then the plugin is corrupted; especially if you are on Windows, you probably have mistakenly cross-compiled StataSVM or libsvm.
+You must match the architecture the plugin to the architecture of Stata:
+Stata.exe can only run 32 bit plugins and Stata-64.exe can only run 64 bit plugins **including sub-DLLs**.
+
+
+Deployment
+----------
+
+`make dist` automates, as much as possible, creating a multiplatform Stata .pkg.
+It takes `.ado`s and `.sthlp`s in `./` along with everything in `bin/`, and `ancillary/`, and makes `dist/svm.pkg` and `dist/stata.toc` from it.
+(`ancillary/` is for ancillary files---ones which will not get installed with `. net install svm` but can optionally be pulled *to the working directory* with `. net get svm`; it could contain, for example, datasets (.csv, .dta, .svmlight) and example code (.do)).
+
+We do not have a cross-platform build bot set up, so there is manual intervention needed to do a complete dist.
+We've attempted to make the chance for error minimal, and this only needs to be done for releases.
+
+The safer way:
+
+* Pick a primary build machine; make sure it is POSIX (`make dist` is not Windows compatible).
+* Login remotely (ssh, RDP, or VNC) to each build machine
+  * Instead of having two Windows-32 and Windows-64 build machines, open terminals on one Windows machine:
+    one with the 64 bit build (Visual Studio or MinGW) build tools loaded, and
+    one with the 32 bit (Visual Studio or MinGW) build tools.
+    Refer to "Toolchain" above.
+* `cd` to repository/src
+* synchronize:
+  * while repos are out of sync:
+    * for each build machine:
+      * `git pull` + fix any merge conflicts
+      * `git diff; git commit -a; git push`
+* for each build machine: `make clean; make`
+* manually copy the bin/ folder to your primary machine
+* `make dist`
+
+The quicker and maybe too clever for it's own good way:
+
+* Pick a primary build machine; make sure it is POSIX (`make dist` is not Windows compatible).
+* Login remotely (ssh, RDP, or VNC) to each build machine
+* remotely mount (either via sshfs or smb, depending on platform) the repository from the primary
+* `cd` into repository/src; this means the remotely mounted repository, for non-primary build machines
+* `make clean; make`
+* back on the primary: `make dist`
+
+The goal of both methods is to collect all the `bin/<platform>/` files in one place *before* running `make dist`, so that `make dist` picks them up and indexes them into the .pkg.
+
+Once `dist` has gone through, **test it**. There may have been a packaging glitch which broke, say, 32 bit Windows, and if so you need to start this ritual from the top.
+* On the primary, `../scripts/distserver.sh`
+* For each build machine, run Stata and do `. net install svm, from(http://$PRIMARY:8000/)` and make sure everything in the package works.
+  * better if you use fresh VM copies of the build machines, ones which definitely lack the repository and libsvm
+
+Once you think the package is ready for deployment, zip up the `dist/` folder and submit it to [ssc](http://www.stata.com/support/ssc-installation/) by contacting [TODO]

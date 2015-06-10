@@ -35,9 +35,18 @@ Build
   * con: cannot control architecture; or else there'd have to be duplicate .dlls
    for now, they're committed; I don't know if I'll keep it like this.
 
+* [ ] check if there's a way to use pattern rules for .c -> .plugin
 
 Dist
 ---
+
+
+[ ] 'make dist-clean' and *don't* erase dist/ during clean
+  that way you should be able to:
+  - net-mount the repo remotely from several systems
+  - 'make clean; make dist' on all of them
+  - 'make deploy' on any (non Windows) one
+ this will be a lot more reliable than my ritual of manually copying bin/ around
 
 * [x] Support installing without root (..i.e. distribute libsvm and install it next to the things)
 * [x] Figure out the best way to autoload the plugin
@@ -55,7 +64,7 @@ Dist
      -> ensurelib.ado
    - [x] write a plugin that simply calls dlopen() to test if a library is installed
          because if a DLL is missing all you get is "unable to load plugin" with no explanation of what went wrong.
-     -> _dlopenable
+     ->[x] _dlopenable
 
        but they can't call each others handle to it ("svm_train._svm" is invalid syntax, even though that's the name listed in 'program dir')
 
@@ -71,6 +80,32 @@ Dist
 
 Documentation
 -------------
+
+
+[ ] comment out norm, until we decide what we are going to do with it
+[ ] better parameter descriptions (mine sklearn for this)
+
+[ ] make examples
+  = [ ] duplicate all these as ancillary .do files
+  * [ ] binary classification
+      "auto" dataset
+  * [ ] multiclass classification with 'prob'
+    also demonstrate the sv() option, including crosstabbing it with the 
+      so I want a dataset with a *lot* of rows:
+
+      the "highschool" dataset is perfect
+      demonstrate tuning c() changes the results
+  * [ ] svr
+    and demonstrate tuning eps() changes the results
+  * [ ] one class
+    the same lots-of-rows dataset
+  * [ ] factor variables
+  * [ ] custom kernel (port from sklearn?)
+
+
+[ ] Nick: remind Schonlau to ask about click-to-run before the Stata conference
+
+[ ] duplicate the See Alsos to an actual section (because smcl isn't smart enough to figure this out for us)
 
 - [x] say "1/[# indepvars]"
 - [x] add a variant command format for type(ONE_CLASS) -- it shouldn't take a Y
@@ -97,16 +132,14 @@ Documentation
 Features
 --------
 
-* [ ] sklearn's fork of libsvm adds
-  * [ ] svm_param->max_iter
-  * [ ] svm_param->random_state (i.e. RNG seed)
- either get this in upstream or just switch to sklearn's fork
 
-* [ ] 'normalize' to automatically normalize the data
-   -> implement this with a library, like the 'norm' function
-   -> can I check for and autoinstall dependencies from ssc as needed? I can use 'which' to find if it's installed (unreliably)
+* [ ] predict, replace
+
 
 * [ ] 'verbose' option which sets/unsets svm_print_function as required.
+  * [ ] implement reading c() to tweak off the dupe output: http://www.statalist.org/forums/forum/general-stata-discussion/general/1295308-bundling-dlls-in-pkgs?p=1296985#post1296985
+     -> output should be duped when in c(mode)==batch, because it's a thing I use for debugging the batch runs lest they crash, but otherwise should only go to Stata's normal output
+  * [ ] printing the svm_param should get run through verbose
     this is what sklearn does: 
 ```
     /* provide convenience wrapper */
@@ -117,8 +150,28 @@ void set_verbosity(int verbosity_flag){
 		svm_set_print_string_function(&print_null);
 }
 ```
-* [ ] 
-* [ ] 'seed' option for seeding the RNG
+* [ ] handle fvs (i.varname, etc)
+  - plugin call can't handle fvs, but I can use xi: to fudge them
+    however there is a strange bug: xi doesn't work as advertised; is it just with 
+
+
+* [ ] sklearn's fork of libsvm adds
+  * [ ] svm_param->max_iter
+  * [ ] svm_param->random_state (i.e. RNG seed)
+ either get this in upstream or just switch to sklearn's fork
+
+* [ ] 'normalize' to automatically normalize the data
+   -> implement this with the 'center' package
+      -> use ensureado with it, *but only if the user tries to use normalize*, so that if it's not installed or if the package somehow leaves ssc it's not a problem
+    [ ] Schonlau: ask Ben Jann about running center on a column with variance 0
+      - the intuitive result is to leave the column unchanged,
+         but instead center gves missing values. Is this expected? Is it a bug? Is this a case Ben's ever thought about?
+    - generate a short testcase demonstrating the bug
+   -> or, implement it ourselves (but Nick is against this)
+
+[x] ensureado
+  - check for and autoinstall dependencies as needed
+
 
 * [x] write svmload.ado which handles reading svmlight format files
    * -> "a plugin cannot create
@@ -126,7 +179,7 @@ void set_verbosity(int verbosity_flag){
    this might not be possible because of scoping rules... Stata's native, core, regress command has prediction in regres_p.ado, a separate file.
   * [x] investigate subcommands; it seems "help a b" will try to look up "a_b.sthlp", but I don't think "a b" will call a_b.ado. hmm.q
 
-* [ ] weighting
+* [WONTFIX] weighting
   * stata's "syntax" provides this as an option; so does libsvm's svm_parameter; I should just have to plug them together
   * sklearn has an 'auto' mode where it weights classes by their proportion in the dataset. this is a good idea.
 
@@ -138,10 +191,9 @@ void set_verbosity(int verbosity_flag){
   (to ensure uniqueness, it should be passed as an option; if not passed, don't mark it)
 
 * [ ] convenience shortcuts:
-   sv_classify
-   sv_regress
-   sv_oneclass
- 
+   svclassify / svc
+   svregress / svr
+   svoneclass
  as convenience shortcuts to something like "svm `0', type(C_SVC)"  "svm `0', type(EPSILON_SVR)"
    -> and if you specify 'nu' as an option, trigger nu-SVM instead (NU_SVC, NU_SVR)
    -> this is a nicetohave/prematureoptimization, so leave it for version 2
@@ -159,13 +211,11 @@ void set_verbosity(int verbosity_flag){
 - [ ] support e(estat_cmd)
   * I don't really know what this is for; something to do with getting even more estimates after estimating your estimates
 
-- [ ] handle fvs (i.varname, etc)
-  - plugin call can't handle fvs, but I can use xi: to fudge them
-    however there is a strange bug: xi doesn't work as advertised; is it just with 
 
 Maintenance
 -----------
 
+* [ ] make use of Stata's "confirm" command to give better error messages
 
 - [ ] renames
   - [ ] svm_train to svm
@@ -360,6 +410,52 @@ Accuracy = 0% (0/69) (classification)
 * [x] Compare svm_save_model results from svm-train and my code. They /should/ always be identical on the same data.
 
 
+
+Paper
+=====
+
+We are going to submit a paper to the [Stata Journal](http://www.stata-journal.com/).
+
+[ ] [Submission](http://www.stata-journal.com/submissions/) format
+ - the archived articles (e.g. http://www.stata-journal.com/top-articles/downloaded/) sure look like they are done up in LaTeX
+ - but the instructions say "ASCII and Word contributions will be accepted."
+
+[ ] find Nick Cox papers and read them
+[ ] read the entire libsvm guide carefully
+   
+
+Sections (in probable order of writing):
+--------
+
+[ ] mathematics of SVM
+   = not super in depth, just enough to let give our users intuition about what to do in certain situations 
+    - svc
+    - svr
+    - one_class
+[ ] introduce stata-svm
+  - installation
+  - introduce svmlight, briefly
+[ ] tuning issues
+  - parameter selection (grid search! cross validation!)
+  - predictor selection
+    -> support vectors will always be predicted (..wait.. this isn't true... hm)
+    -> if you have perfect correlation between outcome and one or more predictors (e.g. a unique sample ID), 
+
+[ ] examples
+[ ] comparison of svm to common Stata estimators, why you would or wouldn't use svm in each case
+[ ] intro
+[ ] conclusion
+  [ ] Thanks:
+    - the libsvm authors, for their library which made developing SVM for Stata rapid and reasonably painless
+    - [Andreas Mueller](https://github.com/amueller) for correcting our misconceptions about libsvm
+    - [Sergiy Radyakin](http://www.worldbank.org/en/about/people/sergiy-radyakin) of the World Bank and
+    - [Sergio Correia](https://github.com/sergiocorreia) of Duke University
+       for offering their experience in the tiny details of Stata
+    - [Ben Jann](https://ideas.repec.org/e/pja61.html#subaffil-body-0), Institute of Sociology, University of Bern, for his center package
+  [ ] namedrop open source     
+
+[ ] abstract
+    
 
 
 

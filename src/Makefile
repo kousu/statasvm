@@ -42,6 +42,8 @@
 all: plugin
 
 
+MAKEFLAGS+=--no-print-directory
+
 # --- includes ---
 
 # these have to come *before* the rules in this file,
@@ -138,6 +140,22 @@ bin/$(PLATFORM)/_svm.plugin: bin/$(PLATFORM)/libsvm.dll
 endif
 
 
+ifeq ($(wildcard bin/$(PLATFORM)),)
+# if bin/ does not not exist for the current platform
+# we need to do a fresh build
+# which I do with recursive make
+# TODO: GNU make's system of automatically rebuilding makefiles as needed is a way to workaround the fact that it runs all $(wildcard)s at the init
+
+rebuild:
+	$(MAKE) clean
+#	# subtlety: all -> rebuild -> plugin, all -> plugin;
+#	# if instead rebuild -> all then we would have an infinite recursive make
+	$(MAKE) plugin
+
+all: rebuild
+
+endif
+
 # --- rules ---
 
 
@@ -194,4 +212,7 @@ clean:
 
 	
 	
+
+
+
 

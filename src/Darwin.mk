@@ -33,7 +33,7 @@ LDFLAGS+=-bundle
 
 
 %.dylib: %.so
-	mv $< $@
+	$(CP) $< $@
 	$(foreach L,$(LIBS),ABS=$$(otool -L $@ | tail -n +2 | grep $L | cut -f 1 -d " ") && install_name_tool -change $$ABS $$(basename $$ABS) $@ &&) true
 
 # --- testing ---

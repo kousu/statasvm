@@ -8,6 +8,10 @@ Copyright
 
 Build
 -----
+
+
+* [ ] check if there's a way to use pattern rules for .c -> .plugin
+
 * [ ] Set up a cross-platform makefile
   * [?] Linux (32 bit and 64 bit should be identical; it's just a matter of compiling 
   * [x] Windows
@@ -35,7 +39,6 @@ Build
   * con: cannot control architecture; or else there'd have to be duplicate .dlls
    for now, they're committed; I don't know if I'll keep it like this.
 
-* [ ] check if there's a way to use pattern rules for .c -> .plugin
 
 Dist
 ---

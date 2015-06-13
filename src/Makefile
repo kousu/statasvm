@@ -38,7 +38,23 @@
 # [ ] the plugin should be a subproject with a submakefile, ideally makeable on its own but separate from the ado files
 #    that will let this build system be adapted to multi-plugin packages
 
+#this has to come before we include anything, because it has to be the first rule
+all: plugin
+
+
 # --- includes ---
+
+# these have to come *before* the rules in this file,
+# so that "make dist/svm/bin/WIN64A/libsvm.dll" will be handled by the rule in dist.mk
+# and not by the rule for %.$(DLLEXT)
+# I don't really understand
+# see https://www.gnu.org/software/make/manual/html_node/Pattern-Match.html and try to figure it out:
+# " make will choose the rule with the shortest stem "
+
+include test.mk
+
+include dist.mk
+
 
 include util.mk
 
@@ -63,8 +79,6 @@ DESCRIPTION:=Support Vector Machines for both Classification and Regression
 # {Unix,32} -> {LINUX} #because there's apparently no other Unices
 # {Unix,64} -> {LINUX64}
 
-.PHONY: all #this has to come before we include <OS>.mk, because it has to be the first rule
-all: plugin
 
 # Windows defines the OS variable, everywhere else has uname, so check for Windows first
 ifneq ($(OS),Windows_NT)
@@ -114,7 +128,8 @@ ifeq ($(OS),Windows_NT)
 # rules for automatically including bundled DLLs in the build
 # this clearly needs to be in Windows_NT.mk, but we don't have PLATFORM computed in there.. ugh
 
-bin/$(PLATFORM)/libsvm.dll: windows/$(ARCH)/libsvm.dll bin/$(PLATFORM)
+bin/$(PLATFORM)/libsvm.dll: windows/$(ARCH)/libsvm.dll
+	@$(MKDIR) $(call FixPath,$(dir $@)) 2>$(NULL) || echo >$(NULL)
 	$(LN) $(call FixPath,$<) $(call FixPath,$@)
 
 # specific dist dependencies
@@ -135,7 +150,6 @@ endif
 # generic plugin chain: _%.c -> %.o -> %.so -> bin/$(PLATFORM)/_%.plugin -> _%.plugin -> phony "plugin" target
 # (except on OS X .so is .dylib and on Windows .o is .obj and .so is .dll) 
 
-.PHONY: plugin
 plugin: $(patsubst %.c,%.plugin,$(wildcard _*.c))
 
 %.plugin: bin/$(PLATFORM)/%.plugin
@@ -143,25 +157,20 @@ plugin: $(patsubst %.c,%.plugin,$(wildcard _*.c))
 
 # prevent the platform-specific plugins getting eaten by make
 .SECONDARY: $(patsubst %.c,bin/$(PLATFORM)/%.plugin,$(wildcard _*.c)) #this is ugly because the special targets (like many things in make) can't handle patterns, so we have to generate all the files to mark explicitly
-bin/$(PLATFORM)/%.plugin: %.$(DLLEXT) bin/$(PLATFORM)
-#the silent mkdir is awkwardly written twice because windows doesn't have mkdir -p
+bin/$(PLATFORM)/%.plugin: %.$(DLLEXT)
+	@$(MKDIR) $(call FixPath,$(dir $@)) 2>$(NULL) || echo >$(NULL)
 	$(LN) $(call FixPath,$<) $(call FixPath,$@)
 
-# ensure there is somehere
-# suggestions only tell me to do mkdir silently (with @) inside of recipes that need it
-# but Windows mkdir is different from Unix mkdir,
-# and when we are cross-compiling on Windows we'd be running "mkdir bin" twice, which fails
-bin/$(PLATFORM): bin
-	cd bin && $(MKDIR) $(PLATFORM)
-
-bin:
-	$(MKDIR) bin
 	
 # append the dependencies for which belong to each specific plugin
-# You'd think you could say %.$(DLLEXT): %.$(OBJEXT) and then attach more depends on for specifics
-# but GNU make keeps pattern rules and explicit rules in almost separate namespaces
+# You'd think you could make a single pattern rule %.$(DLLEXT): %.$(OBJEXT)
+#  but attach more dependencies to specific cases as needed
+#   ---> make.html#Match_002dAnything-Rules??
+# but GNU make seems to keep pattern rules and explicit rules in separate "name"spaces
 # it would also be nice if you could edit the list of depends as if it was a target-specific variable (which, really, it is), so that I could mix branching and substitution in to autogen the depends
 # ah, I might be at the outer limits of what GNU make is usable for. le sigh.
+# TODO: check this again
+#  I think I can do $(patsubst %.c,%.$(DLLEXT),$(wildcard *.c)): %.$(DLLEXT): %.c  which says that for the explicitly named targets on the left, apply the pattern rule on the right, which might make make count this is a /non/ pattern rule.
 _svm.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _svm.c sttrampoline.c stutil.c stplugin.c)
 _svm.$(DLLEXT): libsvm_patches.$(OBJEXT)
 _svm.$(DLLEXT): LIBS += svm
@@ -169,8 +178,6 @@ _svmlight.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _svmlight.c sttrampoline.c stut
 _getenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _getenv.c stutil.c stplugin.c)
 _setenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _setenv.c stutil.c stplugin.c)
 _dlopenable.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _dlopenable.c stutil.c stplugin.c)
-
-
 
 
 
@@ -185,6 +192,6 @@ clean:
 	-$(RM) *.o *.plugin *.log *.model
 	-$(RMDIR) bin
 
-include test.mk
+	
+	
 
-include dist.mk

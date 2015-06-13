@@ -16,8 +16,6 @@ endif
 .PHONY: release
 release: ../statasvm.$(RELEASE_FORMAT)
 
-DIST:=$(wildcard *.ado *.sthlp bin/*/* ancillary/*)
-DIST:=$(patsubst %,dist/svm/%,$(DIST))
 
 ifeq ($(wildcard bin/),) #if bin/ does not not exist
 # trick make
@@ -33,12 +31,37 @@ bin-warning:
 #	files which don't exist at the start of make, because make expands depends eagerly
 	@echo --------------------------------------------------------------
 	@false
-dist: bin-warning
+
+#dist: bin-warning
+bin_target_yesplz_now:
+	$(MAKE) plugin
+
+dist: bin_target_yesplz_now
+
 endif
 
+DIST:=$(wildcard *.ado *.sthlp bin/*/* ancillary/*)
+DIST:=$(patsubst %,dist/svm/%,$(DIST))
+#$(info DIST=$(DIST))
 
-dist: dist/svm.pkg $(DIST)
-dist: dist/stata.toc
+dist: $(DIST)
+
+# copy listed files into the distribution directory
+dist/svm/%: %
+#	# make does not have any way to specify "subdirectories depend on parent directories",
+#	# so recursive make is the only way to go
+	@echo "Rule 1"
+	@-$(MKDIR) $(call FixPath,$(dir $@)) 2>$(NULL) || echo >$(NULL)
+	$(CP) $(call FixPath,$<) $(call FixPath,$@)
+
+# one of the built in rules is
+# %: %.o
+#	$(CC) $(LDFLAGS) "$<" -o "$@"
+# and the rules below are falling back on it, for some reason:
+# make dist/svm/ thinks it needs to make dist/svm/.o because it stems %=dist/svm/
+#  but if so, why doesn't "make dist/svm" do this??
+
+
 
 # tricky:
 # the mixed lazy and eager evaluation modes of make are tripping me up
@@ -49,25 +72,22 @@ dist: dist/stata.toc
 # but it *does* under "make clean; make; make dist"
 # Something is creaking badly here.
 
-# XXX clean this up
-# factor out the 'make stata repos' and 'make stata packages' parts
-dist/stata.toc: ../scripts/maketoc
-	@mkdir -p $(dir $@)
-	../scripts/maketoc $(dir $@) "$(DESCRIPTION)"
 
+.PHONY: pkg
+pkg: dist dist/svm.pkg dist/stata.toc
+
+ifneq ($(OS),Windows_NT)
+# These scripts don't work under Windows, so simply don't define them on Windows
+dist/stata.toc: ../scripts/maketoc dist
+	"$<" $(dir $@) "$(DESCRIPTION)"
 dist/stata.toc: DESCRIPTION:=nguenthe's Stata repo
 
 
-dist/%.pkg: $(DIST) ../scripts/makepluginpkg
-	@mkdir -p $(dir $@)
-	../scripts/makepluginpkg "$@" "$(DESCRIPTION)" "$(AUTHOR)"
-
-# copy listed files into the distribution directory
-dist/svm/%: %
-	@mkdir -p $(dir $@)
-	$(CP) $< $@
+dist/%.pkg: ../scripts/makepluginpkg dist 
+	"$<" "$@" "$(DESCRIPTION)" "$(AUTHOR)"
+endif
 	
-
+	
 # quick hack: deploy to my personal account
 # this puts up a Stata repo so that
 # .net from http://csclub.uwaterloo.ca/~$USER/stata/
@@ -84,8 +104,8 @@ deploy: dist
 
 
 # --- cleaning ---
-clean: clean-dist
+dist-clean: clean
 
-.PHONY: clean-dist
-clean-dist:
+.PHONY: dist-clean
+dist-clean:
 	-$(RMDIR) dist

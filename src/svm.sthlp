@@ -146,13 +146,12 @@ Then please write us with suggestions for clarification.
 {dlgtab:svm}{* this is a misuse of dlgtab because I have no corresponding dialog, but it drastically helps readability }
 
 {pstd}
-{cmd:svm} does SVM model training, otherwise known as fitting or estimation (depending on your statistical background),
-of {depvar} on predictors {indepvars}.
+{cmd:svm} fits an SVM model, fitting {depvar} to {indepvars} except under {opt type(one_class)} which only uses {indepvars}.
 
 {* MODEL PARAMS: }
 {phang}
 {marker type}{...}
-{opt type} specifies what subtype of SVM to run.{p_end}
+{opt type} specifies what type of SVM model to run.{p_end}
 {pmore}{opt c_svc} and {opt nu_svc} perform classification.{p_end}
 {pmore2}{depvar} should be a variable containing categories.
 If you try to use floating point values with classification you

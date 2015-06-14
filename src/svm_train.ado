@@ -37,6 +37,9 @@ program define svm_train, eclass
            
            // if specified, a column to generate to mark which rows were detected as SVs
            SV(string)
+           
+           // turn on internal libsvm printing
+           Verbose
          ];
   #delimit cr
   // stash because we run syntax again below, which will smash these
@@ -126,7 +129,9 @@ program define svm_train, eclass
   /* call down into C */
   /* CAREFUL: epsilon() => svm_param->p and tol() => svm_param->epsilon */ 
   #delimit ;
-  plugin call _svm `_varlist' `_if' `_in', "train"
+  plugin call _svm `_varlist' `_if' `_in',
+      `verbose'  // notice: this is *not* in quotes, which means that if it's not there it's not there at all
+      "train"
       "`type'" "`kernel'"
       "`gamma'" "`coef0'" "`degree'"
       "`c'" "`epsilon'" "`nu'"
@@ -154,5 +159,5 @@ program define svm_train, eclass
   //ereturn local indepvars = "`indepvars'" //XXX Instead svm_predict reparses cmdline. This needs vetting.
   
   // append the svm_model structure to e()
-  _svm_model2stata `_if' `_in', sv(`sv')
+  _svm_model2stata `_if' `_in', sv(`sv') `verbose'
 end

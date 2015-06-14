@@ -6,7 +6,7 @@ program _svm, plugin    // load _svm.plugin, the wrapper for libsvm
 * export a libsvm model file
 program define svm_export
   version 13
-  syntax using/
+  syntax using/, [Verbose]
   
   // ensure that there (should be) a svm_model in memory
   if("`e(model)'"!="svm") {
@@ -14,5 +14,5 @@ program define svm_export
     exit 1;
   }
 
-  plugin call _svm, "export" "`using'"
+  plugin call _svm, `verbose' "export" "`using'"
 end

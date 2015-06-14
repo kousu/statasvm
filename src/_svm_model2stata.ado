@@ -10,9 +10,8 @@ program _svm, plugin    // load _svm.plugin, the wrapper for libsvm
 * if passed, SV specifies a column to create and record svm_model->sv_indecies into
 program define _svm_model2stata, eclass
   version 13
-
   
-  syntax [if] [in], [SV(string)]
+  syntax [if] [in], [SV(string)] [Verbose]
   
   * as with loading, this has to call in and out of the plugin because chicken/egg:
   *   the plugin doesn't have permission to allocate Stata memory (in this case matrices),
@@ -39,7 +38,7 @@ program define _svm_model2stata, eclass
   local labels = ""
   
   
-  plugin call _svm `if' `in', "_model2stata" 1
+  plugin call _svm `if' `in', `verbose' "_model2stata" 1
   
   * the total number of (detected?) classes
   ereturn scalar N_class = _model2stata_nr_class
@@ -80,7 +79,7 @@ program define _svm_model2stata, eclass
   * TODO: also label the rows according to model->label (libsvm's "labels" are just more integers, but it helps to be consistent anyway);
   *  I can easily extract ->label with the same code, but attaching it to the rownames of the other is tricky
   capture noisily {
-    plugin call _svm `if' `in', "_model2stata" 2
+    plugin call _svm `if' `in', `verbose' "_model2stata" 2
 	
     // Label the resulting matrices and vectors with the 'labels' array, if we have it
     if("`labels'"!="") {
@@ -98,7 +97,7 @@ program define _svm_model2stata, eclass
       quietly generate byte `sv' = .
       quietly replace `sv' `if' `in' = 0  //because the internal format is a list of indices, to translate to indicators we need to *start* with 0s and if we see them in the list, overwrite with 1s 
       if(`have_sv_indices'==1 & `e(N_SV)'>0) {
-        plugin call _svm `sv' `if' `in', "_model2stata" 3
+        plugin call _svm `sv' `if' `in', `verbose' "_model2stata" 3
       }
     }
   }

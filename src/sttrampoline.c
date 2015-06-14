@@ -2,8 +2,7 @@
 
 #include <string.h>
 
-#include "stplugin.h"
-#include "stutil.h"
+#include "sttrampoline.h"
 
 /* Stata only lets an extension module export a single function (which I guess is modelled after each .ado file being a single function, a tradition Matlab embraced as well)
  * to support multiple routines the proper way we would have to build multiple DLLs, and to pass variables between them we'd have to figure out
@@ -13,31 +12,8 @@
  * This file can be included by any plugin which wants to use a trampoline.
  */
 
-//TODO: move this header stuff into sttrampoline.h and especially clean up the struct with a typedef
-#define SUBCOMMAND_MAX 12 //this is good to have symbolically even if it doesn't actually enforce storage limits because reasons
-                          // (if we say 'const char name[COMMAND_MAX]' then it is 
 
-extern struct {
-    const char *name;
-     ST_retcode(*func) (int argc, char *argv[]);
-} subcommands[];
-
-
-
-
-
-
-
-/* the Stata plugin interface is really really really basic:
- * . plugin call var1 var2, op1 op2 77 op3
- * causes argv to contain "op1", "op2", "77", "op3", and
- * /implicitly/, var1 and var2 are available through the macros SF_{nvars,{v,s}{data,store}}().
- *  (The plugin doesn't get to know (?) the names of the variables in `varlist'. [citation needed])
- *
- * The SF_mat_<op>(char* M, ...) macros access matrices in Stata's global namespace, by their global name.
- */
-STDLL stata_call(int argc, char *argv[])
-{
+ST_retcode sttrampoline(int argc, char* argv[]) {
     for (int i = 0; i < argc; i++) {
         stdebug("argv[%d]=%s\n", i, argv[i]);
     }
@@ -67,4 +43,5 @@ STDLL stata_call(int argc, char *argv[])
 
     return 1;
 }
+
 

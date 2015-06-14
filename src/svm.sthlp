@@ -59,7 +59,7 @@
 
 {syntab:Performance}
 {synopt :{opth tol:erance(svm##tolerance:#)}}The stopping tolerance used to decide when convergence has happened. Default: {cmd:epsilon(0.001)}{p_end}
-{synopt :{opt v:erbose}}Turns on {help svm##verbose:verbose mode}. NOT IMPLEMENTED. Default: disabled{p_end}
+{synopt :{opt v:erbose}}Turns on {help svm##verbose:verbose mode}. Default: disabled{p_end}
 {synopt :{opth cache:_size(svm##cache_size:#)}}The size of the RAM cache used during fitting, in megabytes. Default: 100MB ({cmd:cache_size(100)}){p_end}
 
 {synoptline}
@@ -77,7 +77,7 @@ INCLUDE help fvvarlist
 {synopthdr}
 {synoptline}
 {synopt :{opt prob:ability}}If specified, estimate class probabilities for each observation. This only makes sense for classification problems.{p_end}
-
+{synopt :{opt v:erbose}}Turns on {help svm##verbose:verbose mode}. Default: disabled{p_end}
 
 
 {p 8 16 2}
@@ -90,7 +90,7 @@ INCLUDE help fvvarlist
 {synopthdr}
 {synoptline}
 {synopt :{opt using}}The filename to export to or import from a fitted libsvm model.{p_end}
-
+{synopt :{opt v:erbose}}Turns on {help svm##verbose:verbose mode}. Default: disabled{p_end}
 
 {marker description}{...}
 {title:Description}

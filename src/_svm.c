@@ -11,6 +11,7 @@
 
 #include "libsvm_patches.h"
 #include "stutil.h"
+#include "sttrampoline.h"
 #include "_svm.h"
 
 
@@ -48,6 +49,9 @@ static void libsvm_error(const char *s)
 }
 #endif
 
+static void libsvm_nodisplay(const char *s)
+{
+}
 
 // Stata's original language provided no encapsulation, and though it now has OOP (`help class`),
 // most of the core functions don't use it. The expectation is instead that returns
@@ -429,10 +433,7 @@ ST_retcode _model2stata(int argc, char *argv[])
 
 
 
-struct {
-    const char *name;
-     ST_retcode(*func) (int argc, char *argv[]);
-} subcommands[] = {
+struct subcommand_t subcommands[] = {
     {"train", train},
     {"predict", predict},
     {"export", export},
@@ -767,15 +768,35 @@ ST_retcode import(int argc, char *argv[])
 
 
 
+STDLL stata_call(int argc, char *argv[])
+{
+    if(strncmp(argv[0], "verbose", 7) == 0) {
+        argc--; argv++;
+        
+        svm_set_print_string_function(libsvm_display);
+#ifdef HAVE_SVM_PRINT_ERROR
+        svm_set_error_string_function(libsvm_error);
+#endif
+    }
+    ST_retcode r = sttrampoline(argc, argv);
+    
+    
+    svm_set_print_string_function(libsvm_nodisplay);
+#ifdef HAVE_SVM_PRINT_ERROR
+    svm_set_error_string_function(libsvm_nodisplay);
+#endif
+    
+    return r;
+}
+
 
 
 
 int stata_init() {
-    svm_set_print_string_function(libsvm_display);
+    svm_set_print_string_function(libsvm_nodisplay);
 #ifdef HAVE_SVM_PRINT_ERROR
-    svm_set_error_string_function(libsvm_error);
+    svm_set_error_string_function(libsvm_nodisplay);
 #endif
     return 0;
 }
 
-// stata_call is not here. it is in sttrampoline.c

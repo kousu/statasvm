@@ -5,7 +5,7 @@ program _svm, plugin    // load _svm.plugin, the wrapper for libsvm
 
 program define svm_predict, eclass
   version 13
-  syntax newvarname [if] [in], [PROBability]
+  syntax newvarname [if] [in], [PROBability] [Verbose]
   local target = "`varlist'"
   local _in = "`in'" //these need to be stashed because the hack below will smash them
   local _if = "`if'"
@@ -93,6 +93,5 @@ program define svm_predict, eclass
   // Subtlety: we don't quote levels, on the assumption that it is always a list of integers;
   //           that way, the levels are pre-tokenized and the count easily available as argc
   
-  //di as txt "svm_predict: plugin call _svm `target' `varlist' `_if' `_in', predict `probability'" /*DEBUG*/
-  plugin call _svm `target' `varlist' `_if' `_in', predict `probability'
+  plugin call _svm `target' `varlist' `_if' `_in', `verbose' predict `probability'
 end

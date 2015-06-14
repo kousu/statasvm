@@ -8,12 +8,10 @@
 #include <errno.h>
 
 #include "stutil.h"
+#include "sttrampoline.h"
 #include "_svmlight.h"
 
-struct {
-    const char *name;
-     ST_retcode(*func) (int argc, char *argv[]);
-} subcommands[] = {
+struct subcommand_t subcommands[] = {
     {"import", import},
     {"export", export},
     {NULL, NULL}
@@ -220,6 +218,15 @@ cleanup:
   
   return err;
 }
+
+
+
+
+STDLL stata_call(int argc, char *argv[])
+{
+    return sttrampoline(argc, argv);
+}
+
 
 
 int stata_init() {

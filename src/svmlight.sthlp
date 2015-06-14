@@ -28,7 +28,7 @@
 export_svmlight {varlist} using {filename}
 
 {p 8 16 2}
-import_svmlight {using} {filename}
+import_svmlight using {filename}[, clip]
 
 {synoptset 20 tabbed}{...}
 {synopthdr}
@@ -50,6 +50,8 @@ The kind libsvm authors even provide a {browse "http://www.csie.ntu.edu.tw/~cjli
 
 {pstd}
 {cmd:import_svmlight} loads the a dataset svmlight format into Stata (clearing the current dataset). The outcome variable will become the first column.
+{opt clip} tells the importer to silently drop trailing columns if there are more than {help matsize} allows.
+
 
 {pstd}
 The svmlight format is designed to hold a single outcome variable and a sparse set of predictor variables.

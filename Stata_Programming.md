@@ -21,3 +21,15 @@ Crash course in Stata programming
 *   however when used to load extensions with "program <name>, plugin" it (apparently) is smart enough to create the name binding in whatever namespace it is being run in *without actually reloading the plugin*
 *   this means that you can just put "program <name>, plugin" at the top of each .ado file that needs it, each will load it into their namespace, and behind the scenes the single instance of the plugin can share data between the ado files
   this is a lot like how python works, actually: "program <name>, plugin" is like "import" rather than "define" (but program define is something else)
+  
+  
+  
+  
+  /* the Stata plugin interface is really really really basic:
+ * . plugin call var1 var2, op1 op2 77 op3
+ * causes argv to contain "op1", "op2", "77", "op3", and
+ * /implicitly/, var1 and var2 are available through the macros SF_{nvars,{v,s}{data,store}}().
+ *  (The plugin doesn't get to know (?) the names of the variables in `varlist'. [citation needed])
+ *
+ * The SF_mat_<op>(char* M, ...) macros access matrices in Stata's global namespace, by their global name.
+ */

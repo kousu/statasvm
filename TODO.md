@@ -44,7 +44,7 @@ Dist
 ---
 
 
-[ ] 'make dist-clean' and *don't* erase dist/ during clean
+[x] 'make dist-clean' and *don't* erase dist/ during clean
   that way you should be able to:
   - net-mount the repo remotely from several systems
   - 'make clean; make dist' on all of them
@@ -85,7 +85,7 @@ Documentation
 -------------
 
 
-[ ] comment out norm, until we decide what we are going to do with it
+[x] comment out norm, until we decide what we are going to do with it
 [ ] better parameter descriptions (mine sklearn for this)
 
 [ ] make examples
@@ -106,7 +106,8 @@ Documentation
   * [ ] custom kernel (port from sklearn?)
 
 
-[ ] Nick: remind Schonlau to ask about click-to-run before the Stata conference
+[ ] make click-to-run examples in the docs
+  --> twoway_area.sthlp shows how to do this
 
 [ ] duplicate the See Alsos to an actual section (because smcl isn't smart enough to figure this out for us)
 
@@ -139,20 +140,13 @@ Features
 * [ ] predict, replace
 
 
-* [ ] 'verbose' option which sets/unsets svm_print_function as required.
+* [x] 'verbose' option which sets/unsets svm_print_function as required.
   * [ ] implement reading c() to tweak off the dupe output: http://www.statalist.org/forums/forum/general-stata-discussion/general/1295308-bundling-dlls-in-pkgs?p=1296985#post1296985
      -> output should be duped when in c(mode)==batch, because it's a thing I use for debugging the batch runs lest they crash, but otherwise should only go to Stata's normal output
-  * [ ] printing the svm_param should get run through verbose
-    this is what sklearn does: 
-```
-    /* provide convenience wrapper */
-void set_verbosity(int verbosity_flag){
-	if (verbosity_flag)
-		svm_set_print_string_function(&print_string_stdout);
-	else
-		svm_set_print_string_function(&print_null);
-}
-```
+  * [ ] svm_parameter_pprint() should always be run, but it should be run *through the libsvm print function* so that the 'verbose' setting controls it,
+        I can't actually access that function directly, so I'll need to wrap
+
+
 * [ ] handle fvs (i.varname, etc)
   - plugin call can't handle fvs, but I can use xi: to fudge them
     however there is a strange bug: xi doesn't work as advertised; is it just with 
@@ -163,7 +157,7 @@ void set_verbosity(int verbosity_flag){
   * [ ] svm_param->random_state (i.e. RNG seed)
  either get this in upstream or just switch to sklearn's fork
 
-* [ ] 'normalize' to automatically normalize the data
+* [ON HOLD] 'normalize' to automatically normalize the data
    -> implement this with the 'center' package
       -> use ensureado with it, *but only if the user tries to use normalize*, so that if it's not installed or if the package somehow leaves ssc it's not a problem
     [ ] Schonlau: ask Ben Jann about running center on a column with variance 0

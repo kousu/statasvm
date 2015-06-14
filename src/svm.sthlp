@@ -24,10 +24,10 @@
 {title:Syntax}
 
 {p 8 16 2}
-{help svm##svm:svm} {depvar} {indepvars} {ifin}{* [{it:{help svm##weight:weight}}] } [{cmd:,} {it:options}]
+{help svm##svm:svm} {depvar} {indepvars} {ifin} [{cmd:,} {it:options}]
 
 {p 8 16 2}
-{help svm##svm:svm} {indepvars} {ifin}{* [{it:{help svm##weight:weight}}] }, type({help svm##one_class:one_class}) [{it:options}]
+{help svm##svm:svm} {indepvars} {ifin}, type({help svm##one_class:one_class}) [{it:options}]
 
 {synoptset 20 tabbed}{...}
 {synopthdr}
@@ -52,7 +52,7 @@
 
 
 {syntab:Features}
-{synopt :{opt norm:alize}}Whether to {help svm##normalize:center and scale} the data. NOT IMPLEMENTED. Default: disabled{p_end}
+{* {synopt :{opt norm:alize}}Whether to {help svm##normalize:center and scale} the data. NOT IMPLEMENTED. Default: disabled{p_end} }
 {synopt :{opt prob:ability}}Whether to {help svm##probability:prepare} for "predict, prob" during estimation. Only applicable to classification problems. Default: disabled{p_end}
 {synopt :{opth sv:(svm##sv:newvarname)}}If given, an indicator variable to generate to mark each row as a support vector or not. Default: disabled{p_end}
 
@@ -89,7 +89,7 @@ INCLUDE help fvvarlist
 {synoptset 20 tabbed}{...}
 {synopthdr}
 {synoptline}
-{synopt :{cmd: using}}The filename to export or import a fitted libsvm model from, conventionally ending in '.model'.{p_end}
+{synopt :{cmd: using}}The filename to export to or import from a fitted libsvm model.{p_end}
 
 
 {marker description}{...}
@@ -99,11 +99,20 @@ INCLUDE help fvvarlist
 {cmd:svm} fits a support vector machine (SVM) model.
 SVM is not one, but several, variant models each based upon the principles of
 splitting hyperplanes and the culling of unimportant observations.
-The name comes from these two parts:
-each observation in a dataset can be thought of as a (typically high-dimensional) linear algebra vector,
-and the {it:support vectors} are those observations which the algorithm detects are critical to the fit.
-The non-support observations are ignored after fitting is done, which makes SVM very memory efficient.
-See {help svm##svmtutorial:this SVM tutorial} for a gentle introduction to the method.
+
+{pstd}
+The basic SVM idea is to find a linear boundary---a hyperplane---in high-dimensional space:
+for classification, this is a boundary between two classes;
+for regression it is a line {help svm##epsilon:near} which points should be--much like in {help regess:OLS},
+while simultaneously minimizing the number of observations required to distinguish
+this hyperplane.
+The unimportant observations are ignored after fitting is done, which makes SVM very memory efficient.
+
+{pstd}
+Each observation can be thought of as a vector, in the linear algebra sense,
+so the {it:support vectors} are those observations which the algorithm deems critical to the fit.
+
+{pstd}
 
 {pstd}
 This package is a thin wrapper for the widely deployed {help svm##libsvm:libsvm},
@@ -112,28 +121,23 @@ On Windows, libsvm.dll is bundled with the package,
 and you can find it in your {help adopath} (try {cmd:findfile libsvm.dll} to verify this).
 On OS X, libsvm is available in both {browse "https://brew.sh":brew} and {browse "https://www.macports.org":macports}.
 On Linux, search for libsvm in your distribution's package manager.
-You can also compile and install libsvm from source, which you would need to do if your package manager has an older or no version of libsvm.
+You can also compile and install libsvm from source, 
+if you cannot find it in your package manager or if you want the latest libsvm.
 If you are having plugin load errors, please {help svm##authors:contact the authors},
-as we want to make the experience as smooth as possible for our users.
+as we want to make the experience as smooth as possible for our users across as many platforms as possible.
 
 {pstd}
-The thinness of this wrapper is an intentional feature which means work done under
+The thinness of this wrapper is an intentional feature. It means work done under
 Stata-SVM should be replicable with other libsvm wrappers such as
-{browse "http://weka.wikispaces.com/LibSVM":Weka} or {browse "http://scikit-learn.org/stable/modules/svm.html":sklearn}, or {browse "":}.
-Please do {help svm##authors:send us feature requests},
-but unless they are Stata-specific we would rather try to
-get them into libsvm first so that everyone can benefit.
+{browse "http://weka.wikispaces.com/LibSVM":Weka} or
+{browse "http://scikit-learn.org/stable/modules/svm.html":sklearn}.
+We will {help svm##authors:listen to} feature requests,
+but mostly we will try to get features rolled into libsvm
+so that everyone can benefit unless the feature really is Stata-specific.
 
 {pstd}
-Not all combinations of options are valid, and you will get an error if you specify an invalid combination.
-Amongst valid combinations, not all options and datasets will give good results.
-Our goal is to have sane defaults,
-so that the only choice you need to make is what {help svm##type:type} and {help svm##kernel:kernel} to use,
-but to offer access to all parameters so they can be tweaked for difficult datasets.
-The {help svm##libsvmguide:libsvm guide} covers issues in parameter specification.
-
-{pstd}
-If this manual leaves you confused, refer to the authoratative source:
+See {help svm##svmtutorial:this SVM tutorial} for a gentle introduction to the method.
+IF this manual is confusing, refer to the authoritative
 the libsvm {browse "http://www.csie.ntu.edu.tw/~cjlin/libsvm/faq.html":FAQ},
 {browse "https://github.com/cjlin1/libsvm/blob/master/README":README},
 and {help svm##libsvm:implementation paper}.
@@ -148,10 +152,21 @@ Then please write us with suggestions for clarification.
 {pstd}
 {cmd:svm} fits an SVM model, fitting {depvar} to {indepvars} except under {opt type(one_class)} which only uses {indepvars}.
 
+{pstd}
+libsvm has several algorithms with a single entry point. Since this is a thin wrapper, so do we.
+Hence, awkwardly, not all combinations of options are valid.
+You will get an error if you specify an invalid combination.
+Further, amongst valid combinations, not all options and datasets will give good results.
+Our goal is to have sane defaults,
+so that the only choice you usually need to make is what {help svm##type:type} and {help svm##kernel:kernel} to use,
+but there is no way to give reasonable defaults for all datasets.
+The {help svm##libsvmguide:libsvm guide} covers issues in parameter specification.
+
+
 {* MODEL PARAMS: }
 {phang}
 {marker type}{...}
-{opt type} specifies what type of SVM model to run.{p_end}
+{opt type} specifies which SVM model to run.{p_end}
 {pmore}{opt c_svc} and {opt nu_svc} perform classification.{p_end}
 {pmore2}{depvar} should be a variable containing categories.
 If you try to use floating point values with classification you
@@ -164,6 +179,11 @@ should use regression instead.{p_end}
 {pmore2}Multiclass classification is automatically handled using the {browse "http://en.wikipedia.org/wiki/Multiclass_classification":one-against-one} method.
 You do not need to do anything special to invoke it.{p_end}
 
+{pmore}{opt epsilon_svr} and {opt nu_svr} perform regression.{p_end}
+{pmore2}{depvar} should be a variable containing continuous values.{p_end}
+{pmore2}While you can use this with discrete {depvar}s, it is more common to use it with continuous ones.{p_end}
+{pmore2}See {help svm##svr_tutorial:the SVR tutorial} for more details.{p_end}
+
 {marker one_class}{...}
 {pmore}{opt one_class} separates outliers from the bulk of the data.{p_end}
 {pmore2}{opt one_class} does not take a {depvar} because it is a form of unsupervised learning: all the information it uses is in the predictors themselves.{p_end}
@@ -172,29 +192,28 @@ You do not need to do anything special to invoke it.{p_end}
  this just interprets your {depvar} as one of the {indepvars},
  giving {opt one_class} more information to work with.{p_end}
 
-{pmore}{opt epsilon_svr} and {opt nu_svr} perform regression.{p_end}
-{pmore2}{depvar} should be a variable containing continuous values.{p_end}
-{pmore2}While you can use this with discrete {depvar}s, it is more common to use it with continuous ones.{p_end}
-{pmore2}See {help svm##svr_tutorial:the SVR tutorial} for more details.{p_end}
-
-{pmore}To learn about the {opt c}/{opt nu} distinction, see {help svm##nusvm:Chen and Lin's ν-SVM tutorial}.{p_end}
+{pmore}To learn about the {opt nu} variants, see {help svm##nusvm:Chen and Lin's ν-SVM tutorial}.{p_end}
 
 {pmore}{opt type} is case insensitive.{p_end}
+
 
 {phang}
 {marker kernel}{...}
 {opt kernel} gives a kernel function to use.
-The basic SVM idea is to find a linear boundary in high-dimensional space (a hyperplane):
-for classification, this is a boundary between two classes;
-for regression it is a line {help svm##p:near} which predictions are expected to cluster--much like in {help regess:OLS}.
-Much real data is not straight but the {browse "https://en.wikipedia.org/wiki/Kernel_Method":kernel trick} makes SVM
-flexible by making a space non-linear under a high-dimensional mapping.
+The basic SVM algorithm is based on linear, euclidean, space. Much like {help glm:GLMs},
+ {browse "https://en.wikipedia.org/wiki/Kernel_Method":kernels}
+ extend the algorithm to nonlinear data.{p_end}
+{pmore}
+.
+Kernels effectively bend a linear space into a non-linear one with a high-dimensional mapping.
 See {browse "https://www.youtube.com/watch?v=3liCbRZPrZA"} for a visualization of this process.
-The part that makes it a {it:trick} is that the fit can be done efficiently without constructing the high-dimensional points,
-as the estimation only cares about a scalar value <u,v>, the output of the kernel function for coefficients u on support vector v,
-which is used in scoring the fit [CITATION NEEDED],
-and for certain kernels this value can be computed straight
-from the original data without doing the expensive high-dimensional mapping at all.{p_end}
+{p_end}
+{pmore}
+The clever part---and the reason why the set of kernels is hardcoded---is that
+for certain kernels [CITATION NEEDED] the fit can be done efficiently without
+actually constructing the high-dimensional points, as the estimation only cares
+scoring coefficients u using the output of the kernel, not the output of the values the kernel
+is, in theory, operating upon.{p_end}
 
 {pmore}Kernels available in this implementation are:{p_end}
 {pmore2}{opt linear} means the linear kernel you are probably familiar with from {help regress:OLS}: u'*v{p_end}
@@ -253,20 +272,22 @@ Except it is not used in the {opt rbf} kernel as {opt rbf} is essentially a dist
 which reduce can improve the fit by trading bias for variance: by giving up accuracy in the estimates,
 variance of the estimates can be reduced, which is sometimes better overall.
 
-{* FEATURE PARAMS: }
-{marker normalize}{...}
-{phang}
-{opt normalize} instructs the estimation to first center and scale the data
-as SVM tends to be very sensitive to scaling issues.
-This normalizes all data to [0,1] using min-max normalization, as suggested in the {help svm##libsvmguide:libsvm guide}.
-Normalization creates temporary variables, so you may prefer to preprocess the data yourself---destructively and in-place---to save time on re-estimations and memory for variables,
-especially if you are bumping up against your Stata system limits. You may find {cmd:ssc install norm} helpful.
+{* FEATURE PARAMS: }{...}
+{* {marker normalize}{...} }
+{* {phang} }{...}
+{* {opt normalize} instructs the estimation to first center and scale the data }{...}
+{* as SVM tends to be very sensitive to scaling issues. }{...}
+{* This normalizes all data to [0,1] using min-max normalization, as suggested in the {help svm##libsvmguide:libsvm guide}. }{...}
+{* Normalization creates temporary variables, so you may prefer to preprocess the data yourself---destructively and in-place---to save time on re-estimations and memory for variables, }{...}
+{* especially if you are bumping up against your Stata system limits. You may find {cmd:ssc install center} helpful }{...}
 
 {phang}
 {marker probability}{...}
 {opt probability} enables the use of "{help svm##predict_prob:predict, prob}".
-This requires precomputing class-against-class probability estimates with a 5-fold cross-validation,
-and so takes a great deal of additional CPU and RAM.
+That does {browse "https://en.wikipedia.org/wiki/Platt_scaling":Platt scaling},
+so for each class-against-class this precomputes a logistic regression 
+which is tuned with 5-fold cross-validation,
+hence enabling this takes a great deal of additional CPU and RAM.
 
 {phang}
 {marker sv}{...}
@@ -374,11 +395,6 @@ Do not confuse these commands with {cmd:import_svmlight} and {cmd:export_svmligh
         {hline}
 --- use hacks + kernel(precomputed)
         {hline}
-
-{title:Example:  weighted regression}
-
-{pstd}
-Not currently implemented.
 
 
 {marker results}{...}

@@ -36,17 +36,17 @@
 {synopt :{opth t:ype(svm##type:type)}}Type of model to fit: {opt c_svc}, {opt nu_svc}, {opt one_class}, {opt epsilon_svr}, or {opt nu_svr}. Default: {cmd:type(c_svc)}{p_end}
 {synopt :{opth k:ernel(svm##kernel:kernel)}}SVM kernel function to use: {opt linear}, {opt poly}, {opt rbf}, {opt sigmoid}, or {opt precomputed}. Default: {cmd:kernel(rbf)}{p_end}
 
-{synopt :{opth deg:ree(svm##degree:degree)}}For {opt poly} kernels, the degree of the polynomial to use. Default: cubic ({cmd:degree(3)}){p_end}
+{synopt :{opth deg:ree(svm##degree:#)}}For {opt poly} kernels, the degree of the polynomial to use. Default: cubic ({cmd:degree(3)}){p_end}
 
 {* XXX the division between 'tuning' and 'model' parameters is hazy; e.g. you could in theory cross-validate to choose degree (and people do this with neural networks), or even to choose the kernel . hmmmmm}{...}
 
 {syntab:Tuning}
-{synopt :{opth c:(svm##c:c)}}For {opt c_svc}, {opt epsilon_svr} and {opt nu_svr} SVMs, this is a regularization parameter which weights the slack variables. Should be > 0. Default: {cmd:c(1)}{p_end}
-{synopt :{opth eps:ilon(svm##epsilon:eps)}}For {opt epsilon_svr} SVMs, the margin of error allowed for to count something as a support vector. Default: {cmd:p(0.1)}{p_end}
-{synopt :{opth nu:(svm##nu:nu)}}For {opt nu_svc}, {opt one_class}, and {opt nu_svr} SVMs, tunes the number of supports vectors. Should be in (0, 1]. Default: {cmd:nu(0.5)}{p_end}
+{synopt :{opth c:(svm##c:#)}}For {opt c_svc}, {opt epsilon_svr} and {opt nu_svr} SVMs, this is a regularization parameter which weights the slack variables. Should be > 0. Default: {cmd:c(1)}{p_end}
+{synopt :{opth eps:ilon(svm##epsilon:#)}}For {opt epsilon_svr} SVMs, the margin of error allowed for to count something as a support vector. Default: {cmd:p(0.1)}{p_end}
+{synopt :{opth nu:(svm##nu:#)}}For {opt nu_svc}, {opt one_class}, and {opt nu_svr} SVMs, tunes the proportion of expected support vectors. Should be in (0, 1]. Default: {cmd:nu(0.5)}{p_end}
 
-{synopt :{opth gamma:(svm##gamma:gamma)}}For {opt poly}, {opt rbf} and {opt sigmoid} kernels, a scaling factor for the linear part of the kernel. Default: {cmd:gamma(1/[# {indepvars}])}{p_end}
-{synopt :{opth coef0:(svm##coef0:coef0)}}For {opt poly} and {opt sigmoid} kernels, a bias ("intercept") term for the linear part of the kernel. Default: {cmd:coef0(0)}{p_end}
+{synopt :{opth gamma:(svm##gamma:#)}}For {opt poly}, {opt rbf} and {opt sigmoid} kernels, a scaling factor for the linear part of the kernel. Default: {cmd:gamma(1/[# {indepvars}])}{p_end}
+{synopt :{opth coef0:(svm##coef0:#)}}For {opt poly} and {opt sigmoid} kernels, a bias ("intercept") term for the linear part of the kernel. Default: {cmd:coef0(0)}{p_end}
 
 {synopt :{opt shrink:ing}}Whether to use {help svm##shrinking:shrinkage} heuristics to improve the fit. Default: disabled{p_end}
 
@@ -58,9 +58,9 @@
 
 
 {syntab:Performance}
-{synopt :{opth tol:erance(svm##tolerance:tol)}}The stopping tolerance used to decide when convergence has happened. Default: {cmd:epsilon(0.001)}{p_end}
+{synopt :{opth tol:erance(svm##tolerance:#)}}The stopping tolerance used to decide when convergence has happened. Default: {cmd:epsilon(0.001)}{p_end}
 {synopt :{opt v:erbose}}Turns on {help svm##verbose:verbose mode}. NOT IMPLEMENTED. Default: disabled{p_end}
-{synopt :{opth cache:_size(svm##cache_size:cache)}}The size of the RAM cache used during fitting, in megabytes. Default: 100MB ({cmd:cache_size(100)}){p_end}
+{synopt :{opth cache:_size(svm##cache_size:#)}}The size of the RAM cache used during fitting, in megabytes. Default: 100MB ({cmd:cache_size(100)}){p_end}
 
 {synoptline}
 {pstd}All variables must be numeric, including categorical variables,
@@ -76,7 +76,7 @@ INCLUDE help fvvarlist
 {synoptset 20 tabbed}{...}
 {synopthdr}
 {synoptline}
-{synopt :{cmdab:prob:ability}}If specified, estimate class probabilities for each observation. This only makes sense for classification problems.{p_end}
+{synopt :{opt prob:ability}}If specified, estimate class probabilities for each observation. This only makes sense for classification problems.{p_end}
 
 
 
@@ -89,7 +89,7 @@ INCLUDE help fvvarlist
 {synoptset 20 tabbed}{...}
 {synopthdr}
 {synoptline}
-{synopt :{cmd: using}}The filename to export to or import from a fitted libsvm model.{p_end}
+{synopt :{opt using}}The filename to export to or import from a fitted libsvm model.{p_end}
 
 
 {marker description}{...}
@@ -155,18 +155,19 @@ Then please write us with suggestions for clarification.
 {pstd}
 libsvm has several algorithms with a single entry point. Since this is a thin wrapper, so do we.
 Hence, awkwardly, not all combinations of options are valid.
-You will get an error if you specify an invalid combination.
-Further, amongst valid combinations, not all options and datasets will give good results.
+Usually, libsvm will give an error if you specify an invalid combination,
+but sometimes it just ignores the extra parameters {bf:without telling you}.
+Further, amongst valid combinations, not all options and datasets give good results.
 Our goal is to have sane defaults,
 so that the only choice you usually need to make is what {help svm##type:type} and {help svm##kernel:kernel} to use,
 but there is no way to give reasonable defaults for all datasets.
-The {help svm##libsvmguide:libsvm guide} covers issues in parameter specification.
+The {help svm##libsvmguide:libsvm guide} has in-depth coverage of issues in parameter specification.
 
 
 {* MODEL PARAMS: }
 {phang}
 {marker type}{...}
-{opt type} specifies which SVM model to run.{p_end}
+{opt type(type)} specifies which SVM model to run.{p_end}
 {pmore}{opt c_svc} and {opt nu_svc} perform classification.{p_end}
 {pmore2}{depvar} should be a variable containing categories.
 If you try to use floating point values with classification you
@@ -176,7 +177,7 @@ If you end up with almost as many classes as observations,
 you have probably used a continuous {depvar} and
 should use regression instead.{p_end}
 
-{pmore2}Multiclass classification is automatically handled using the {browse "http://en.wikipedia.org/wiki/Multiclass_classification":one-against-one} method.
+{pmore2}Multiclass classification is automatically handled using the {browse "http://en.wikipedia.org/wiki/Multiclass_classification":class-against-class} method.
 You do not need to do anything special to invoke it.{p_end}
 
 {pmore}{opt epsilon_svr} and {opt nu_svr} perform regression.{p_end}
@@ -194,22 +195,22 @@ You do not need to do anything special to invoke it.{p_end}
 
 {pmore}To learn about the {opt nu} variants, see {help svm##nusvm:Chen and Lin's ν-SVM tutorial}.{p_end}
 
-{pmore}{opt type} is case insensitive.{p_end}
+{pmore}{it:type} is case insensitive.{p_end}
 
 
 {phang}
 {marker kernel}{...}
-{opt kernel} gives a kernel function to use.
+{opt kernel(kernel)} gives a kernel function to use.
 The basic SVM algorithm is based on linear, euclidean, space. Much like {help glm:GLMs},
- {browse "https://en.wikipedia.org/wiki/Kernel_Method":kernels}
- extend the algorithm to nonlinear data.{p_end}
+ the {browse "https://en.wikipedia.org/wiki/Kernel_Method":kernel trick}
+ extends the algorithm to nonlinear data.{p_end}
 {pmore}
-.
-Kernels effectively bend a linear space into a non-linear one with a high-dimensional mapping.
+Kernels in essense bend a non-linear space into a linear one by applying a high-dimensional mapping.
+Under high enough dimensions, any set of data looks close to linear.
 See {browse "https://www.youtube.com/watch?v=3liCbRZPrZA"} for a visualization of this process.
 {p_end}
 {pmore}
-The clever part---and the reason why the set of kernels is hardcoded---is that
+The trick part---and the reason why the set of kernels is hardcoded---is that
 for certain kernels [CITATION NEEDED] the fit can be done efficiently without
 actually constructing the high-dimensional points, as the estimation only cares
 scoring coefficients u using the output of the kernel, not the output of the values the kernel
@@ -218,15 +219,15 @@ is, in theory, operating upon.{p_end}
 {pmore}Kernels available in this implementation are:{p_end}
 {pmore2}{opt linear} means the linear kernel you are probably familiar with from {help regress:OLS}: u'*v{p_end}
 {pmore2}{opt poly} is (gamma*u'*v + coef0)^degree{p_end}
-{pmore2}{opt rbf} stands for Radial Basis Functions, and treats the coefficients as a mean to smoothly approach in a ball, with the form exp(-gamma*|u-v|^2); this kernel tends to be good at [...].{p_end}
-{pmore2}{opt sigmoid} is a kernel which bends the linear kernel to fit in -1 to 1, similar to {help logistic} regression: tanh(gamma*u'*v + coef0){p_end}
+{pmore2}{opt rbf} stands for Radial Basis Functions, and treats the coefficients as a mean to smoothly approach in a ball, with the form exp(-gamma*|u-v|^2); this kernel tends to be good at [TODO].{p_end}
+{pmore2}{opt sigmoid} is a kernel which bends the linear kernel to fit in -1 to 1 with tanh(gamma*u'*v + coef0). {help logistic} regression uses the similar logistic function for a sigmoidal non-linearity.{p_end}
 {pmore2}{opt precomputed} assumes that {depvar} is actually a list of precomputed kernel values. With effort, you can use this to use custom kernels with your data [TODO].{p_end}
 
-{pmore}{opt kernel} is case insensitive.{p_end}
+{pmore}{it:kernel} is case insensitive.{p_end}
 
 {phang}
 {marker degree}{...}
-{opt degree} selects the degree of the polynomial used by the {opt poly} kernel.
+{opt degree(#)} selects the degree of the polynomial used by the {opt poly} kernel.
 Setting this too high will result in overfitting. Setting it too low may result in non-convergence.
 [TODO: tips about choosing this]
 
@@ -234,19 +235,19 @@ Setting this too high will result in overfitting. Setting it too low may result 
 {* TUNING PARAMS: }
 {phang}
 {marker c}{...}
-{opt c} weights (regularizes) the slack variables used in {opt c_svc}, {opt epsilon_svr} and {opt nu_svr}.
+{opt c(#)} weights (regularizes) the slack variables used in {opt c_svc}, {opt epsilon_svr} and {opt nu_svr}.
 If your fit is poor, try cranking this up.
 {* XXX NOT TRUE: This will pre-multiply any sample-specific {opt weight}s. }
 
 {phang}
 {marker epsilon}{...}
-{opt epsilon} is the margin of error allowed by {opt epsilon_svr}.
+{opt epsilon(#)} is the margin of error allowed by {opt epsilon_svr}.
 Larger makes your fit more able to incorporate more observations, but can lead to underfitting.
 Smaller can lead to overfitting.
 
 {phang}
 {marker nu}{...}
-{opt nu} is used in the nu variants.
+{opt nu(#)} is used in the nu variants.
 The nu variants are a reparamaterization of regular SVM which lets you directly tune,
 using {opt nu}, the tradeoff between error and computation.
 {opt nu} is an upper bound on the fraction of training errors and a lower bound of the
@@ -257,12 +258,12 @@ See {help svm##nusvm:the ν-SVM tutorial} for details.
 
 {phang}
 {marker gamma}{...}
-{opt gamma} is used in the non-linear kernels as a scaling factor for the linear part, as seen above.
+{opt gamma(#)} is used in the non-linear kernels as a scaling factor for the linear part, as seen above.
 [TODO: tips about choosing this]
 
 {phang}
 {marker coef0}{...}
-{opt coef0} similarly is used in the non-linear kernels as a pseudo-intercept term.
+{opt coef0(#)} similarly is used in the non-linear kernels as a pseudo-intercept term.
 Except it is not used in the {opt rbf} kernel as {opt rbf} is essentially a distance function, and biasing would be pointless.[???]
 [TODO: tips about choosing this]
 
@@ -291,13 +292,13 @@ hence enabling this takes a great deal of additional CPU and RAM.
 
 {phang}
 {marker sv}{...}
-{opt sv} records in the given variable a boolean indicating whether each observation was a support vector or not.
+{opt sv(newvarname)} records in the given variable a boolean indicating whether each observation was determined to be a support vector.
 
 
 {* PERFORMANCE PARAMS: }
 {phang}
 {marker tolerance}{...}
-{opt tolerance} is the stopping tolerance used by the numerical optimizer. You could widen this if you are finding convergence is slow,
+{opt tolerance(#)} is the stopping tolerance used by the numerical optimizer. You could widen this if you are finding convergence is slow,
  but be aware that this usually non-convergence is a deeper problem in the interaction of data, kernel, and tuning parameters.
 
 {phang}
@@ -306,7 +307,7 @@ hence enabling this takes a great deal of additional CPU and RAM.
 
 {phang}
 {marker cache_size}{...}
-{opt cache_size} controls a time-memory tradeoff during estimation.
+{opt cache_size(#)} controls a time-memory tradeoff during estimation.
 Value is how many megabytes (MB) of RAM to set aside for caching data points as the optimizer is iterated.
 Generally, more is faster, at least until you run out of RAM or cause your machine to start swapping.
 
@@ -354,7 +355,7 @@ When you import, [TODO: some properties] will be missing because the import was 
 {opt verbose}: see {help svm##verbose:svm, verbose}.
 
 {pstd}
-Do not confuse these commands with {cmd:import_svmlight} and {cmd:export_svmlight}.
+Do not confuse these commands with {help svmlight:import_svmlight and export_svmlight}.
 
 
 {marker examples}{...}

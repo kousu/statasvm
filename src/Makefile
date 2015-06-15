@@ -39,7 +39,7 @@
 #    that will let this build system be adapted to multi-plugin packages
 
 #this has to come before we include anything, because it has to be the first rule
-all: plugin
+all: plugin svm_examples.ihlp
 
 
 MAKEFLAGS+=--no-print-directory
@@ -200,6 +200,10 @@ _setenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _setenv.c stutil.c stplugin.c)
 _dlopenable.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _dlopenable.c stutil.c stplugin.c)
 ensurelib: ensurelib.ado _getenv.plugin _setenv.plugin _dlopenable.plugin
 
+EXAMPLES:=classification multiclass_classification probability regression factors
+EXAMPLES:=$(patsubst %,ancillary/%_example.do,$(EXAMPLES))
+svm_examples.ihlp: $(EXAMPLES)
+	../scripts/example2smcl $^ > $@
 
 # --- Cleaning ---
 
@@ -209,7 +213,7 @@ ensurelib: ensurelib.ado _getenv.plugin _setenv.plugin _dlopenable.plugin
 .PHONY: clean
 # *.log *should* get cleaned up by the testing recipe, but in case it doesn't or you have made some manually we clean it again here
 clean:
-	-$(RM) *.o *.plugin *.log *.model
+	-$(RM) *.o *.plugin *.log *.model *.ihlp
 	-$(RMDIR) bin
 
 	

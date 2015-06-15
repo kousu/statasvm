@@ -23,7 +23,7 @@ release: ../statasvm.$(RELEASE_FORMAT)
 dist: all
 	$(MAKE) _dist
 
-DIST:=$(wildcard *.ado *.sthlp bin/*/* ancillary/*)
+DIST:=$(wildcard *.ado *.sthlp *.ihlp bin/*/* ancillary/*)
 DIST:=$(patsubst %,dist/svm/%,$(DIST))
 #$(info DIST=$(DIST)) #DEBUG
 _dist: $(DIST)

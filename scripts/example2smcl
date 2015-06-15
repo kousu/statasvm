@@ -1,0 +1,61 @@
+#!/usr/bin/awk -f
+
+# TODO: instead of just printing extra blanks between sections
+#       keep a second trigger variable and intelligently place extra space around the code blocks when they start or finish
+
+BEGIN {
+  F=FILENAME
+}
+
+# handle the start of a new example .do file
+# 
+# this is an edge-triggered event handler
+# triggered by FILENAME changing values
+# (we track the old value in F).
+F != FILENAME {
+  
+  if(F) {
+      # if there was a previous file
+      # close the current one's tags
+      #print "{hline}"
+      print ""
+  }
+  
+  F=FILENAME
+  
+  # print the filename as a section header
+  DESC=FILENAME
+  #extract basename, without 
+  sub("^.*/","",DESC)
+  sub("_example\\.do$","",DESC) #without the suffix
+  # underscores to spaces
+  gsub("_"," ",DESC)
+  print "{title:Examples: " DESC "}"
+
+  #print "{hline}"
+}
+
+# these are an if-else chain
+# where the 'else' is "they didn't hit the 'next' command"
+/^[[:space:]]*\/\*/ {
+  # bolded comments
+  sub("^[[:space:]]*/\\*","")
+  sub("\\*/[[:space:]]*","")
+  print "" #blank line
+  print "{pstd}{bf:" $0 "}{p_end}"
+}
+
+/^[[:space:]]*\/\/[[:space:]]*/ {
+sub("^[[:space:]]*\/\/[[:space:]]*", "")
+  # regular comments
+  print "" #blank line
+  print "{pstd}" $0 "{p_end}"
+  next
+}
+
+{
+  # everything else
+  print "{phang2}{cmd:. " $0 "}{p_end}"
+  next
+}
+

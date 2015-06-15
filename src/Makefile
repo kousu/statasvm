@@ -152,7 +152,9 @@ rebuild:
 #	# if instead rebuild -> all then we would have an infinite recursive make
 	$(MAKE) plugin
 
+# override the definition of all
 all: rebuild
+	@echo -n
 
 endif
 

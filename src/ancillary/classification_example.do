@@ -1,30 +1,25 @@
+/* basic binary classification */
+
 // setup
 sysuse auto
 
-/* basic binary classification */
+// Machine learning methods like SVM are a black-box and it is very easy to overfit them.
+// To compensate, it is important to split data into training and testing sets, fit on
+// the former and measure performance on the latter, so that performance measurements
+// are not artificially inflated by data they've already seen.
+local split = floor(_N/2)
+local train = "1/`=`split'-1'"
+local test = "`split'/`=_N'"
 
-// train on about half the data, with 'verbose'
-drop make // this is a string variable, which svm cannot handle
-order foreign // put this first, which means it will be the dependent variable
-svm * if !missing(rep78), v
+// Fit the classification model, with 'verbose' enabled.
+// Training cannot handle missing data, so it needs to be elided.
+svm foreign price-gear_ratio if !missing(rep78) in `train', v
 
-// various technical details, constructed by the estimation
-ereturn list
-matrix list e(sv_coef)
-matrix list e(rho)
-
-// predict
-// notice: you need not skip missing data here for
-//         during predict (but only during prediction) missing data produces missing
-//         this is like glm and regress [CITATION NEEDED]
-predict P
-
-// look at some of the results
-list foreign P in 1/10
-tab foreign
-tab P
+// Predict
+// Unlike training, predict simply predicts missing if any data is missing.
+predict P in `test'
 
 // compute error rate
 // the mean of the "in correct" variable is equal to the percentage of errors
-gen err = foreign != P if !missing(P)
-sum err
+gen err = foreign != P in `test'
+sum err in `test'

@@ -1,37 +1,21 @@
-// setup
-use multiclass_on_indicators
-
 /* basic multiclass classification */
 
-svm category q*
-predict P
+// setup
+use attitude_indicators
 
-// look at some of the results
-list category P in 20/35
-  // true categories
-tab category
-  // predicted categories
-tab P
+local split = floor(_N*3/4)
+local train = "1/`=`split'-1'"
+local test = "`split'/`=_N'"
+
+// In general, you need to do grid-search to find good tuning parameters.
+// These values just happened to be good enough.
+svm category q* in `train', kernel(poly) gamma(0.5) coef0(7)
+
+predict P in `test'
 
 // compute error rate
-gen err = category != P
-sum err
-
-// ouch! those results are terrible! it predicted everything into one class
-drop P
-
-/* now, with tuning */
-
-// In general, you need to do grid-search to find optimal tuning
-// parameters. These values just happened to be good enough.
-svm category q*, kernel(poly) gamma(0.5) coef0(7)
-
-predict P
-
-// the results are a lot better now
-tab P
-replace err = category != P
-sum err
+replace err = category != P in `test'
+sum err in `test'
 
 // however, this is cheating, because we trained on the whole dataset
 // and svm can overfit by remembering each observation as an SV:

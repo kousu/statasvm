@@ -362,44 +362,8 @@ Do not confuse these commands with {help svmlight:import_svmlight and export_svm
 
 
 {marker examples}{...}
-{title:Examples:  classification}
 
-        {hline}
-{phang2}{cmd:. webuse highschool, clear}{p_end}
-{phang2}{cmd:. svm gender}{p_end}
-{phang2}{cmd:. ereturn list}{p_end}
-{phang2}{cmd:. predict P, prob}{p_end}
-        {hline}
-
-{title:Examples:  regression, suppressing sv_coef}
-
-        {hline}
-{phang2}{cmd:. sysuse auto, clear}{p_end}
-        {hline}
-
-{title:Examples:  classification with tuning}
-
-        {hline}
-{phang2}{cmd:. webuse regsmpl, clear}{p_end}
-        {hline}
-        
-{title:Examples:  viewing support vectors}
-
---- crosstab sv against category and compare to nSV
-
-{title:Examples:  forecasting}
-
-        {hline}
---- train on one set of data, generate more observations, predict
-        {hline}
-
-
-{title:Examples:  custom kernel}
-
-        {hline}
---- use hacks + kernel(precomputed)
-        {hline}
-
+INCLUDE help svm_examples
 
 {marker results}{...}
 {title:Stored results}

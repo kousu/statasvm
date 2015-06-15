@@ -203,7 +203,7 @@ ensurelib: ensurelib.ado _getenv.plugin _setenv.plugin _dlopenable.plugin
 EXAMPLES:=classification multiclass_classification probability regression factors
 EXAMPLES:=$(patsubst %,ancillary/%_example.do,$(EXAMPLES))
 svm_examples.ihlp: $(EXAMPLES)
-	../scripts/example2smcl $^ > $@
+	../scripts/example2smcl -v PKG=svm $^ > $@
 
 # --- Cleaning ---
 

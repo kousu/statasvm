@@ -5,6 +5,9 @@
 
 BEGIN {
   F=FILENAME
+  if(PKG=="") {
+    PKG="UNKNOWN_PACKAGE"
+  }
 }
 
 # handle the start of a new example .do file
@@ -15,19 +18,15 @@ BEGIN {
 F != FILENAME {
   
   if(F) {
+      close_example()
       # if there was a previous file
-      # close the current one's tags
-      #print "{hline}"
-      print ""
   }
   
   F=FILENAME
   
   # print the filename as a section header
-  DESC=FILENAME
-  #extract basename, without 
-  sub("^.*/","",DESC)
-  sub("_example\\.do$","",DESC) #without the suffix
+  #extract basename, without the _example.do suffix 
+  DESC=example_basename(FILENAME)
   # underscores to spaces
   gsub("_"," ",DESC)
   print "{title:Examples: " DESC "}"
@@ -59,3 +58,34 @@ sub("^[[:space:]]*\/\/[[:space:]]*", "")
   next
 }
 
+
+END {
+  close_example()
+}
+
+function open_example() {
+
+}
+
+function close_example() {
+      # close the current one's tags
+      #print "{hline}"
+      print ""
+      print "{pstd}{it:({stata \"example " PKG " " example_basename(FILENAME) "\":click to run})}{p_end}"
+      print ""
+
+}
+
+
+function example_basename(n) {
+  n = basename(n)
+  sub("_example$", "", n)
+  return n
+}
+
+## Utilities
+function basename(n) {
+  sub("^.*/","",n)
+  sub("\\..*$","",n) #without the suffix
+  return n
+}

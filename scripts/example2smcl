@@ -8,7 +8,6 @@ BEGIN {
   if(PKG=="") {
     PKG="UNKNOWN_PACKAGE"
   }
-  MODE=""
 }
 
 # handle the start of a new example .do file
@@ -31,13 +30,7 @@ F != FILENAME {
 # these are an if-else chain
 # where the 'else' is "they didn't hit the 'next' command"
 /^[[:space:]]*\/\*/ {
-  # bolded comments
-  
-  if(MODE!="comment") {
-    print "" #blank line
-    MODE="comment"
-  }
-  
+  # bolded comments 
   sub("^[[:space:]]*/\\*","")
   sub("[[:space:]]*\\*/[[:space:]]*","")
   print "{pstd}{bf:" $0 "}{p_end}"
@@ -47,12 +40,6 @@ F != FILENAME {
 /^[[:space:]]*\/\/[[:space:]]*/ {
 sub("^[[:space:]]*\/\/[[:space:]]*", "")
   # regular comments
-
-  if(MODE!="comment") {
-    print "" #blank line
-    MODE="comment"
-  }
-  
   print "{pstd}" $0 "{p_end}"
   next
 }
@@ -65,11 +52,6 @@ sub("^[[:space:]]*\/\/[[:space:]]*", "")
 
 {
   # everything else is code
-  if(MODE!="comment") {
-    print "" #blank line
-    MODE="code"
-  }
-
   print "{phang2}{cmd:. " $0 "}{p_end}"
   next
 }

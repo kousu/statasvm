@@ -1,25 +1,33 @@
+// setup
+sysuse auto
 
-webuse highschool
+/* basic binary classification */
 
-// train on about half the data
-svm sex /*i.sex*/ height weight /*i.state*/ in 1/2000, verbose
+// train on about half the data, with 'verbose'
+drop make // this is a string variable, which svm cannot handle
+order foreign // put this first, which means it will be the dependent variable
+svm * if !missing(rep78), v
 
-// predict on the other half
-predict P in 2001/`=_N'
+// various technical details, constructed by the estimation
+ereturn list
+matrix list e(sv_coef)
+matrix list e(rho)
+
+// predict
+// notice: you need not skip missing data here for
+//         during predict (but only during prediction) missing data produces missing
+//         this is like glm and regress [CITATION NEEDED]
+predict P
 
 // look at some of the results
-list sex /*sex*/ height weight /*state*/ P in 3453/3496
-  // true categories
-tab sex in 2001/`=_N'
-  // predicted categories
-tab P in 2001/`=_N'
-
+list foreign P in 1/10
+tab foreign
+tab P
 
 // compute error rate
 // the mean of the "in correct" variable is equal to the percentage of errors
-// sublety: make sure to only generate this on the set you actually predicted on
-//          because of how Stata handles missing data:
-//          Stata considers <category> != . to be 1, not ., which inflates the error
-gen err = sex != P in  2001/`=_N'
+gen err = foreign != P if !missing(P)
 sum err
+
+
 

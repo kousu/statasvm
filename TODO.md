@@ -1,4 +1,4 @@
-TODO
+eTODO
 ====
 
 Copyright
@@ -89,21 +89,27 @@ Documentation
 [ ] better parameter descriptions (mine sklearn for this)
 
 [ ] make examples
-  = [ ] duplicate all these as both ancillary .do files and do 'click to run' in the docs
-  * [ ] binary classification
+  = [/] duplicate all these as both ancillary .do files and do 'click to run' in the docs
+  * [x] binary classification
       "auto" dataset
-  * [ ] multiclass classification with 'prob'
+     --> show 
+
+  * [x] multiclass classification with 'prob'
     also demonstrate the sv() option, including crosstabbing it with the 
       so I want a dataset with a *lot* of rows:
 
       the "highschool" dataset is perfect
       demonstrate tuning c() changes the results
-  * [ ] svr
+  * [x] svr
     and demonstrate tuning eps() changes the results
   * [ ] one class
     the same lots-of-rows dataset
-  * [ ] factor variables
-  * [ ] demonstrate that predict and predict, prob are different
+  * [x] tuning
+  * [x] sv()
+  * [x] , prob
+  * [x] factor variables
+        also show off "predict, replace" here
+  * [x] demonstrate that predict and predict, prob are different
   * [ ] custom kernel (port from sklearn?)
 
 
@@ -138,7 +144,8 @@ Features
 --------
 
 
-* [ ] predict, replace
+* [WONTFIX] predict, replace
+   stanard predict doesn't have this, so no
 
 
 * [x] 'verbose' option which sets/unsets svm_print_function as required.

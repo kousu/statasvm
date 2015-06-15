@@ -21,4 +21,3 @@ tab P in `test'
 // compute error rate
 gen err = race != P in `test'
 sum err
-

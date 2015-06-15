@@ -24,14 +24,7 @@ F != FILENAME {
   
   F=FILENAME
   
-  # print the filename as a section header
-  #extract basename, without the _example.do suffix 
-  DESC=example_basename(FILENAME)
-  # underscores to spaces
-  gsub("_"," ",DESC)
-  print "{title:Examples: " DESC "}"
-
-  #print "{hline}"
+  open_example()
 }
 
 # these are an if-else chain
@@ -42,6 +35,7 @@ F != FILENAME {
   sub("\\*/[[:space:]]*","")
   print "" #blank line
   print "{pstd}{bf:" $0 "}{p_end}"
+  next
 }
 
 /^[[:space:]]*\/\/[[:space:]]*/ {
@@ -49,6 +43,12 @@ sub("^[[:space:]]*\/\/[[:space:]]*", "")
   # regular comments
   print "" #blank line
   print "{pstd}" $0 "{p_end}"
+  next
+}
+
+/^[[:space:]]*$/ {
+  # blank lines
+  print ""
   next
 }
 
@@ -63,17 +63,24 @@ END {
   close_example()
 }
 
-function open_example() {
 
+function open_example() {
+  # print the filename as a section header
+  #extract basename, without the _example.do suffix 
+  DESC=example_basename(FILENAME)
+  # underscores to spaces
+  gsub("_"," ",DESC)
+  print "{title:Examples: " DESC "}"
+
+  #print "{hline}"
 }
 
 function close_example() {
-      # close the current one's tags
-      #print "{hline}"
-      print ""
-      print "{pstd}{it:({stata \"example " PKG " " example_basename(FILENAME) "\":click to run})}{p_end}"
-      print ""
-
+  # close the current one's tags
+  #print "{hline}"
+  print ""
+  print "{pstd}{it:({stata \"example " PKG " " example_basename(FILENAME) "\":click to run})}{p_end}"
+  print ""
 }
 
 
@@ -82,6 +89,8 @@ function example_basename(n) {
   sub("_example$", "", n)
   return n
 }
+
+
 
 ## Utilities
 function basename(n) {

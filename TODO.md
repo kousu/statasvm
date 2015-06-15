@@ -90,7 +90,7 @@ Documentation
 
 [ ] make examples
   ---> examples should all involve normalizing the data
-  = [/] duplicate all these as both ancillary .do files and do 'click to run' in the docs
+  = [x] duplicate all these as both ancillary .do files and do 'click to run' in the docs
   * [x] binary classification
       "auto" dataset
      --> show 

@@ -28,6 +28,3 @@ tab P
 // the mean of the "in correct" variable is equal to the percentage of errors
 gen err = foreign != P if !missing(P)
 sum err
-
-
-

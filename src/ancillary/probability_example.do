@@ -1,11 +1,11 @@
 // setup
 webuse highschool
 
-/* estimating class probabilities */
-
 local split = floor(_N/2)
 local train = "1/`=`split'-1'"
 local test = "`split'/`=_N'"  
+
+/* estimating class probabilities */
 
 svm race height weight in `train', prob
 

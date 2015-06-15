@@ -1,11 +1,11 @@
 // setup
 webuse highschool
 
-/* basic multiclass classification */
-
 local split = floor(_N/2)
 local train = "1/`=`split'-1'"
 local test = "`split'/`=_N'"  
+
+/* basic multiclass classification */
 
 // train on about half the data
 svm weight height i.race i.sex in `train', type(epsilon_svr) sv(Is_SV)
@@ -32,4 +32,3 @@ gen err = abs(weight - P) in `test'
 sum err
 
 drop P Is_SV err
-

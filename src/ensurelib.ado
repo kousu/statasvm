@@ -60,9 +60,15 @@
  * [ ] Is this worth factoring further? maybe "prependpath" could come out?
  */
 
+capture noisily {
 program _getenv, plugin
 program _setenv, plugin
 program _dlopenable, plugin
+}
+if(_rc != 0) {
+  di as error "ensurelib's prerequisites are missing. If you are running this from the source repo you need to 'make'."
+  exit _rc
+}
 
 program define ensurelib
   gettoken libname 0 : 0

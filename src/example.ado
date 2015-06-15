@@ -33,7 +33,7 @@ program define example
   if(_rc != 0) {
     // download ancillaries, which should include the examples
     di as txt "Downloading `pkg' ancillary files"
-    do capture noisily net get `pkg'
+    capture noisily net get `pkg'
     capture findfile `example'_example.do
     if(_rc != 0) {
       di as error "Unable to find `example' example."

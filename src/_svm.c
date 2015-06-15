@@ -268,15 +268,6 @@ ST_retcode _model2stata(int argc, char *argv[])
 		
         if (model->label) {
             for (int i = 0; i < model->nr_class; i++) {
-                /* copy out model->label */
-                // TODO: destroy me, since strLabels serves the same purpose more conveniently
-                err = SF_mat_store("labels", i + 1, 1, (ST_double) (model->label[i]));  /* the name has been intentionally changed for readability */
-                if (err) {
-                    sterror("error writing to labels\n");
-                    //XXX memory leak
-                    //return err;
-                }
-                
                 /* copy out model->label *as a string of space separated tokens; this is a shortcut for 'matrix rownames' */
                 snprintf(buf, sizeof(buf), " %d", model->label[i]);
                 strlcat(strLabels, buf, lstrLabels);

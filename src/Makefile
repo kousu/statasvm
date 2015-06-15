@@ -201,7 +201,7 @@ _dlopenable.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _dlopenable.c stutil.c stplug
 ensurelib: ensurelib.ado _getenv.plugin _setenv.plugin _dlopenable.plugin
 
 
-EXAMPLES:=binary_classification multiclass_classification class_probability regression
+EXAMPLES:=binary_classification multiclass_classification class_probability regression oneclass
 EXAMPLES:=$(patsubst %,ancillary/%_example.do,$(EXAMPLES))
 ifeq ($(OS),Windows_NT)
 svm_examples.ihlp:

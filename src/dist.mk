@@ -6,6 +6,9 @@
 #     unfortunately, because it is impossible to do all the building on one machine,
 #     this only collects whatever it finds. You will need to manually merge the various builds.
 
+DEPLOY_HOST:=csclub.uwaterloo.ca
+DEPLOY_PATH:=www/stata
+
 $(call FixPath,../statasvm.%):
 #at this writing, git doesn't let you say ".." as a path: it thinks it's "out of the repository", so instead we cd and hardcode the filename
 	cd .. && git archive --format=$* -o statasvm.$* HEAD
@@ -64,7 +67,7 @@ endif
 deploy: pkg
 	find dist/ -type d -exec chmod 755 {} \;
 	find dist/ -type f -exec chmod 644 {} \;
-	rsync -e ssh -av --progress --delete dist/ csclub.uwaterloo.ca:www/stata
+	rsync -e ssh -av --progress --delete dist/ $(DEPLOY_HOST):$(DEPLOY_PATH)
 
 
 # --- cleaning ---

@@ -89,7 +89,7 @@ Documentation
 [ ] better parameter descriptions (mine sklearn for this)
 
 [ ] make examples
-  = [ ] duplicate all these as ancillary .do files
+  = [ ] duplicate all these as both ancillary .do files and do 'click to run' in the docs
   * [ ] binary classification
       "auto" dataset
   * [ ] multiclass classification with 'prob'
@@ -103,6 +103,7 @@ Documentation
   * [ ] one class
     the same lots-of-rows dataset
   * [ ] factor variables
+  * [ ] demonstrate that predict and predict, prob are different
   * [ ] custom kernel (port from sklearn?)
 
 

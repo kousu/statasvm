@@ -234,6 +234,7 @@ Setting this too high will result in overfitting. Setting it too low may result 
 
 {* TUNING PARAMS: }
 {phang}
+{marker tuning_params}{...}
 {marker c}{...}
 {opt c(#)} weights (regularizes) the slack variables used in {opt c_svc}, {opt epsilon_svr} and {opt nu_svr}.
 If your fit is poor, try cranking this up.
@@ -324,6 +325,8 @@ Generally, more is faster, at least until you run out of RAM or cause your machi
 {marker predict_prob}{...}
 {phang}For classification ({opt c_svc}, {opt nu_svc}) problems, {opt probability} requests, for each observation, the probability of it being each class.
 {newvar} is used as a stem for the new columns.
+Both probabilities and predictions are decided with Platt Scaling, rather than the normal method, and is not guaranteed to give the same results
+as non-probability predictions. If you are getting inconssistent results, investigate the {help svm##tuning_params:tuning} parameters.
 This option is not valid for other SVM types.{p_end}
 
 {phang}

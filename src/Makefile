@@ -200,10 +200,16 @@ _setenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _setenv.c stutil.c stplugin.c)
 _dlopenable.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _dlopenable.c stutil.c stplugin.c)
 ensurelib: ensurelib.ado _getenv.plugin _setenv.plugin _dlopenable.plugin
 
+
 EXAMPLES:=classification multiclass_classification probability regression factors
 EXAMPLES:=$(patsubst %,ancillary/%_example.do,$(EXAMPLES))
+ifeq ($(OS),Windows_NT)
+svm_examples.ihlp:
+	echo "This section was built on Windows so I don't know who we am." > $@
+else
 svm_examples.ihlp: $(EXAMPLES)
 	../scripts/example2smcl -v PKG=svm $^ > $@
+endif
 
 # --- Cleaning ---
 

@@ -33,7 +33,7 @@ TESTS:=$(patsubst %.do,%,$(TESTS))
 tests/%: %.log
 	@echo - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	@echo ---------------------------------------------------------------
-	$(CAT) $(call FixPath,$<)
+	@$(CAT) $(call FixPath,$<)
 	@echo ---------------------------------------------------------------
 	@echo - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -64,13 +64,13 @@ tests: $(TESTS)
 #
 # The order of dependencies *is the order the commands are concatenated*.
 tests/wrapped/%.do: tests/wrapped tests/helpers/settings.do tests/%.do
-# 'set trace' gets reset to its old value when a 'do' ends
-# since half the point of settings.do is 'set trace on'
-# we need to instead frankenstein settings.do inline into the final .do file
+#	# 'set trace' gets reset to its old value when a 'do' ends
+#	# since half the point of settings.do is 'set trace on'
+#	# we need to instead frankenstein settings.do inline into the final .do file
 	echo quietly { > $(call FixPath,$@)
 	$(CAT) $(call FixPath,tests/helpers/settings.do) >> $(call FixPath,$@)
 	echo } >> $(call FixPath,$@)
-# now include the actual content
+#	# now include the actual content
 	echo do $(call FixPath,tests/$*.do) >> $(call FixPath,$@)
 	
 # it's a bad idea to have directories as targets, but there's no cross-platform way to say "if directory already exists, don't make it";
@@ -82,7 +82,7 @@ tests/wrapped:
 #  because Stata doesn't have a tty mode, to fake having stdout we cat Stata's <testname>.log (note that this is in the current directory, not the directory the .do file is in!),
 #  which it generates when run in batch mode, and we mark this .INTERMEDIATE so that make knows to delete it immediately
 %.log: tests/wrapped/%.do
-	"$(STATA)" -e $(call FixPath,$<)
+	"$(STATA)" -q -e $(call FixPath,$<)
     
 #.INTERMEDIATE: $(patsubst test_%,%.log,$(TESTS)) # this is commented out because it breaks under Win32 gmake, causing the files to *not* be deleted at finish.
 

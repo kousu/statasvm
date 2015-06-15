@@ -155,9 +155,11 @@ Features
         I can't actually access that function directly, so I'll need to wrap
 
 
-* [ ] handle fvs (i.varname, etc)
+* [x] handle fvs (i.varname, etc)
   - plugin call can't handle fvs, but I can use xi: to fudge them
     however there is a strange bug: xi doesn't work as advertised; is it just with 
+    bug: xi runs in the global scope and so can't access my inner routines.
+    fix: break up svm_train so that I have a global to call xi upon
 
 
 * [ ] sklearn's fork of libsvm adds

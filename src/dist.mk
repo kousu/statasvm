@@ -61,11 +61,10 @@ endif
 # Of course, proper deployment means publishing in the Stata journal and a posting to the SSC
 # which is not something that can be automated.
 .PHONY: deploy
-deploy: dist
-	-ssh csclub.uwaterloo.ca -- rm -r www/stata
-	scp -r dist/ csclub.uwaterloo.ca:www/stata
-	ssh csclub.uwaterloo.ca -- 'find www/stata -type d -exec chmod 755 {} \;'
-	ssh csclub.uwaterloo.ca -- 'find www/stata -type f -exec chmod 644 {} \;'
+deploy: pkg
+	find dist/ -type d -exec chmod 755 {} \;
+	find dist/ -type f -exec chmod 644 {} \;
+	rsync -e ssh -av --progress --delete dist/ csclub.uwaterloo.ca:www/stata
 
 
 # --- cleaning ---

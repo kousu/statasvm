@@ -1,3 +1,4 @@
 # hide my ancillary/ symlink hack
 # shhhh, nothing to see here
 /*.do
+/dist

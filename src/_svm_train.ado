@@ -3,7 +3,7 @@
 ensurelib_aberrance svm // check for libsvm
 program _svm, plugin    // load _svm.plugin, the wrapper for libsvm
 
-program define svm_train, eclass
+program define _svm_train, eclass
   version 13
   
   // these defaults were taken from svm-train.c

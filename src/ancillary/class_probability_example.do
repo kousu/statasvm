@@ -1,6 +1,4 @@
-/* multiclass classification with probability estimates */
-
-// setup
+// Setup
 use attitude_indicators
 
 local split = floor(_N*3/4)
@@ -13,12 +11,12 @@ predict P in `test'
 // the value in column P matches the column P_<attitude> with the highest probability
 list category P* in `test'
 
-// compute error rate
+// Compute error rate.
 replace err = category != P in `test'
 sum err in `test'
 
-// beware: predict, prob is a *different algorithm* than predict:
+// Beware: predict, prob is a *different algorithm* than predict, and will give disagree about predictions.
+// This disagreement can become absurd when combined with poor tuning.
 predict P2 in `test'
 gen agree = P == P2 in `test'
 sum agree in `test'
-

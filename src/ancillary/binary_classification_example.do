@@ -1,6 +1,4 @@
-/* basic binary classification */
-
-// setup
+// Setup
 sysuse auto
 
 // Machine learning methods like SVM are a black-box and it is very easy to overfit them.
@@ -11,15 +9,14 @@ local split = floor(_N/2)
 local train = "1/`=`split'-1'"
 local test = "`split'/`=_N'"
 
-// Fit the classification model, with 'verbose' enabled.
-// Training cannot handle missing data, so it needs to be elided.
+// Fit the classification model, with 'verbose' enabled, on the training set.
+// Training cannot handle missing data; here we elide it, but usually you should impute.
 svm foreign price-gear_ratio if !missing(rep78) in `train', v
 
-// Predict
+// Predict on the test set.
 // Unlike training, predict simply predicts missing if any data is missing.
 predict P in `test'
 
-// compute error rate
-// the mean of the "in correct" variable is equal to the percentage of errors
+// Compute error rate.
 gen err = foreign != P in `test'
 sum err in `test'

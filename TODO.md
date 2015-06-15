@@ -1,4 +1,4 @@
-eTODO
+TODO
 ====
 
 Copyright
@@ -89,6 +89,17 @@ Documentation
 [ ] better parameter descriptions (mine sklearn for this)
 
 [ ] make examples
+  [x] BUG: example.ado crashes *if the dataset has been edited*
+  [x] "optimal" -> "good" to avoid pickiness
+  [x] probability -> class_probabilities
+  [ ] don't use "svm *" because that's poor form
+  [ ] roll the factor example into a passing comment in one of the others
+  [ ] don't stuff spare lines between each whitespace---instead put it on switch between modes
+  [ ] first example doesn't work: something is wrong with 'verbose'
+  [ ] the examples should all show variants of exactly one process:
+    split, train, predict, error rate
+    my idea of evolving examples to demonstrate should be left for the paper
+  ---> examples should all involve
   ---> examples should all involve normalizing the data
   = [x] duplicate all these as both ancillary .do files and do 'click to run' in the docs
   * [x] binary classification
@@ -249,6 +260,7 @@ Maintenance
   -> stata2svm_node(int i, int start, int end), returns NULL if it finds missing data or otherwise fucks up
      -> or maybe we want to be able to signal errors
 
+- [ ] silence complaints about unable-to-write-to this-or-that
 
 Bugs
 ----
@@ -429,7 +441,9 @@ We are going to submit a paper to the [Stata Journal](http://www.stata-journal.c
  - but the instructions say "ASCII and Word contributions will be accepted."
 
 [ ] find Nick Cox papers and read them
+[ ] read Schonlau's papers to get an idea of style
 [ ] read the entire libsvm guide carefully
+[ ] read the libsvm implementation paper
    
 
 Sections (in probable order of writing):

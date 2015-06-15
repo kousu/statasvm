@@ -69,7 +69,7 @@ function open_example() {
   # underscores to spaces
   gsub("_"," ",DESC)
   print "{title:Examples: " DESC "}"
-
+  print "" #blank line
   #print "{hline}"
 }
 

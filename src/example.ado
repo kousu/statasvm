@@ -47,6 +47,7 @@ program define example
   qui snapshot save  // this is faster(?) than preserve, and seems to be just as effective, although it requires manual restoration at the end
   local snapshot = `r(snapshot)'
   //preserve
+  qui clear
   
   // run example
   capture noisily do `example'_example.do

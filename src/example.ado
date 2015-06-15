@@ -49,7 +49,7 @@ program define example
   //preserve
   
   // run example
-  do `example'_example.do
+  capture noisily do `example'_example.do
   
   qui snapshot restore `snapshot'
   //restore // this is unneeded, because this runs automatically at scope end

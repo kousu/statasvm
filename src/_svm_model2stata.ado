@@ -92,13 +92,13 @@ program define _svm_model2stata, eclass
   
   * Phase 3
   * Export the SVs 
-  capture noisily {
-    if("`sv'"!="") {
-      quietly generate byte `sv' = .
-      quietly replace `sv' `if' `in' = 0  //because the internal format is a list of indices, to translate to indicators we need to *start* with 0s and if we see them in the list, overwrite with 1s 
-      if(`have_sv_indices'==1 & `e(N_SV)'>0) {
-        plugin call _svm `sv' `if' `in', `verbose' "_model2stata" 3
-      }
+  if(`have_sv_indices'==1 & `e(N_SV)'>0 & "`sv'"!="") {
+    capture noisily {
+      // he internal libsvm format is a list of indices
+      // we want indicators, which are convenient for Stata
+      // so we  *start* with all 0s (rather than missings) and overwrite with 1s as we discover SVs
+      quietly generate `sv' `if' `in' = 0
+      plugin call _svm `sv' `if' `in', `verbose' "_model2stata" 3
     }
   }
   

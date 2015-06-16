@@ -4,9 +4,9 @@
 {viewerjumpto "Syntax" "svm##syntax"}{...}
 {viewerjumpto "Description" "svm##description"}{...}
 {viewerjumpto "Options" "svm##options"}{...}
-{viewerjumpto "Examples" "svm##examples"}{...}
 {viewerjumpto "Stored results" "svm##results"}{...}
-{viewerjumpto "Gotchas" "svm##gotchas"}{...}
+{viewerjumpto "Remarks" "svm##remarks"}{...}
+{viewerjumpto "Examples" "svm##examples"}{...}
 {viewerjumpto "Copyright" "svm##copyright"}{...}
 {viewerjumpto "Authors" "svm##authors"}{...}
 {viewerjumpto "References" "svm##references"}{...}
@@ -361,9 +361,6 @@ When you import, [TODO: some properties] will be missing because the import was 
 Do not confuse these commands with {help svmlight:import_svmlight and export_svmlight}.
 
 
-{marker examples}{...}
-
-INCLUDE help svm_examples
 
 {marker results}{...}
 {title:Stored results}
@@ -400,14 +397,13 @@ If {opt e(N_SV)}/{opt e(N)} is close to 100% your fit is inefficient; perhaps yo
 {* {synopt:{cmd:e(estat_cmd)}}program used to implement {cmd:estat}{p_end} }{...}
 
 {synoptset 20 tabbed}{...}
-{p2col 5 20 24 2: Matrices}({help svm##gotchas:may be missing}){p_end}
+{p2col 5 20 24 2: Matrices}({help svm##remarks:may be missing}){p_end}
 {synopt:{cmd:e(sv_coef)}}The coefficients of the support vectors for each fitted hyperplane. [TODO]{p_end}
 {synopt:{cmd:e(rho)}}The intercept term for each fitted hyperplane. It is lower-triangular and {cmd:e(N_class)}^2 large, with each entry [i,j] representing the hyperplane between class i and class j.{p_end}
 
 
-{* XXX this section title should be more formal}{...}
-{marker gotchas}{...}
-{title:Gotchas}
+{marker remarks}{...}
+{title:Remarks}
 
 {pstd}
 {bf:Memory Limits}: The cheaper versions of Stata allow only allow less variables and smaller matrices to be used.
@@ -423,6 +419,9 @@ This will have been installed with the libsvm package if you used a package mana
 you can get it {browse "http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/libsvm.cgi?+http://www.csie.ntu.edu.tw/~cjlin/libsvm+zip":from its authors};
 You can use {help svmlight:export svmlight} to extract your dataset for use with {cmd:svm-train}.
 
+{marker examples}{...}
+
+INCLUDE help svm_examples
 
 {marker copyright}{...}
 {title:Copyright}

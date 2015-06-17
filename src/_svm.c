@@ -203,6 +203,7 @@ int cmp_int(const void * a, const void * b)
 ST_retcode _model2stata(int argc, char *argv[])
 {
     ST_retcode err = 0;
+    double z;
 
     if (argc != 1) {
         sterror("Wrong number of arguments\n");
@@ -284,19 +285,21 @@ ST_retcode _model2stata(int argc, char *argv[])
 
         /* copy out model->sv_coef */
         // TODO: this should first check if the matrix exists (by trying to read it?)
-        for (int i = 0; i < model->nr_class - 1; i++) { //the -1 is taken directly from <svm.h>! (plus this segfaults if it tries to read a next row). Because...between k classes there's k-1 decisions? or something? I wish libsvm actually explained itself.
-            for (int j = 0; j < model->l; j++) {
-                err =
-                    SF_mat_store("sv_coef", i + 1, j + 1,
-                                 (ST_double) (model->sv_coef[i][j]));
-                if (err) {
-                    sterror("error writing to sv_coef\n");
-                    goto _sv_coef_break; // since sv_coef might not exist, this isn't an error, it's a give-up
-                    //return err;
+        if(SF_mat_el("sv_coef", 1, 1, &z) == 0) {
+            for (int i = 0; i < model->nr_class - 1; i++) { //the -1 is taken directly from <svm.h>! (plus this segfaults if it tries to read a next row). Because...between k classes there's k-1 decisions? or something? I wish libsvm actually explained itself.
+                for (int j = 0; j < model->l; j++) {
+                    err =
+                        SF_mat_store("sv_coef", i + 1, j + 1,
+                                     (ST_double) (model->sv_coef[i][j]));
+                    if (err) {
+                        sterror("error writing to sv_coef\n");
+                        goto _sv_coef_break; // since sv_coef might not exist, this isn't an error, it's a give-up
+                        //return err;
+                    }
                 }
             }
-        }
         _sv_coef_break: (void)strLabels /*NOP, just so this label compiles*/;
+        }
 
 
         /* from the libsvm README:

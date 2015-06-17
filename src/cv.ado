@@ -28,7 +28,7 @@
  * cv estimator target y x1 x2 x3 ... [if] [in], folds(#) [shuffle] [options to estimator]
  *
  * estimator should be a standard Stata estimation command which can be followed by a call to "predict target if"
- * pass folds(_N) (and no if or in conditions) to do leave-one-out cross-validation (LOOCV)
+ * pass folds(_N) (and no if or in conditions) to do leave-one-out cross-validation (LOOCV), which is the most accurate but most expensive sort.
  * The name is perhaps inaccurate: this code does no validation by itself; all it does is generate unbiased predictions;
  *  however the method is the standard CV method, so until someone complains the name is sticking.
  * to further reduce bias, consider passing shuffle, but make sure you {help set seed:seed} the RNG well
@@ -80,7 +80,7 @@ program define cv, eclass
   
   //Stata if funky: because I use [*] above, if I declare folds(int 5) and you pass a real (e.g. folds(18.5)), rather than giving the usual "option folds() incorrectly specified" error, Stata *ignores* that folds, gives the default value, and pushes the wrong folds into the `options' macro, which is really the worst of all worlds
   // instead, I take a string (i.e. anything) to ensure the folds option always,
-  // and then parse
+  // and then parse manually
   if("`folds'"=="") {
     local folds = 5
   }
@@ -176,6 +176,9 @@ program define cv, eclass
   // (which can lead to strangeness if the predictor is inconsistent with itself)
   tempvar B
   forvalues f = 1/`folds' {
+    qui count if `fold' == `f'
+    // TODO: write a string function which ellipsizes long strings, so that we can include varlist here
+    di "[fold `f'/`folds': `r(N)' observations] `estimator' ..varlist.., `options'"
     // train on everything that isn't the fold
     `estimator' `varlist' if `fold' != `f', `options'
     // predict into the fold

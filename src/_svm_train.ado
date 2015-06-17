@@ -61,12 +61,12 @@ program define _svm_train, eclass
       di as error "Warning: `depvar' is a `T', which is usually used for continuous variables."
       di as error "         SV classification will cast real numbers to integers before fitting." //<-- this is done by libsvm with no control from us
       di as error
-      di as error "         If your outcome is actually categorical, consider storing it as one:"
+      di as error "         If your outcome is actually categorical, consider storing it so:"
       di as error "         . tempvar B"
       di as error "         . generate byte \`B' = `depvar'"   //CAREFUL: B is meant to be quoted and depvar is meant to be unquoted.
       di as error "         . drop `depvar'"
       di as error "         . rename \`B' `depvar'"
-      di as error "         (If your category encoding uses floating point levels this will not be enough)"
+      di as error "         (If your category coding uses floating point levels you must choose a different coding)"
       di as error
       di as error "         Alternately, consider SV regression: type(EPSILON_SVR) or type(NU_SVR)."
       di as error

@@ -73,7 +73,6 @@ program define cv, eclass
   /* parse arguments */
   gettoken target 0 : 0
   gettoken estimator 0 : 0
-  di as txt "`0'"
   syntax varlist [if] [in], [folds(string)] [shuffle] [*]
   
   confirm name `estimator'
@@ -188,7 +187,11 @@ program define cv, eclass
     // train on everything that isn't the fold
     qui count if `fold' != `f'
     di "[fold `f'/`folds': training on `r(N)' observations]"
-    `estimator' `varlist' if `fold' != `f', `options'
+    capture `estimator' `varlist' if `fold' != `f', `options'
+    if(_rc!=0) {
+      di as error "`estimator' failed"
+      exit _rc
+    }
     
     // predict on the fold
     qui count if `fold' == `f'
@@ -203,8 +206,6 @@ program define cv, eclass
     // save the predictions from the current fold
     qui replace `target' = `B' if `fold' == `f'
     drop `B'
-    
-    di""
   }
   
   /* clean up */

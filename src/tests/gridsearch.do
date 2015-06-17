@@ -43,7 +43,7 @@ local i = 0
 foreach C of numlist 0.01 1 100 10000 100000 {
 	foreach G of numlist .0001 .001 .01 .1 1 10 {
 	local i = "`++i'"
-	di as txt " svm category {indepvars} if `train' , folds(`folds') shuffle  c(`C') gamma(`G') cache(1024)"
+	di as txt "svm category {indepvars} if `train' , c(`C') gamma(`G') cache(1024)"
 	// generate accuracy measurements using 5-fold cross-validation
 	cv pred   svm category  ntoken_stan  q*  if `train' , folds(`folds') shuffle  c(`C') gamma(`G') cache(1024)
 	gen acc = pred == category

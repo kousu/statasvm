@@ -22,7 +22,7 @@ program define _svm_train, eclass
            
            Kernel(string)
            
-           GAMMA(real 0) COEF0(real 0) DEGree(int 3)
+           Gamma(real 0) COEF0(real 0) DEGree(int 3)
            
             C(real 1) EPSilon(real 0.1) NU(real 0.5)
            

@@ -2,6 +2,12 @@
 // by Matthias Schonlau
 // enhanced to use cv.ado by Nick Guenther
 // 
+// this is not a function because
+// - it is technically difficult:
+//   - looping over ranges of arbitrary parameters is muddy (the sklearn GridSearch object has to take a dictionary of parameter->[set of values to try], which just looks bad, but is probably as good as you're going to get
+//   - doing that in *Stata* is extra muddy
+//   - 
+// - you always need to inspect the results before going on because there may be multiple equally good regions to search down into
 
 set more off
 clockseed

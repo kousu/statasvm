@@ -74,6 +74,9 @@ Dist
 
 * [ ] make ensurelib a separate project/pkg
 * [ ] make ensurepkg a separate package
+  - note: Stata allows multiple packages to have the same files, but only if they are *exactly* identical
+* [ ] make clone a separate package
+* [ ] make example a separate package
 * [ ] make _{get,set}env.plugin a separate project/pkg
 
 * [x] pull svm_load out to a separate plugin: _svmlight.plugin
@@ -84,6 +87,10 @@ Dist
 Documentation
 -------------
 
+* [ ] figure out what is up with the definition of nu
+* [ ] check up on my explanation of what SVR does
+* [ ] describe 
+
 
 [x] comment out norm, until we decide what we are going to do with it
 [ ] better parameter descriptions (mine sklearn for this)
@@ -92,15 +99,19 @@ Documentation
   [x] BUG: example.ado crashes *if the dataset has been edited*
   [x] "optimal" -> "good" to avoid pickiness
   [x] probability -> class_probabilities
-  [ ] don't use "svm *" because that's poor form
-  [ ] roll the factor example into a passing comment in one of the others
-  [ ] don't stuff spare lines between each whitespace---instead put it on switch between modes
-  [ ] first example doesn't work: something is wrong with 'verbose'
-  [ ] the examples should all show variants of exactly one process:
+  [x] don't use "svm *" because that's poor form
+  [x] roll the factor example into a passing comment in one of the others
+  [x] don't stuff spare lines between each whitespace---instead put it on switch between modes
+  [ ???? ] first example doesn't work: something is wrong with 'verbose'
+  [x ] the examples should all show variants of exactly one process:
     split, train, predict, error rate
     my idea of evolving examples to demonstrate should be left for the paper
   ---> examples should all involve
   ---> examples should all involve normalizing the data
+      egen a = std(b)
+      this does mean/variance standardization
+      problem: it does *not* record the parameters used to standardize the things
+  
   = [x] duplicate all these as both ancillary .do files and do 'click to run' in the docs
   * [x] binary classification
       "auto" dataset
@@ -128,7 +139,8 @@ Documentation
 [ ] make click-to-run examples in the docs
   --> twoway_area.sthlp shows how to do this
 
-[ ] duplicate the See Alsos to an actual section (because smcl isn't smart enough to figure this out for us)
+[WONTFIX] duplicate the See Alsos to an actual section (because smcl isn't smart enough to figure this out for us)
+  -- hm. none of the built in commands do this
 
 - [x] say "1/[# indepvars]"
 - [x] add a variant command format for type(ONE_CLASS) -- it shouldn't take a Y
@@ -147,6 +159,13 @@ Documentation
    - [x] svm.sthlp is the primary one, covering svm_train and svm_predict in one (since users should never explicitly call svm_predict themselves)
    - [ ] svmlight.sthlp (how do I make 'help import svmlight' bring this up?)
 
+
+* [ ] Give import_svmlight a pseudo-varlist of columns to import (
+  * "numlist" should allow this "import_svmlight 1/10 17/28 99 23 23 25/36"
+    but you have to, of course, do it roundabout: run numlist on the *string* of the *entire* numlist, then look in r(numlist)
+  * [ ] remove the 'clip' option
+     but document its replacement: import_svmlight 1/`=c(max_k_theory)' using fname.svmlight
+
 - [ ] clone.sthlp
 - [ ] _env.sthlp
 - [ ] ensurelib.sthlp
@@ -155,9 +174,17 @@ Documentation
 Features
 --------
 
+* [ ] scaling (??)
 
-* [WONTFIX] predict, replace
-   stanard predict doesn't have this, so no
+* [ ] cross-validation
+  * I could wrap svm_cross_validation(), but all that does is stuff we could do in Stata
+    what it does have built in, which I would have to figure out how to replicate in Stata,
+    is stratification: for classification problems it automatically makes sure to keep class proportions about even
+    
+* [ ] grid-search
+
+* [ ] predict, replace
+   stanard predict doesn't have this, but writing cross validation will be a lot easier if we can just predict all into different slices of a single variable
 
 
 * [x] 'verbose' option which sets/unsets svm_print_function as required.
@@ -234,7 +261,9 @@ Features
 Maintenance
 -----------
 
-* [ ] make use of Stata's "confirm" command to give better error messages
+* [ ] Label prediction columns with "Prediction"
+* [ ] 
+v* [ ] make use of Stata's "confirm" command to give better error messages
 
 - [ ] renames
   - [ ] svm_train to svm
@@ -260,10 +289,74 @@ Maintenance
   -> stata2svm_node(int i, int start, int end), returns NULL if it finds missing data or otherwise fucks up
      -> or maybe we want to be able to signal errors
 
-- [ ] silence complaints about unable-to-write-to this-or-that
+- [ ] silence now OBunnecessary complaints about unable-to-write-to this-or-that
 
 Bugs
 ----
+
+* [ ] memory leaks:
+  - run gridsearch.do and observe the amount of RAM go up and up and up
+  1) a small leak (inside of libsvm itself?? or is it something I'm doing that's triggering something they're doing?):
+==19705== 8 bytes in 1 blocks are still reachable in loss record 3 of 79
+==19705==    at 0x4C29F90: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==19705==    by 0xB4F776F: svm_train (in /usr/lib/libsvm.so.2)
+==19705==    by 0xB0D87E6: train (in /home/kousu/src/statasvm/src/_svm.plugin)
+==19705==    by 0xB0D9026: sttrampoline (in /home/kousu/src/statasvm/src/_svm.plugin)
+==19705==    by 0xB0D8E85: stata_call (in /home/kousu/src/statasvm/src/_svm.plugin)
+==19705==    by 0x95D550: ??? (in /usr/local/stata/stata)
+==19705==    by 0x95D80B: ??? (in /usr/local/stata/stata)
+==19705==    by 0x8C15CE: ??? (in /usr/local/stata/stata)
+==19705==    by 0x52954A: ??? (in /usr/local/stata/stata)
+==19705==    by 0x52A70B: ??? (in /usr/local/stata/stata)
+==19705==    by 0x5499AC: ??? (in /usr/local/stata/stata)
+==19705==    by 0x529EB8: ??? (in /usr/local/stata/stata)
+==19705== 
+
+==19705== 184 bytes in 1 blocks are still reachable in loss record 20 of 79
+==19705==    at 0x4C29F90: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==19705==    by 0xB4F5FE8: svm_train (in /usr/lib/libsvm.so.2)
+==19705==    by 0xB0D87E6: train (in /home/kousu/src/statasvm/src/_svm.plugin)
+==19705==    by 0xB0D9026: sttrampoline (in /home/kousu/src/statasvm/src/_svm.plugin)
+==19705==    by 0xB0D8E85: stata_call (in /home/kousu/src/statasvm/src/_svm.plugin)
+==19705==    by 0x95D550: ??? (in /usr/local/stata/stata)
+==19705==    by 0x95D80B: ??? (in /usr/local/stata/stata)
+==19705==    by 0x8C15CE: ??? (in /usr/local/stata/stata)
+==19705==    by 0x52954A: ??? (in /usr/local/stata/stata)
+==19705==    by 0x52A70B: ??? (in /usr/local/stata/stata)
+==19705==    by 0x5499AC: ??? (in /usr/local/stata/stata)
+==19705==    by 0x529EB8: ??? (in /usr/local/stata/stata)
+
+
+  2) stata2libsvm
+==19705== 7,696 bytes in 14 blocks are indirectly lost in loss record 65 of 79
+==19705==    at 0x4C2C29E: realloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==19705==    by 0xB0D79DE: stata2libsvm (in /home/kousu/src/statasvm/src/_svm.plugin)
+==19705==    by 0xB0D8704: train (in /home/kousu/src/statasvm/src/_svm.plugin)
+==19705==    by 0xB0D9026: sttrampoline (in /home/kousu/src/statasvm/src/_svm.plugin)
+==19705==    by 0xB0D8E85: stata_call (in /home/kousu/src/statasvm/src/_svm.plugin)
+==19705==    by 0x95D550: ??? (in /usr/local/stata/stata)
+==19705==    by 0x95D80B: ??? (in /usr/local/stata/stata)
+==19705==    by 0x8C15CE: ??? (in /usr/local/stata/stata)
+==19705==    by 0x52954A: ??? (in /usr/local/stata/stata)
+==19705==    by 0x52A70B: ??? (in /usr/local/stata/stata)
+==19705==    by 0x5499AC: ??? (in /usr/local/stata/stata)
+==19705==    by 0x529EB8: ??? (in /usr/local/stata/stata)
+
+[...]
+
+  3) inside of Stata  (you can tell it's Stata because all the syms are stripped)
+==19705== 1,057,632 bytes in 1 blocks are still reachable in loss record 78 of 79
+==19705==    at 0x4C29F90: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==19705==    by 0x906404: ??? (in /usr/local/stata/stata)
+==19705==    by 0x8FE245: ??? (in /usr/local/stata/stata)
+==19705==    by 0x5F76D4: ??? (in /usr/local/stata/stata)
+==19705==    by 0x8FE37D: ??? (in /usr/local/stata/stata)
+==19705==    by 0x8FE835: ??? (in /usr/local/stata/stata)
+==19705==    by 0x8FE898: ??? (in /usr/local/stata/stata)
+==19705==    by 0x923B14: ??? (in /usr/local/stata/stata)
+==19705==    by 0x90647B: ??? (in /usr/local/stata/stata)
+==19705==    by 0x5B4C78F: (below main) (in /usr/lib/libc-2.21.so)
+
 
 * [ ] SVR produces nr_class=2 for some reason, which means that my code allocates a 2x2 rho and a 2x1 nSV,
    but then nSV doesn't get filled in (presumably this is my safeties kicking in: something screws)
@@ -441,33 +534,53 @@ We are going to submit a paper to the [Stata Journal](http://www.stata-journal.c
  - but the instructions say "ASCII and Word contributions will be accepted."
 
 [ ] find Nick Cox papers and read them
-[ ] read Schonlau's papers to get an idea of style
-[ ] read the entire libsvm guide carefully
+[x] read Schonlau's papers to get an idea of style
+[x] read the entire libsvm guide carefully
 [ ] read the libsvm implementation paper
-   
 
-Sections (in probable order of writing):
+ 
+
+Sections:
 --------
 
-[ ] mathematics of SVM
-   = not super in depth, just enough to let give our users intuition about what to do in certain situations 
-    - svc
-    - svr
-    - one_class
-[ ] introduce stata-svm
-  - installation
+[ ] abstract
+[ ] intro
+    - mini TOC in the last paragraph
+[ ] history and mathematics of SVM
+   = not super in depth, just enough to let give our users intuition about what the parameters are.
+    They can read the references, or, at this point, google, if they care
+    - [ ] svc
+    - [ ] svr
+    - [WONT] one_class 
+   review train/test splits and cross-validation
+[ ] Stata-svm ("the svm package")
+  - installation (??? some papers include this, others don't?)
+  - syntaxes
+  - options
   - introduce svmlight, briefly
+  - introduce ensurelib, ensurepkg, clone, and example??
+   
 [ ] tuning issues
+  - scaling
+    -- keeping the *same* scaling around
   - parameter selection (grid search! cross validation!)
   - predictor selection
     -> support vectors will always be predicted (..wait.. this isn't true... hm)
     -> if you have perfect correlation between outcome and one or more predictors (e.g. a unique sample ID), 
 
 [ ] examples
-[ ] comparison of svm to common Stata estimators, why you would or wouldn't use svm in each case
-[ ] intro
-[ ] conclusion
-  [ ] Thanks:
+  * 1) classification
+     - demonstrate the improvements to the fit as tuning is done, like in the libsvm guide
+     - compare efficiency to logistic
+       is this glm, family(binomial) or logistic??
+  * 2) regression
+     - compare to, say, least squares
+
+[ ] Discussion
+   - mention that libsvm has more features than mentioned here, and see their implementation paper and 
+   - Small Stata limits: what happens if you have too many variables and what happens if you overflow matsize
+   - tips on writing stata plugins / bring up the ensurelib and ensurepkg commands
+[ ] Acknowledgements:
     - the libsvm authors, for their library which made developing SVM for Stata rapid and reasonably painless
     - [Andreas Mueller](https://github.com/amueller) for correcting our misconceptions about libsvm
     - [Sergiy Radyakin](http://www.worldbank.org/en/about/people/sergiy-radyakin) of the World Bank and
@@ -475,8 +588,8 @@ Sections (in probable order of writing):
        for offering their experience in the tiny details of Stata
     - [Ben Jann](https://ideas.repec.org/e/pja61.html#subaffil-body-0), Institute of Sociology, University of Bern, for his center package
   [ ] namedrop open source     
+[ ] References
 
-[ ] abstract
     
 
 

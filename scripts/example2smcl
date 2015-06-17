@@ -38,8 +38,8 @@ F != FILENAME {
 }
 
 /^[[:space:]]*\/\/[[:space:]]*/ {
-sub("^[[:space:]]*\/\/[[:space:]]*", "")
   # regular comments
+  sub("^[[:space:]]*\/\/[[:space:]]*", "")
   print "{pstd}" $0 "{p_end}"
   next
 }

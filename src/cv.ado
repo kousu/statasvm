@@ -31,7 +31,8 @@
  * pass folds(_N) (and no if or in conditions) to do leave-one-out cross-validation (LOOCV)
  * The name is perhaps inaccurate: this code does no validation by itself; all it does is generate unbiased predictions;
  *  however the method is the standard CV method, so until someone complains the name is sticking.
- * to further reduce bias, consider passing shuffle.
+ * to further reduce bias, consider passing shuffle, but make sure you {help set seed:seed} the RNG well
+ *  (e.g. see {help clockseed} or {help truernd}).
  *
  * Example:
  *
@@ -43,10 +44,13 @@
  * . di "Training error rate: `r(mean)'"
  * . drop P err
  * .
- * . cv P svm foreign headroom gear_ratio weight, folds(_N/3) shuffle  type(c_svc) gamma(0.4) c(51)
+ * . cv P svm foreign headroom gear_ratio weight, folds(`=floor(_N/3)') type(c_svc) gamma(0.4) c(51)
  * . gen err = foreign != P
  * . qui sum err
  * . di "Cross-validated error rate: `r(mean)'"
+ *
+ * Example of if/in:
+ * . cv P svm gear_ratio foreign headroom weight if gear_ratio > 3 in 22/63, folds(4) shuffle type(epsilon_svr) eps(0.5)
  *
  * You can use this with "unsupervised" estimators---ones which take no {help depvar} (y)---too.
  * cv passes whatever options you give it directly to the estimator; all it handles it the folding.
@@ -67,11 +71,22 @@ program define cv, eclass
   /* parse arguments */
   gettoken target 0 : 0
   gettoken estimator 0 : 0
-  syntax varlist [if] [in], folds(int 5) [shuffle] [strata(string)] [*]
+  di as txt "`0'"
+  syntax varlist [if] [in], [folds(string)] [shuffle] [*]
   
   confirm name `estimator'
   confirm new variable `target'
   confirm variable `varlist'
+  
+  //Stata if funky: because I use [*] above, if I declare folds(int 5) and you pass a real (e.g. folds(18.5)), rather than giving the usual "option folds() incorrectly specified" error, Stata *ignores* that folds, gives the default value, and pushes the wrong folds into the `options' macro, which is really the worst of all worlds
+  // instead, I take a string (i.e. anything) to ensure the folds option always,
+  // and then parse
+  if("`folds'"=="") {
+    local folds = 5
+  }
+  confirm integer number `folds'
+  
+  //di as txt "folds= `folds' options=`options'" //DEBUG
   
   qui count `if' `in'
   if(`folds'<=0 | `folds'>=`r(N)') {
@@ -86,16 +101,6 @@ program define cv, eclass
   }
   
   
-  /* shuffling */
-  if("`shuffle'"!="") {
-    tempvar original_order
-    tempvar random_order
-    gen `original_order' = _n
-    gen `random_order' = uniform()
-    sort `random_order'
-  }
-  
-  
   /* generate folds */
   // the easiest way to do this in Stata is simply to mark a new column
   // and stamp out id numbers into it
@@ -103,15 +108,48 @@ program define cv, eclass
   // and the trickier (and currently not implemented) part is dealing with
   // stratification (making sure each fold has equal proportions of a categorical variable)
   tempvar fold
-  if("`if'"!="" | "`in'"!="") {
-    di as error "cv: if/in not yet implemented."
-    exit 3
-  }
-  gen int fold = _n/`folds'
-  // TODO: handle if/in
-  //       this would be easy if I had an _n which was the index within the selected subset: just use that instead
-  // I could write a loop, but that's slow. also i don't know how to mix if/in and loops
+    
+  // compute the size of each group *as a float*
+  // derivation:
+  // we have r(N) items in total -- you can also think of this as the last item, which should get mapped to group `folds' 
+  // we want `folds' groups
+  // if we divide each _n by `folds' then the largest ID generated is r(N)/`folds' == # of items per group
+  // so we can't do that
+  // if instead we divide each _n by r(N)/`folds', then the largest is r(N)/(r(N)/`folds') = `folds'
+  // Also, maybe clearer, this python script empirically proves the formula:
+  /*
+  for G in range(1,302):
+      for N in range(G,1302):
+          folds = {k: len(list(g)) for k,g in groupby(int((i-1)//(N/G)+1) for i in range(1,N+1)) }
+          print("N =", N, "G =", G, "keys:", set(folds.keys()));
+          assert set(folds.keys()) == set(range(1,G+1))
+  */
+  qui count `if' `in'
+  local g =  `r(N)'/`folds'
+    // generate a pseudo-_n which is the observation *within the if/in subset*
+    // if you do not give if/in this is should be equal to _n
+  qui gen int `fold' = 1 `if' `in'
   
+  /* shuffling */
+  // this is tricky: shuffling has to happen *after* partially generating fold IDs,
+  // because the shuffle invalidates the `in', but it must happen *before* the IDs
+  // are actually assigned because otherwise there's no point
+  if("`shuffle'"!="") {
+    tempvar original_order
+    tempvar random_order
+    qui gen `original_order' = _n
+    qui gen `random_order' = uniform()
+    sort `random_order'
+  }
+  
+  qui replace `fold' = sum(`fold') if !missing(`fold') //egen has 'fill()' which is more complicated than this, and so does not allow if/in. None of its other options seem to be what I want.
+  
+  // map the pseudo-_n into a fold id number
+  // nopromote causes integer instead of floating point division, which is needed for id numbers
+  //Stata counts from 1, which is why the -1 and +1s are there
+  // (because the proper computation should happen counting from 0, but nooo)
+  qui replace `fold' = (`fold'-1)/`g'+1 if !missing(`fold'), nopromote
+
   // because shuffling can only affect which folds data ends up in,
   // immediately after generating fold labels we can put the data back as they were.
   // (i prefer rather do this early lest something later break and the dataset be mangled)
@@ -119,6 +157,13 @@ program define cv, eclass
   if("`shuffle'"!="") {
     sort `original_order'
   }
+  
+  // make sure the trickery above worked, more or less
+  qui sum `fold'
+  assert `r(min)'==1
+  assert `r(max)'==`folds'
+  qui levelsof `fold'
+  assert `: word count `r(levels)''==`folds'
   
   
   /* cross-predict */
@@ -130,7 +175,7 @@ program define cv, eclass
   // because we do not know what types/labels the predictor wants to attach to its predictions,
   // (which can lead to strangeness if the predictor is inconsistent with itself)
   tempvar B
-  foreach f = numlist 1/`folds' {
+  forvalues f = 1/`folds' {
     // train on everything that isn't the fold
     `estimator' `varlist' if `fold' != `f', `options'
     // predict into the fold
@@ -138,11 +183,11 @@ program define cv, eclass
     
     // on the first fold, *clone* B
     if(`f' == 1) {
-      clone `target' `B' if 0
+      qui clone `target' `B' if 0
     }
     
     // save the predictions from the current fold
-    replace `target' = `B' if `fold' == `f'
+    qui replace `target' = `B' if `fold' == `f'
     drop `B'
   }
   

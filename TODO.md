@@ -43,7 +43,9 @@ Build
 Dist
 ---
 
-
+* [ ] Implement package checksumming
+  -> see help usersite
+  -> this is probably reasonably quick to automate by pumping Stata from Make
 [x] 'make dist-clean' and *don't* erase dist/ during clean
   that way you should be able to:
   - net-mount the repo remotely from several systems
@@ -294,6 +296,7 @@ v* [ ] make use of Stata's "confirm" command to give better error messages
 Bugs
 ----
 
+* [x] Click-to-run is broken if done in a second session after installing
 * [ ] is there any way to sync the Stata and srand seeds?
   - they use different RNGs, but if they are at least seeded together then results should be consistent
    - but setting srand() on every call is poor form (not actually random!)

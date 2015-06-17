@@ -28,9 +28,10 @@
  * cv estimator target y x1 x2 x3 ... [if] [in], folds(#) [shuffle] [options to estimator]
  *
  * estimator should be a standard Stata estimation command which can be followed by a call to "predict target if"
- * pass folds(_N) (and no if or in conditions) to do leave-one-out cross-validation (LOOCV), which is the most accurate but most expensive sort.
- * The name is perhaps inaccurate: this code does no validation by itself; all it does is generate unbiased predictions;
- *  however the method is the standard CV method, so until someone complains the name is sticking.
+ * folds is the number of folds to make. More is more accurate but slower.
+ *   As a special case, pass folds(1) to simply train and predict at once.
+ *   To do leave-one-out cross-validation (LOOCV), pass the number of observations (e.g. folds(`=_N'), though if you use if/in you'll need to modify that). 
+ *
  * to further reduce bias, consider passing shuffle, but make sure you {help set seed:seed} the RNG well
  *  (e.g. see {help clockseed} or {help truernd}).
  *
@@ -61,9 +62,10 @@
  *
  *
  * TODO:
- *  'if' and 'in' 
- *  stratified folding
- *  maybe this should be called "cross_predict" because we don't actually do the validation...
+ *  [x] 'if' and 'in' 
+ *  [ ] stratified folding
+ *  [ ] is 'shuffle' a huge slowdown??
+ *  [ ] maybe this should be called "cross_predict" because we don't actually do the validation...
  */
 
 program define cv, eclass
@@ -89,9 +91,16 @@ program define cv, eclass
   //di as txt "folds= `folds' options=`options'" //DEBUG
   
   qui count `if' `in'
-  if(`folds'<=0 | `folds'>=`r(N)') {
-    di as error "Invalid number of folds: `folds'. Must be between 1 and the number of active observations `r(N)'."
+  if(`folds'<1 | `folds'>=`r(N)') {
+    di as error "Invalid number of folds: `folds'. Must be between 2 and the number of active observations `r(N)'."
     exit 1
+  }
+  
+  if(`folds'==1) {
+    // special case: 1-fold is the same as just traing
+    `estimator' `varlist' `if' `in', `options'
+    predict `target'
+    exit
   }
   
   if("`strata'" != "") {
@@ -176,15 +185,17 @@ program define cv, eclass
   // (which can lead to strangeness if the predictor is inconsistent with itself)
   tempvar B
   forvalues f = 1/`folds' {
-    qui count if `fold' == `f'
-    // TODO: write a string function which ellipsizes long strings, so that we can include varlist here
-    di "[fold `f'/`folds': `r(N)' observations] `estimator' ..varlist.., `options'"
     // train on everything that isn't the fold
+    qui count if `fold' != `f'
+    di "[fold `f'/`folds': training on `r(N)' observations]"
     `estimator' `varlist' if `fold' != `f', `options'
-    // predict into the fold
+    
+    // predict on the fold
+    qui count if `fold' == `f'
+    di "[fold `f'/`folds': predicting on `r(N)' observations]"
     predict `B' if `fold' == `f'
     
-    // on the first fold, *clone* B
+    // on the first fold, *clone* B to our real output
     if(`f' == 1) {
       qui clone `target' `B' if 0
     }
@@ -192,6 +203,8 @@ program define cv, eclass
     // save the predictions from the current fold
     qui replace `target' = `B' if `fold' == `f'
     drop `B'
+    
+    di""
   }
   
   /* clean up */

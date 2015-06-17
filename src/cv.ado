@@ -25,7 +25,7 @@
  * 
  *
  * syntax:
- * cv estimator target y x1 x2 x3 ... [if] [in], folds(#) [shuffle] [options to estimator]
+ * cv target estimator y x1 x2 x3 ... [if] [in], folds(#) [shuffle] [options to estimator]
  *
  * estimator should be a standard Stata estimation command which can be followed by a call to "predict target if"
  * folds is the number of folds to make. More is more accurate but slower.

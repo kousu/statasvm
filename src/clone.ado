@@ -22,14 +22,8 @@ program define clone
   gettoken target source : namelist
   
   // enforce types
-  
-  // newvar
-  local 0 = "`target'"
-  syntax newvarname
-  
-  // oldvar
-  local 0 = "`source'"
-  syntax varname
+  confirm new variable `target'
+  confirm variable `source'
   
   // save attributes
   local T : type `source' //the data type

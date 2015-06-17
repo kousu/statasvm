@@ -294,6 +294,12 @@ v* [ ] make use of Stata's "confirm" command to give better error messages
 Bugs
 ----
 
+* [ ] is there any way to sync the Stata and srand seeds?
+  - they use different RNGs, but if they are at least seeded together then results should be consistent
+   - but setting srand() on every call is poor form (not actually random!)
+         setting it only at DLL init will miss if the user runs 'set seed' *after* loading the plugin
+  - different OSes also use different RNGs (*especially* with rand(), which is deprecated twenty times over), so we'll never get universal reproducibility unless we edit libsvm :(
+
 * [ ] memory leaks:
   - run gridsearch.do and observe the amount of RAM go up and up and up
   1) a small leak (inside of libsvm itself?? or is it something I'm doing that's triggering something they're doing?):

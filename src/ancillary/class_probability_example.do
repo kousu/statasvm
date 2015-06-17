@@ -1,10 +1,17 @@
 // Setup
 use attitude_indicators
 
+// Shuffle
+set seed 12998
+gen u = uniform()
+sort u
+
+// Train/test split
 local split = floor(_N*3/4)
 local train = "1/`=`split'-1'"
 local test = "`split'/`=_N'"
 
+// Model
 svm attitude q* in `train', kernel(poly) gamma(0.5) coef0(7) prob
 predict P in `test', prob
 

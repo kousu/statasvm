@@ -1,14 +1,18 @@
 // Setup
 use attitude_indicators
 
+// Shuffle
+set seed 4532
+gen u = uniform()
+sort u
+
+// Train/test split
 local split = floor(_N*3/4)
 local train = "1/`=`split'-1'"
 local test = "`split'/`=_N'"
 
-// No shuffle this time because this dataset is close enough to shuffled.
-
 // In general, you need to do grid-search to find good tuning parameters.
-// These values just happened to be good enough.
+// These values of kernel, gamma, and coef0 just happened to be good enough.
 svm attitude q* in `train', kernel(poly) gamma(0.5) coef0(7)
 
 predict P in `test'

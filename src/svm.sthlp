@@ -107,7 +107,7 @@ this hyperplane.
 The unimportant observations are ignored after fitting is done, which makes SVM very memory efficient.
 
 {pstd}
-Each observation can be thought of as a vector, in the linear algebra sense,
+Each observation can be thought of as a vector,
 so the {it:support vectors} are those observations which the algorithm deems critical to the fit.
 
 {pstd}

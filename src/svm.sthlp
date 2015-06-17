@@ -74,7 +74,7 @@ INCLUDE help fvvarlist
 {synoptset 20 tabbed}{...}
 {synopthdr}
 {synoptline}
-{synopt :{opt prob:ability}}If specified, estimate class probabilities for each observation. This only makes sense for classification problems.{p_end}
+{synopt :{opt prob:ability}}If specified, estimate class probabilities for each observation. The fit must have been previously made with {opt probability}.{p_end}
 {synopt :{opt v:erbose}}Turns on {help svm##verbose:verbose mode}. Default: disabled{p_end}
 
 
@@ -304,8 +304,10 @@ which can improve the fit by trading bias for variance. [CITATION NEEDED]
 {opt prob:ability} enables the use of "{help svm##predict_prob:predict, prob}".
 That does {browse "https://en.wikipedia.org/wiki/Platt_scaling":Platt scaling},
 so for each class-against-class this precomputes a logistic regression 
-which is tuned with 5-fold cross-validation,
-hence enabling this takes a great deal of additional CPU and RAM.
+which is tuned with 5-fold cross-validation.
+Internally, libsvm shuffles the data before cross-validation using the OS random number generator,
+which is unrelated to {help set seed:Stata's RNG}, so {it:different runs will give different results}.
+Enabling this demands a great deal of additional CPU and RAM.
 
 {phang}
 {marker sv}{...}

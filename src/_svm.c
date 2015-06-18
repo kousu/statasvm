@@ -83,7 +83,8 @@ struct svm_model *model = NULL;
  */
 struct svm_problem *stata2libsvm()
 {
-    ST_retcode err;
+    ST_retcode err = -1;
+    double z = NAN;
 
     if (SF_nvars() < 1) {
         sterror("stata2libsvm: no outcome variable specified\n");
@@ -116,7 +117,7 @@ struct svm_problem *stata2libsvm()
     // This code is super confusing because we're dealing with three numbering systems: C's 0-based, Stata's 1-based, and libsvm's (.index) which is 0-based but sparse
 
     for (ST_int i = SF_in1(); i <= SF_in2(); i++) {     //respect `in' option
-        if (SF_ifobs(i)) {      //respect `if' option
+        if (SF_ifobs(i)) {      //respect `if' option            
             if (prob->l >= capacity) {  // amortized-resizing
                 capacity <<= 1; //double the capacity
                 prob->y = realloc(prob->y, sizeof(*(prob->y)) * capacity);
@@ -132,16 +133,20 @@ struct svm_problem *stata2libsvm()
             }
             // put data into Y[l]
             // (there is only one Y so we hard-code the variable index)
-            err = SF_vdata(1, i, &(prob->y[prob->l]));
-            stdebug("Reading in Y[%d]=%lf, (err=%d)\n", i, prob->y[prob->l], err);
+            err = SF_vdata(1, i, &z);
+            stdebug("Reading in Y[%d]=%lf, (err=%d)\n", i, z, err);
             if(err) {
                 sterror("Unable to read Stata dependent variable column into libsvm\n");
                 return NULL;
             }
-            if(SF_is_missing(prob->y[prob->l])) {
-                sterror("svm cannot handle missing data\n");
-                goto cleanup;
+            if(SF_is_missing(z)) {
+                // regress and logistic and mlogit silently ignore missing data
+                // since that is drastically easier for everyone, we'll do that too
+                // although it will lead to silent bias if the user doesn't notice
+                stdebug("skipping because Y[%d] is missing\n", i);
+                continue;
             }
+            prob->y[prob->l] = z;
 
             // put data into X[l]
             // (there are many values)
@@ -158,24 +163,26 @@ struct svm_problem *stata2libsvm()
 
             int c = 0;          //and the current position within the subarray is tracked here
             for (int j = 1; j < SF_nvars(); j++) {
-                ST_double value = NAN;
                 if ((err = SF_vdata(j + 1
                                     /*this +1 accounts for the y variable: variable 2 in the Stata dataset is x1 */
-                                    , i, &value))) {
+                                    , i, &z))) {
                     sterror("error reading Stata columns into libsvm\n");
                     goto cleanup;
                 }
-                if (SF_is_missing(value)) {
-                    sterror("svm cannot handle missing data\n");
-                    goto cleanup;
+                if (SF_is_missing(z)) {
+                    stdebug("skipping because X[%d,%d] is missing\n", i, j+1);
+                    goto continue_outer; // see above
+                    // XXX memory leak
                 }
                 prob->x[prob->l][c].index = j;
-                prob->x[prob->l][c].value = value;
+                prob->x[prob->l][c].value = z;
                 c++;
             }
             prob->x[prob->l][c].index = -1;     //mark end-of-row
             prob->x[prob->l][c].value = SV_missval;     //not necessary for libsvm, but it makes me feel good
             prob->l++;
+continue_outer:
+            (void)z; /*NOP*/
         }
     }
 
@@ -572,8 +579,8 @@ ST_retcode train(int argc, char *argv[])
     }
     model = svm_train(prob, &param);    //a 'model' in libsvm is what I would call a 'fit' (I would call the structure being fitted to---svm---the model), but beggars can't be choosers
 
-	// export r(N)
-	SF_scal_save("_model2stata_N", (ST_double)prob->l);
+    // export r(N)
+    SF_scal_save("_model2stata_N", (ST_double)prob->l);
 	
     svm_destroy_param(&param);  //the model copies 'param' into itself, so we should free it here
     //svm_problem_free(prob);   //but as the libsvm README warns, do not free a problem while its model is still about

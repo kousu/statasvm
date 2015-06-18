@@ -30,7 +30,9 @@ program define svm_predict, eclass
   //  and it should be safe to assume the same about `e(depvar)': unless the user is messing with us (in which case, more power to them), it should have been created by svm_train and validated at that point
   quietly clone `target' `e(depvar)' if 0 //'if 0' leaves the values as missing, which is important: we don't want a bug in the plugin to translate to source values sitting in the variable (and thus inflating the observed prediction rate)
   local L : variable label `target'
-  label variable `target' "Predicted `L'"
+  if("`L'"!="") {
+    label variable `target' "Predicted `L'"
+  }
   
   // allocate space (we use new variables) to put probability estimates for each class for each prediction
   // this only makes sense in a classification problem, but we do not check for that
@@ -80,7 +82,7 @@ program define svm_predict, eclass
       //       what I want to happen is for any name collision or other bug to abort (i.e. rollback) the entire operation
       //       This can be achieved with "snapshot": snapshot; capture {}; if(fail) { rollback to snapshot }"
       quietly generate double `stemmed' = .
-      label variable `stemmed' "Probability of `D' being category `L'"
+      label variable `stemmed' "Pr(`D'==`L')"
       
       // attach the newcomers to the varlist so the plugin is allowed to edit them
       local varlist = "`varlist' `stemmed'"

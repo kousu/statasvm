@@ -300,12 +300,10 @@ ST_retcode _model2stata(int argc, char *argv[])
                                      (ST_double) (model->sv_coef[i][j]));
                     if (err) {
                         sterror("error writing to sv_coef\n");
-                        goto _sv_coef_break; // since sv_coef might not exist, this isn't an error, it's a give-up
-                        //return err;
+                        return err;
                     }
                 }
             }
-        _sv_coef_break: (void)strLabels /*NOP, just so this label compiles*/;
         }
 
 
@@ -317,59 +315,64 @@ ST_retcode _model2stata(int argc, char *argv[])
            aligned in the order of binary problems:
            1 vs 2, 1 vs 3, ..., 1 vs k, 2 vs 3, ..., 2 vs k, ..., k-1 vs k. 
 
-           in other words: upper triangularly.
+           : in other words: upper triangularly.
 
            Rather than try to work out a fragile (and probably slow, requiring of the % operator)
            formula to map the array index to matrix indecies or vice versa, this loop simply
            walks *three* variables together: i,j are the matrix index, c is the array index.
          */
-            // TODO: this should first check if the matrices exists (by trying to read them?) and not write them if they don't. and after that, I should *reenable* the 'return err's since the only error we let pass is the non-existent-matrix error
-        int c = 0;
-        for (int i = 0; i < model->nr_class; i++) {
-            for (int j = i + 1; j < model->nr_class; j++) {
-                /* copy out model->rho */
-                if (model->rho) {
-                    //printf("rho[%d][%d] == rho[%d] = %lf\n", i, j, c, model->rho[c]);
+
+        /* copy out model->rho */
+        if (model->rho && SF_mat_el("rho", 1, 1, &z) == 0) {
+          int c = 0;
+          for (int i = 0; i < model->nr_class; i++) {
+              for (int j = i + 1; j < model->nr_class; j++) {
+                    //stdebug("rho[%d][%d] == rho[%d] = %lf\n", i, j, c, model->rho[c]);
                     err =
                         SF_mat_store("rho", i + 1, j + 1,
                                      (ST_double) (model->rho[c]));
                     if (err) {
                         sterror("error writing to rho\n");
-                        //return err;
+                        return err;
                     }
                 }
+            }
+        }
 
-                /* copy out model->probA */
-                if (model->probA) {
-                    //printf("probA[%d][%d] == probA[%d] = %lf\n", i, j, c, model->probA[c]);
+        /* copy out model->probA */
+        if (model->probA && SF_mat_el("probA", 1, 1, &z) == 0) {
+          int c = 0;
+          for (int i = 0; i < model->nr_class; i++) {
+              for (int j = i + 1; j < model->nr_class; j++) {
+                    //stdebug("probA[%d][%d] == probA[%d] = %lf\n", i, j, c, model->probA[c]);
                     err =
                         SF_mat_store("probA", i + 1, j + 1,
                                      (ST_double) (model->probA[c]));
                     if (err) {
                         sterror("error writing to probA\n");
-                        //return err;
+                        return err;
                     }
                 }
+            }
+        }
+        
 
-
-                /* copy out model->rho */
-                if (model->probB) {
-                    //printf("probB[%d][%d] == probB[%d] = %lf\n", i, j, c, model->probB[c]);
+        /* copy out model->probB */
+        if (model->probB && SF_mat_el("probB", 1, 1, &z) == 0) {
+          int c = 0;
+          for (int i = 0; i < model->nr_class; i++) {
+              for (int j = i + 1; j < model->nr_class; j++) {
+                    //stdebug("probB[%d][%d] == probB[%d] = %lf\n", i, j, c, model->probB[c]);
                     err =
                         SF_mat_store("probB", i + 1, j + 1,
                                      (ST_double) (model->probB[c]));
                     if (err) {
                         sterror("error writing to probB\n");
-                        //return err;
+                        return err;
                     }
                 }
-
-
-                c++;            //step the array.
             }
-
         }
-      
     
     } else if(phase == '3') {
         /* copy out model->sv_indices */

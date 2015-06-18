@@ -1,6 +1,9 @@
 # hide backup files
 *~
 
+#hide paper
+/paper
+
 # avoid committing build products
 *.plugin
 

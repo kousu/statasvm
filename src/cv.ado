@@ -73,11 +73,10 @@ program define cv, eclass
   /* parse arguments */
   gettoken target 0 : 0
   gettoken estimator 0 : 0
-  syntax varlist [if] [in], [folds(string)] [shuffle] [*]
+  syntax varlist (fv ts) [if] [in], [folds(string)] [shuffle] [*]
   
   confirm name `estimator'
   confirm new variable `target'
-  confirm variable `varlist'
   
   //Stata if funky: because I use [*] above, if I declare folds(int 5) and you pass a real (e.g. folds(18.5)), rather than giving the usual "option folds() incorrectly specified" error, Stata *ignores* that folds, gives the default value, and pushes the wrong folds into the `options' macro, which is really the worst of all worlds
   // instead, I take a string (i.e. anything) to ensure the folds option always,

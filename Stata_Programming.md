@@ -22,7 +22,7 @@ Crash course in Stata programming
 *   this means that you can just put "program <name>, plugin" at the top of each .ado file that needs it, each will load it into their namespace, and behind the scenes the single instance of the plugin can share data between the ado files
   this is a lot like how python works, actually: "program <name>, plugin" is like "import" rather than "define" (but program define is something else)
   
-  
+* misstable is very useful for figuring out where missing data sits
   
   
   /* the Stata plugin interface is really really really basic:

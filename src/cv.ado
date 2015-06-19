@@ -25,9 +25,10 @@
  * 
  *
  * syntax:
- * cv target estimator y x1 x2 x3 ... [if] [in], folds(#) [shuffle] [options to estimator]
+ * cv estimator y x1 [x2 x3 ...]; target [target2 ...] [if] [in], [folds(#) shuffle est(options to estimator) pred(options to predict)]
  *
- * estimator should be a standard Stata estimation command which can be followed by a call to "predict target if"
+ * estimator should be a standard Stata estimation command which can be followed by a call to "predict target if"; only one-variable
+ *   prediction is supported, so mlogit's extended form and other multilabel learning techniques cannot be used with cv at this time.
  * folds is the number of folds to make. More is more accurate but slower.
  *   As a special case, pass folds(1) to simply train and predict at once.
  *   To do leave-one-out cross-validation (LOOCV), pass the number of observations (e.g. folds(`=_N'), though if you use if/in you'll need to modify that). 
@@ -45,7 +46,7 @@
  * . di "Training error rate: `r(mean)'"
  * . drop P err
  * .
- * . cv P svm foreign headroom gear_ratio weight, folds(`=floor(_N/3)') type(c_svc) gamma(0.4) c(51)
+ * . cv svm foreign headroom gear_ratio weight; P, folds(`=floor(_N/3)') est(type(c_svc) gamma(0.4) c(51))
  * . gen err = foreign != P
  * . qui sum err
  * . di "Cross-validated error rate: `r(mean)'"
@@ -62,6 +63,8 @@
  *
  *
  * TODO:
+ *  [x] ability to pass arguments to predict
+ *  [ ] mlogit_p takes multiple *variables* to predict into; is there any reasonable way to handle this?
  *  [x] 'if' and 'in' 
  *  [ ] stratified folding
  *  [ ] is 'shuffle' a huge slowdown??
@@ -73,7 +76,7 @@ program define cv, eclass
   /* parse arguments */
   gettoken target 0 : 0
   gettoken estimator 0 : 0
-  syntax varlist (fv ts) [if] [in], [folds(string)] [shuffle] [*]
+  syntax varlist (fv ts) [if] [in], [folds(string) shuffle ESTimate_options(str) PREDict_options(str)]
   
   confirm name `estimator'
   confirm new variable `target'
@@ -96,8 +99,8 @@ program define cv, eclass
   
   if(`folds'==1) {
     // special case: 1-fold is the same as just traing
-    `estimator' `varlist' `if' `in', `options'
-    predict `target'
+    `estimator' `varlist' `if' `in', `estimate_options'
+    predict `target', `predict_options'
     exit
   }
   
@@ -172,7 +175,6 @@ program define cv, eclass
   qui levelsof `fold'
   assert `: word count `r(levels)''==`folds'
   
-  
   /* cross-predict */
   // We don't actually predict into target directly, because most estimation commands
   // get annoyed at you trying to overwrite an old variable (even if an unused region).
@@ -186,7 +188,7 @@ program define cv, eclass
     // train on everything that isn't the fold
     qui count if `fold' != `f'
     di "[fold `f'/`folds': training on `r(N)' observations]"
-    capture `estimator' `varlist' if `fold' != `f', `options'
+    capture `estimator' `varlist' if `fold' != `f', `estimate_options'
     if(_rc!=0) {
       di as error "`estimator' failed"
       exit _rc
@@ -195,7 +197,7 @@ program define cv, eclass
     // predict on the fold
     qui count if `fold' == `f'
     di "[fold `f'/`folds': predicting on `r(N)' observations]"
-    predict `B' if `fold' == `f'
+    predict `B' if `fold' == `f', `predict_options'
     
     // on the first fold, *clone* B to our real output
     if(`f' == 1) {

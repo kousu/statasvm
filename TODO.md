@@ -89,6 +89,9 @@ Dist
 Documentation
 -------------
 
+* [ ] svm, predict in svm.sthlp should be under svm_postestimation.sthlp
+* [ ] I should probably undocument svm_import because it causes problems
+
 * [ ] figure out what is up with the definition of nu
 * [ ] check up on my explanation of what SVR does
 * [ ] describe 
@@ -175,6 +178,9 @@ Documentation
 
 Features
 --------
+
+* [ ] set e(sample)
+  see 'help predict' for a confusing introduction to what this is supposed to be
 
 * [ ] scaling (??)
 
@@ -295,6 +301,61 @@ v* [ ] make use of Stata's "confirm" command to give better error messages
 
 Bugs
 ----
+
+* [ ] cv should be able to handle multiple outcomes
+  - mlogit_p under certain options
+  - svm_predict, prob
+  - others??
+  I don't know if it's better to diff the set of columns
+   or to assume that target columns will be named the same way
+   mlogit_p does (and make svm_predict match)
+* [ ] cv is not respecting 'if':
+```
+. use icpsr_survey
+. cv Ys_cv svm `model' if !missing(HSMINORITY) & !missing(HSMAJORITY) & !missing(INFORMED_VOTING) & !missing(HSDIVERSE), c(1)  gamma(1)
+[fold 1/5: training on 3929 observations]
+svm cannot handle missing data
+svm failed
+--Break--
+r(1);
+
+
+snapshot 1 created at 18 Jun 2015 18:32
+
+. cv Ys_cv svm `model' if !missing(HSMINORITY) & !missing(HSMAJORITY) & !missing(INFORMED_VOTING) & !missing(HSDIVERSE), c(1)  gamma(1)
+[fold 1/5: training on 3929 observations]
+svm cannot handle missing data
+svm failed
+--Break--
+r(1);
+
+. drop if !missing(HSMINORITY) & !missing(HSMAJORITY) & !missing(INFORMED_VOTING) & !missing(HSDIVERSE),
+options not allowed
+r(101);
+
+. drop if !( !missing(HSMINORITY) & !missing(HSMAJORITY) & !missing(INFORMED_VOTING) & !missing(HSDIVERSE))
+(1,715 observations deleted)
+
+. cv Ys_cv svm `model' if !missing(HSMINORITY) & !missing(HSMAJORITY) & !missing(INFORMED_VOTING) & !missing(HSDIVERSE), c(1)  gamma(1)
+[fold 1/5: training on 2214 observations]
+error writing to sv_coef
+[fold 1/5: predicting on 554 observations]
+[fold 2/5: training on 2214 observations]
+error writing to sv_coef
+[fold 2/5: predicting on 554 observations]
+[fold 3/5: training on 2215 observations]
+error writing to sv_coef
+[fold 3/5: predicting on 553 observations]
+[fold 4/5: training on 2214 observations]
+error writing to sv_coef
+[fold 4/5: predicting on 554 observations]
+[fold 5/5: training on 2215 observations]
+error writing to sv_coef
+[fold 5/5: predicting on 553 observations]
+
+. restore snapshot 1
+```
+
 
 * [x] Click-to-run is broken if done in a second session after installing
 * [ ] is there any way to sync the Stata and srand seeds?

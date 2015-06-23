@@ -73,7 +73,7 @@ list C gamma accuracy in 1/`i'
 
 twoway contour accuracy gamma C, yscale(log) xscale(log) ///
      ylabel(.0001 .001 .01 .1 1 10) xlabel(0.01 1 100 10000 100000 )  /// 
-	   levels(10) zlabel(#10, format(%9.2f))
+	   ccuts(0(0.1)1) zlabel(#10, format(%9.2f))
 graph export  svm_contour_cv_`folds'.pdf , replace
 
 // XXX temporary

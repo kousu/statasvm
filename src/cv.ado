@@ -186,9 +186,9 @@ program define cv, eclass
   tempvar B
   forvalues f = 1/`folds' {
     // train on everything that isn't the fold
-    qui count if `fold' != `f'
+    qui count if `fold' != `f' & !missing(`fold') /* this needs !missing(`fold') because <value> != . counts as true. Notice this is duplicated below! */
     di "[fold `f'/`folds': training on `r(N)' observations]"
-    capture `estimator' `varlist' if `fold' != `f', `estimate_options'
+    capture `estimator' `varlist' if `fold' != `f' & !missing(`fold'), `estimate_options'
     if(_rc!=0) {
       di as error "`estimator' failed"
       exit _rc

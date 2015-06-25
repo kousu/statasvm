@@ -309,7 +309,8 @@ Bugs
   I don't know if it's better to diff the set of columns
    or to assume that target columns will be named the same way
    mlogit_p does (and make svm_predict match)
-* [ ] cv is not respecting 'if':
+* [x] cv is not respecting 'if'/'in':
+  --> it was putting those not marked for any fold---those with missing values---into the every-other-fold block because I used != without testing enough.
 ```
 . use icpsr_survey
 . cv Ys_cv svm `model' if !missing(HSMINORITY) & !missing(HSMAJORITY) & !missing(INFORMED_VOTING) & !missing(HSDIVERSE), c(1)  gamma(1)

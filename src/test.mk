@@ -33,7 +33,7 @@ TESTS:=$(patsubst %.do,%,$(TESTS))
 tests/%: %.log
 	@echo - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	@echo ---------------------------------------------------------------
-	@$(CAT) $(call FixPath,$<)
+#	@$(CAT) $(call FixPath,$<)
 	@echo ---------------------------------------------------------------
 	@echo - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -48,7 +48,7 @@ tests/setenv: _setenv.plugin
 
 .PHONY: tests
 tests: $(TESTS)
-  
+
 # stata -b is 'batch mode', i.e. it's the closest Stata has to running "Rscript" or "ruby" or "python"
 # -e is identical to -b, except it suppresses the completion notification message
 # If this seems absurd, remember that Stata is targeted at GUI-heavy Windows users,
@@ -71,7 +71,8 @@ tests/wrapped/%.do: tests/wrapped tests/helpers/settings.do tests/%.do
 	$(CAT) $(call FixPath,tests/helpers/settings.do) >> $(call FixPath,$@)
 	echo } >> $(call FixPath,$@)
 #	# now include the actual content
-	echo do $(call FixPath,tests/$*.do) >> $(call FixPath,$@)
+	echo capture noisily do $(call FixPath,tests/$*.do) >> $(call FixPath,$@)
+	echo exit, clear STATA >> $(call FixPath,$@)
 	
 # it's a bad idea to have directories as targets, but there's no cross-platform way to say "if directory already exists, don't make it";
 tests/wrapped:
@@ -82,7 +83,7 @@ tests/wrapped:
 #  because Stata doesn't have a tty mode, to fake having stdout we cat Stata's <testname>.log (note that this is in the current directory, not the directory the .do file is in!),
 #  which it generates when run in batch mode, and we mark this .INTERMEDIATE so that make knows to delete it immediately
 %.log: tests/wrapped/%.do
-	"$(STATA)" -q -e $(call FixPath,$<)
+	"$(STATA)" -q $(call FixPath,$<)
     
 #.INTERMEDIATE: $(patsubst test_%,%.log,$(TESTS)) # this is commented out because it breaks under Win32 gmake, causing the files to *not* be deleted at finish.
 

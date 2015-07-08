@@ -1,7 +1,11 @@
-
+#ifndef STUTIL_H
+#define STUTIL_H
 
 #include "stplugin.h"
+#include "nomangle.h"
 
-void stdisplay(const char *fmt, ...);
-void sterror(const char *fmt, ...);
-void stdebug(const char *fmt, ...);
+nomangle void stdisplay(const char *fmt, ...);
+nomangle void sterror(const char *fmt, ...);
+nomangle void stdebug(const char *fmt, ...);
+
+#endif //STUTIL_H

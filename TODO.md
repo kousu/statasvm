@@ -179,6 +179,10 @@ Documentation
 Features
 --------
 
+* [x] Stata in -e mode writes to its logfile as it runs, so there should be a way to wrap it such that it behaves like other scripting languages: printing/taking output as it gets it but also quitting when the program ends
+  Actually, 'exit' has a 'STATA' option which does a proper exit() call
+  the next step is to output _rc somewhere and wrap a script around the whole thing which exits with _rc as a proper error code
+ 
 * [ ] set e(sample)
   see 'help predict' for a confusing introduction to what this is supposed to be
 

@@ -27,14 +27,9 @@
        c(console) == "console" when in console mode, "" when not. However, SF_scal_use("c(console)", ....) gives an error. Maybe the Stata forums will know.
  */
 
-void stdisplay(const char *fmt, ...)
+nomangle void stdisplay(const char *fmt, ...)
 {
     va_list args;
-
-    // print to the standard stream
-    va_start(args, fmt);
-    vprintf(fmt, args);
-    va_end(args);
     
     // print to Stata
     va_start(args, fmt);
@@ -44,14 +39,9 @@ void stdisplay(const char *fmt, ...)
     va_end(args);
 }
 
-void sterror(const char *fmt, ...)
+nomangle void sterror(const char *fmt, ...)
 {
     va_list args;
-    
-    // print to the standard stream
-    va_start(args, fmt);
-    vfprintf(stderr, fmt, args);
-    va_end(args);
     
     // print to Stata
     va_start(args, fmt);
@@ -61,16 +51,16 @@ void sterror(const char *fmt, ...)
     va_end(args);
 }
 
-void stdebug(const char *fmt, ...)
+nomangle void stdebug(const char *fmt, ...)
 {
     if(getenv("DEBUG") == NULL) { return; }
 
     va_list args;
 
     // print to the standard stream
-    va_start(args, fmt);
-    vfprintf(stderr, fmt, args);
-    va_end(args);    
+    //va_start(args, fmt);
+    //vfprintf(stderr, fmt, args);
+    //va_end(args);    
 
     // print to Stata
     va_start(args, fmt);

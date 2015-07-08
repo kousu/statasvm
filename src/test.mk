@@ -1,5 +1,7 @@
 # --- Testing ----
 
+# run 'make -k tests' to let tests run even with failure, or 'make tests' to stop when tests stop you
+
 # rules to auto-download datasets from the libsvm sample archive
 # XXX this is hardcoded to only get *binary* ones. maybe we should instead include "datasets/binary/" in the target path (which might be more reasonable, anyway)
 tests/%.svmlight: tests/%.bz2
@@ -27,15 +29,6 @@ TESTS:=$(patsubst %.do,%,$(TESTS))
 #TESTS:=$(shell $(CAT) $(call FixPath,tests/order.lst))
 #TESTS:=$(patsubst %,tests/%,$(TESTS))
 
-  
-#notice: $< means 'the first prerequisite' and is basically a super-special case meant for exactly this sort of usage
-#.PHONY: $(TESTS) #	" Make does not consider implicit rules for PHONY targets" ?? In other words: there is no way to autogenerate .PHONY targets. whyyyyy.
-tests/%: %.log
-	@echo - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	@echo ---------------------------------------------------------------
-#	@$(CAT) $(call FixPath,$<)
-	@echo ---------------------------------------------------------------
-	@echo - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # force tests to do a rebuild (if necessary) before running
 # now that we have multiple things to build this is not so simple
@@ -46,13 +39,17 @@ tests/auto.model: tests/export
 tests/getenv: _getenv.plugin
 tests/setenv: _setenv.plugin
 
+
+
+## Main Test Harness Logic
+
+
 .PHONY: tests
 tests: $(TESTS)
 
-# stata -b is 'batch mode', i.e. it's the closest Stata has to running "Rscript" or "ruby" or "python"
-# -e is identical to -b, except it suppresses the completion notification message
-# If this seems absurd, remember that Stata is targeted at GUI-heavy Windows users,
-# and that the most scripting they are likely to do is to run a big computation overnight.
+tests/%: tests/wrapped/%.do
+	"$(STATA)" -q $(call FixPath,$<)
+	(RC=$$(cat $*.out); rm -f $*.out; exit $$RC)
   
 # auto-wrap tests with the code in tests/helpers/
 # Stata doesn't pass command line arguments to batch scripts
@@ -63,7 +60,10 @@ tests: $(TESTS)
 # Hence, these wrapped files are given identical names but stuffed in a subdir to distinguish them.
 #
 # The order of dependencies *is the order the commands are concatenated*.
-tests/wrapped/%.do: tests/wrapped tests/helpers/settings.do tests/%.do
+#
+# The last couple of lines are key: a) 'capture' so a crash doesn't hang the tests b) save the _rc code to a file c) exit, with the STATA option to make the whole thing come down d) then go up to tests/% and read out the output file and pass it up (i.e. to make) so that error codes actually stop make
+# TODO: after the 'capture' write _rc to a result file and then check it
+tests/wrapped/%.do: tests/wrapped/ tests/helpers/settings.do tests/%.do
 #	# 'set trace' gets reset to its old value when a 'do' ends
 #	# since half the point of settings.do is 'set trace on'
 #	# we need to instead frankenstein settings.do inline into the final .do file
@@ -72,18 +72,14 @@ tests/wrapped/%.do: tests/wrapped tests/helpers/settings.do tests/%.do
 	echo } >> $(call FixPath,$@)
 #	# now include the actual content
 	echo capture noisily do $(call FixPath,tests/$*.do) >> $(call FixPath,$@)
+	echo di _rc >> $(call FixPath,$@)
+	echo "shell echo "\`=_rc\'" > $*.out" >> $(call FixPath,$@)
 	echo exit, clear STATA >> $(call FixPath,$@)
 	
 # it's a bad idea to have directories as targets, but there's no cross-platform way to say "if directory already exists, don't make it";
-tests/wrapped:
-	$(MKDIR) $(call FixPath,tests/wrapped) 2>$(NULL)
+tests/wrapped/:
+	$(MKDIR) $(call FixPath,$@) 2>$(NULL)
 
-
-
-#  because Stata doesn't have a tty mode, to fake having stdout we cat Stata's <testname>.log (note that this is in the current directory, not the directory the .do file is in!),
-#  which it generates when run in batch mode, and we mark this .INTERMEDIATE so that make knows to delete it immediately
-%.log: tests/wrapped/%.do
-	"$(STATA)" -q $(call FixPath,$<)
     
 #.INTERMEDIATE: $(patsubst test_%,%.log,$(TESTS)) # this is commented out because it breaks under Win32 gmake, causing the files to *not* be deleted at finish.
 

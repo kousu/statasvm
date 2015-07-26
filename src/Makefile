@@ -44,6 +44,8 @@ all: plugin svm_examples.ihlp
 
 MAKEFLAGS+=--no-print-directory
 
+PKG:=svm
+
 # --- includes ---
 
 # these have to come *before* the rules in this file,
@@ -208,7 +210,7 @@ svm_examples.ihlp:
 	echo "This section was built on Windows so I don't know who we am." > $@
 else
 svm_examples.ihlp: $(EXAMPLES)
-	../scripts/example2smcl -v PKG=svm $^ > $@
+	../scripts/example2smcl -v PKG=$(PKG) $^ > $@
 endif
 
 # --- Cleaning ---

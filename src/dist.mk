@@ -11,7 +11,7 @@ DEPLOY_PATH:=www/stata
 
 $(call FixPath,../statasvm.%):
 #at this writing, git doesn't let you say ".." as a path: it thinks it's "out of the repository", so instead we cd and hardcode the filename
-	cd .. && git archive --format=$* -o statasvm.$* HEAD
+	cd .. && git archive --format=$* -o $(dir $@) HEAD
 
 ifndef RELEASE_FORMAT
   RELEASE_FORMAT:=zip
@@ -21,18 +21,19 @@ release: ../statasvm.$(RELEASE_FORMAT)
 
 
 
+
+
+DIST:=$(wildcard *.ado *.sthlp *.ihlp bin/*/* ancillary/*)
+DIST:=$(patsubst %,dist/$(PKG)/%,$(DIST))
+#$(info DIST=$(DIST)) #DEBUG
+_dist: $(DIST)
 # this splitting + recursive make weirdness is because $(wildcard) needs to get evaluated *after*
 # the build has happened, but all $(wildcard)s are eval'd at Makefile-scan time, not Makefile-exec time
 dist: all
 	$(MAKE) _dist
 
-DIST:=$(wildcard *.ado *.sthlp *.ihlp bin/*/* ancillary/*)
-DIST:=$(patsubst %,dist/svm/%,$(DIST))
-#$(info DIST=$(DIST)) #DEBUG
-_dist: $(DIST)
-
 # copy listed files into the distribution directory
-dist/svm/%: %
+dist/$(PKG)/%: %
 #	# make does not have any way to specify "subdirectories depend on parent directories",
 #	# so recursive make is the only way to go. || echo is a cross-platform NOP, like || true,
 #	# which is to silence the error that comes if the directory already exists which is, again,
@@ -41,20 +42,20 @@ dist/svm/%: %
 	$(CP) $(call FixPath,$<) $(call FixPath,$@)
 
 
-pkg: dist dist/svm.pkg dist/stata.toc
+pkg: dist dist/$(PKG).pkg dist/stata.toc
 
 ifneq ($(OS),Windows_NT)
  # These scripts don't work under Windows, so simply don't define them on Windows
 .PHONY: dist/stata.toc
-dist/stata.toc: ../scripts/maketoc dist
+dist/stata.toc: scripts/maketoc dist
 	"$<" $(dir $@) "$(DESCRIPTION)"
-dist/stata.toc: DESCRIPTION:=nguenthe's Stata repo
+dist/stata.toc: DESCRIPTION:=Stata repo
 
-.PHONY: dist/svm.pkg
-dist/svm.pkg: ../scripts/makepluginpkg dist
+.PHONY: dist/$(PKG).pkg
+dist/$(PKG).pkg: scripts/makepluginpkg dist
 	"$<" "$@" "$(DESCRIPTION)" "$(AUTHOR)"
 endif
-	
+
 	
 # quick hack: deploy to my personal account
 # this puts up a Stata repo so that

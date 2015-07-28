@@ -51,7 +51,6 @@ program define ado_from, rclass
        gettoken curpkg : line
     }
     
-    file read `fd' line
   }
   
   // assumption: the stata.trk file should have defined an S line in each pkg block

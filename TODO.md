@@ -11,8 +11,8 @@ Build
 
 
 * [x] stata.trk (click-to-run) bug
-* [ ]  --> in statasvm, handle looking up libsvm.dll using .LIBPATTERNS instead of special-casing
-  see 4.5.6 Directory Search for Link Libraries in the make manual
+* [ ] Handle looking up libsvm.dll using .LIBPATTERNS + using -lsvm as a dependency, instead of special-casing it (FIXED_LIBS)
+   - see 4.5.6 Directory Search for Link Libraries in the make manual
 
 * [ ] check if there's a way to use pattern rules for .c -> .plugin
 

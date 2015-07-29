@@ -440,6 +440,7 @@ you can get it {browse "http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/libsvm.cgi?+ht
 You can use {help svmlight:export svmlight} to extract your dataset for use with {cmd:svm-train}.
 
 {marker examples}{...}
+{title:Examples}
 
 INCLUDE help svm_examples
 

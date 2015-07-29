@@ -207,7 +207,6 @@ EXAMPLES:=binary_classification multiclass_classification class_probability regr
 EXAMPLES:=$(patsubst %,ancillary/%_example.do,$(EXAMPLES))
 ifeq ($(OS),Windows_NT)
 svm_examples.ihlp:
-	echo {title:Examples} > $@
 	echo This section requires POSIX to be built, but this build was done on Windows. >> $@
 else
 svm_examples.ihlp: $(EXAMPLES)

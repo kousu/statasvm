@@ -39,7 +39,7 @@
 #    that will let this build system be adapted to multi-plugin packages
 
 #this has to come before we include anything, because it has to be the first rule
-all: plugin svm_examples.ihlp
+all: plugin
 
 
 MAKEFLAGS+=--no-print-directory
@@ -205,12 +205,14 @@ ensurelib: ensurelib.ado _getenv.plugin _setenv.plugin _dlopenable.plugin
 
 EXAMPLES:=binary_classification multiclass_classification class_probability regression oneclass
 EXAMPLES:=$(patsubst %,ancillary/%_example.do,$(EXAMPLES))
-ifeq ($(OS),Windows_NT)
-svm_examples.ihlp:
-	echo This section requires POSIX to be built, but this build was done on Windows. >> $@
-else
+ifneq ($(OS),Windows_NT)
+# example2smcl is in awk and so won't run on Windows
+# instead, a hybrid approach: on POSIX, we rebuild the examples is necessary
+# but we also check them into the repo so that Windows can still have them
 svm_examples.ihlp: $(EXAMPLES)
 	../scripts/example2smcl -v PKG=$(PKG) $^ > $@
+
+all: svm_examples.ihlp
 endif
 
 # --- Cleaning ---
@@ -221,7 +223,7 @@ endif
 .PHONY: clean
 # *.log *should* get cleaned up by the testing recipe, but in case it doesn't or you have made some manually we clean it again here
 clean:
-	-$(RM) *.o *.plugin *.log *.model *.ihlp
+	-$(RM) *.o *.plugin *.log *.model
 	-$(RMDIR) bin
 
 	

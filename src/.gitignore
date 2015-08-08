@@ -6,6 +6,3 @@
 /*.dta
 /*.csv
 /*.svmlight
-
-# hide generated helpfiles
-/*.ihlp

@@ -77,7 +77,7 @@ function close_example() {
   # close the current one's tags
   #print "{hline}"
   print ""
-  print "{pstd}{it:({stata \"example " PKG " " example_basename(F) "\":click to run})}{p_end}"
+  print "{pstd}{it:({stata " PKG "_example " example_basename(F) ":click to run})}{p_end}"
   print ""
 }
 

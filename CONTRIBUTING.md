@@ -81,6 +81,18 @@ TODO: replace order.lst with tests.mk, which can list explicitly the (partial) o
 
 
 
+You can force-reinstall with
+```
+. net install svm, from(<distribution site>) replace
+```
+
+(users should use)
+```
+. adoupdate svm, update
+```
+(but this only has 1-day resolution, so it's not great for debugging)
+
+
 ### Duplicating StataSVM with the libsvm command line tools
 
 The Stata commands

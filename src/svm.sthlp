@@ -191,7 +191,7 @@ should use regression instead.{p_end}
 {pmore}{opt epsilon_svr} and {opt nu_svr} perform regression.{p_end}
 {pmore2}{depvar} should be a variable containing continuous values.{p_end}
 {pmore2}Rather than try to find a hyperplane which separates data as far as possible,
-this tries to find a hyperplane which most data is near [CITATION NEEDED].
+this tries to find a hyperplane to which most data is as near as possible.
 See {help svm##svr_tutorial:the SVR tutorial} for more details.{p_end}
 
 {marker one_class}{...}
@@ -221,22 +221,23 @@ Under high enough dimensions, any set of data looks close to linear.
 See {browse "https://www.youtube.com/watch?v=3liCbRZPrZA"} for a visualization of this process.
 {p_end}
 {pmore}
-The trick part---and the reason why the set of kernels is hardcoded---is that
-for certain kernels [CITATION NEEDED] the fit can be done efficiently without
+The "trick"---and the reason why the set of kernels is hardcoded---is that
+for certain kernels the fit can be done efficiently without
 actually constructing the high-dimensional points, as the estimation only cares
 scoring coefficients u using the output of the kernel, not the output of the values the kernel
 is, in theory, operating upon.{p_end}
 
 {pmore}Kernels available in this implementation are:{p_end}
-{pmore2}{opt linear} is the dot-product you are probably familiar with from {help regress:OLS}: u'*v{p_end}
-{pmore2}{opt poly} is (gamma*u'*v + coef0)^degree. This extends the linear kernel with wiggliness.{p_end}
-{pmore2}{opt rbf} stands for Radial Basis Functions, and treats the coefficients
+{pmore2}{opt linear}: the dot-product you are probably familiar with from {help regress:OLS}: u'*v{p_end}
+{pmore2}{opt poly}: (gamma*u'*v + coef0)^degree. This extends the linear kernel with wiggliness.{p_end}
+{pmore2}{opt rbf}: stands for Radial Basis Functions, and treats the coefficients
       as a mean to smoothly approach in a ball, with the form exp(-gamma*|u-v|^2);
 	  this kernel tends to be a good generalist option for non-linear data.{p_end}
-{pmore2}{opt sigmoid} is a kernel which bends the linear kernel to fit in -1 to 1
+{pmore2}{opt sigmoid}: a kernel which bends the linear kernel to fit in -1 to 1
    with tanh(gamma*u'*v + coef0), similar to the {help logistic} non-linearity.{p_end}
-{pmore2}{opt precomputed} assumes that {depvar} is actually a list of precomputed kernel values.
- With effort, you can use this to use custom kernels with your data [TODO].{p_end}
+{pmore2}{opt precomputed}: assumes that {depvar} is actually a list of precomputed kernel values.
+ With effort, you can use this to use custom kernels with your data.{p_end}
+{*  TODO: give a complete working example of using a custom kernel }{...}
 
 {pmore}{it:kernel} is case insensitive.{p_end}
 
@@ -258,9 +259,9 @@ Smaller can lead to overfitting.
 {marker nu}{...}
 {opt nu(#)} is used in the nu variants.
 The nu variants are a reparamaterization of regular SVM which lets you directly tune,
-using {opt nu}, the tradeoff between error and computation.
-{opt nu} is an upper bound on the fraction of training errors and a lower bound of the
-fraction of support vectors, so that [TODO smaller means ... and larger means .....]
+using {opt nu}, the size of the svm margin, letting you control over- vs under-fitting.
+{opt nu} is simultaneously a bound on the fraction of training errors and the
+fraction of support vectors. Smaller {opt nu} means a smaller margin of error allowed -- so, a tigheter fit -- but more SVs required, and larger {opt nu} means a larger margin of error allowed and less SVs required.
 See {help svm##nusvm:the ν-SVM tutorial} for details.
 {* ..wait... this doesn't make any sense. nu == 0.1 means there are at most 10% (training) errors and at least 10% are support vectors.}{...}
 {*      nu = 0.9 means there are at most 90% errors and at least 90% SVs.   you should always choose 0, then, to get perfect prediction and zero memory usage}{...}
@@ -287,7 +288,7 @@ setting this too high will result in overfitting.
 {phang}
 {marker shrinking}{...}
 {opt shrink:ing} invokes the shrinkage heuristics,
-which can improve the fit by trading bias for variance. [CITATION NEEDED]
+which can sometimes improve the fit by trading bias for variance.
 
 
 {* FEATURE PARAMS: }{...}
@@ -372,7 +373,7 @@ Conventionally you should name your file with '.model' for a file extension.
 
 {pstd}
 {cmd:svm_import} will load a model from disk, replacing any previous in-memory fit.
-When you import, [TODO: some properties] will be missing because the import was done without reference to any dataset.
+When you import, {opt e(depvar)} and {opt e(cmdline)} will be missing because the import was done without reference to any dataset, and {cmd:predict} will require you to explicitly specify the variables again.  {cmd:svm} is much simpler if import/export is avoided, but you may be given one of these model files created by another libsvm frontend, and it lets you reuse a final model which took a long time to fit.
 
 {phang}
 {opt verbose}: see {help svm##verbose:svm, verbose}.
@@ -418,7 +419,8 @@ If {opt e(N_SV)}/{opt e(N)} is close to 100% your fit is inefficient; perhaps yo
 
 {synoptset 20 tabbed}{...}
 {p2col 5 20 24 2: Matrices}({help svm##remarks:may be missing}){p_end}
-{synopt:{cmd:e(sv_coef)}}The coefficients of the support vectors for each fitted hyperplane. [TODO]{p_end}
+{synopt:{cmd:e(sv_coef)}}The coefficients of the support vectors for each fitted hyperplane in the {bf:dual} quadratic programming problem.{p_end}
+{* TODO: is there a clearer explanation of sv_coef? Is it worth including? }{...}
 {synopt:{cmd:e(rho)}}The intercept term for each fitted hyperplane. It is lower-triangular and {cmd:e(N_class)}^2 large, with each entry [i,j] representing the hyperplane between class i and class j.{p_end}
 
 

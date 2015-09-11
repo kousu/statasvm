@@ -95,11 +95,13 @@ Documentation
 
 * [ ] svm, predict in svm.sthlp should be under svm_postestimation.sthlp
 * [ ] I should probably undocument svm_import because it causes problems
-
+* [x] p(0.1) -> eps(0.1)
+* [x]  squash all the TODOs
 * [ ] figure out what is up with the definition of nu
 * [ ] check up on my explanation of what SVR does
 * [ ] describe 
 
+* [ ] make a separate "svm_postestimation.sthlp", to match how glm and regress are
 
 [x] comment out norm, until we decide what we are going to do with it
 [ ] better parameter descriptions (mine sklearn for this)
@@ -145,7 +147,7 @@ Documentation
   * [ ] custom kernel (port from sklearn?)
 
 
-[ ] make click-to-run examples in the docs
+[x] make click-to-run examples in the docs
   --> twoway_area.sthlp shows how to do this
 
 [WONTFIX] duplicate the See Alsos to an actual section (because smcl isn't smart enough to figure this out for us)
@@ -183,6 +185,9 @@ Documentation
 Features
 --------
 
+* [ ] svm_predict needs to take varlist optionally, because svm_import has no way to know what variables it goes with;
+  - the libsvm people, following on svmlight, simply assume that the variables are given in order in the data matrix passed to it, and that all train/test split files are in the identical (and totally unlabelled) order. Since Stata is actually meant for humans to use in daily work, it is all about labelled variables.
+* [ ] svm_import does not set all the same macros as svm_train
 * [x] Stata in -e mode writes to its logfile as it runs, so there should be a way to wrap it such that it behaves like other scripting languages: printing/taking output as it gets it but also quitting when the program ends
   Actually, 'exit' has a 'STATA' option which does a proper exit() call
   the next step is to output _rc somewhere and wrap a script around the whole thing which exits with _rc as a proper error code
@@ -198,6 +203,8 @@ Features
     is stratification: for classification problems it automatically makes sure to keep class proportions about even
     
 * [ ] grid-search
+ - tricky to do in general, because you need to specify a function and a set of parameters and a region of those parameters to check; just look at how complicated basic use of sklearn's is: http://scikit-learn.org/stable/modules/grid_search.html -- and that's in a language which is fully enthralled with metaprogramming.
+ - there could be an svm_grid function just to be practical...maybe.
 
 * [ ] predict, replace
    stanard predict doesn't have this, but writing cross validation will be a lot easier if we can just predict all into different slices of a single variable
@@ -277,9 +284,26 @@ Features
 Maintenance
 -----------
 
+Code cleanups:
+
+* [ ] Give one-liner introductions on each code file.
+
+* [ ] Roll ensurelib_aberrances into ensurelib
+   -> and for brevity, roll the plugins it depends on (dlopenable, getenv, setenv) into a single _ensurelib.plugin
+   and make this into a separate project
+* [ ] put ado_from as a subroutine inline in example.ado
+   -> possibly also ensurepkg?
+   and make this into a separate project
+* [ ] Move testing subroutines elsewhere
+   -[ ] cv.ado
+   -[ ] mlogit_predict.ado
+
+* [ ] do `search subroutine` for each *.ado to find out whose toes I'm stepping on
+
 * [ ] Label prediction columns with "Prediction"
 * [ ] 
-v* [ ] make use of Stata's "confirm" command to give better error messages
+* [ ] make use of Stata's "confirm" command to give better error messages
+
 
 - [ ] renames
   - [ ] svm_train to svm

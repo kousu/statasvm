@@ -39,7 +39,7 @@
 {* XXX the division between 'tuning' and 'model' parameters is hazy; e.g. you could in theory cross-validate to choose degree (and people do this with neural networks), or even to choose the kernel . hmmmmm}{...}
 {syntab:Tuning}
 {synopt :{opth c:(svm##c:#)}}For {opt c_svc}, {opt epsilon_svr} and {opt nu_svr} SVMs, the weight on the margin of error. Should be > 0. Default: {cmd:c(1)}{p_end}
-{synopt :{opth eps:ilon(svm##epsilon:#)}}For {opt epsilon_svr} SVMs, the margin of error allowed within which observations will be support vectors. Default: {cmd:p(0.1)}{p_end}
+{synopt :{opth eps:ilon(svm##epsilon:#)}}For {opt epsilon_svr} SVMs, the margin of error allowed within which observations will be support vectors. Default: {cmd:eps(0.1)}{p_end}
 {synopt :{opth nu:(svm##nu:#)}}For {opt nu_svc}, {opt one_class}, and {opt nu_svr} SVMs, tunes the proportion of expected support vectors. Should be in (0, 1]. Default: {cmd:nu(0.5)}{p_end}
 
 {synopt :{opth g:amma(svm##gamma:#)}}For {opt poly}, {opt rbf} and {opt sigmoid} kernels, a scaling factor for the linear part of the kernel. Default: {cmd:gamma(1/[# {indepvars}])}{p_end}

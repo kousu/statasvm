@@ -51,10 +51,10 @@ program define _svm_train, eclass
   
   /* fill in defaults for the string values */
   if("`type'"=="") {
-    local type = "C_SVC"
+    local type = "SVC"
   }
   
-  if("`type'" == "C_SVC" | "`type'" == "NU_SVC" /* | "`type'" == "ONE_CLASS" ???? */) {
+  if("`type'" == "SVC" | "`type'" == "NU_SVC" /* | "`type'" == "ONE_CLASS" ???? */) {
     // "ensure" type is categorical
     local T : type `depvar'
     if("`T'"=="float" | "`T'"=="double") {
@@ -68,7 +68,7 @@ program define _svm_train, eclass
       di as error "         . rename \`B' `depvar'"
       di as error "         (If your category coding uses floating point levels you must choose a different coding)"
       di as error
-      di as error "         Alternately, consider SV regression: type(EPSILON_SVR) or type(NU_SVR)."
+      di as error "         Alternately, consider SV regression: type(SVR) or type(NU_SVR)."
       di as error
     }
   }
@@ -107,10 +107,10 @@ program define _svm_train, eclass
     local probability = 1
     
     // ensure model is a classification
-    if("`type'" != "C_SVC" & "`type'" != "NU_SVC") {
+    if("`type'" != "SVC" & "`type'" != "NU_SVC") {
       // the command line tools *allow* this combination, but at prediction time silently change the parameters
       // "Errors should never pass silently. Unless explicitly silenced." -- Tim Peters, The Zen of Python
-      di as error "Error: requested model is a `type'. You can only use the probability option with classification models (C_SVC, NU_SVC)."
+      di as error "Error: requested model is a `type'. You can only use the probability option with classification models (SVC, NU_SVC)."
       exit 2
     }
   }

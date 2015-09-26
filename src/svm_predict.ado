@@ -41,16 +41,16 @@ program define svm_predict, eclass
     // this duplicates code over in svm_train, but I think this is safest:
     //  svm_import allows you to pull in svm_models created by other libsvm
     //  interfaces, and they mostly don't have this protection. 
-    if("`e(svm_type)'" != "C_SVC" & "`e(svm_type)'" != "NU_SVC") {
+    if("`e(svm_type)'" != "SVC" & "`e(svm_type)'" != "NU_SVC") {
       // in svm-predict.c, the equivalent section is:
       /*
-       *        if (predict_probability && (svm_type==C_SVC || svm_type==NU_SVC))
+       *        if (predict_probability && (svm_type==SVC || svm_type==NU_SVC))
        *                predict_label = svm_predict_probability(model,x,prob_estimates);
        *        else
        *                predict_label = svm_predict(model,x);
        */
       // it is cleaner to error out, rather than silently change the parameters, which is what the command line tools do
-      di as error "Error: trained model is a `e(svm_type)'. You can only use the probability option with classification models (C_SVC, NU_SVC)."
+      di as error "Error: trained model is a `e(svm_type)'. You can only use the probability option with classification models (SVC, NU_SVC)."
       exit 2
     }
     

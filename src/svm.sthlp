@@ -33,13 +33,13 @@
 {synopthdr}
 {synoptline}
 {syntab:Model}
-{synopt :{opth t:ype(svm##type:type)}}Type of model to fit: {opt c_svc}, {opt nu_svc}, {opt epsilon_svr}, or {opt nu_svr}, or {opt one_class}. Default: {cmd:type(c_svc)}{p_end}
+{synopt :{opth t:ype(svm##type:type)}}Type of model to fit: {opt svc}, {opt nu_svc}, {opt svr}, or {opt nu_svr}, or {opt one_class}. Default: {cmd:type(svc)}{p_end}
 {synopt :{opth k:ernel(svm##kernel:kernel)}}SVM kernel function to use: {opt linear}, {opt poly}, {opt rbf}, {opt sigmoid}, or {opt precomputed}. Default: {cmd:kernel(rbf)}{p_end}
 
 {* XXX the division between 'tuning' and 'model' parameters is hazy; e.g. you could in theory cross-validate to choose degree (and people do this with neural networks), or even to choose the kernel . hmmmmm}{...}
 {syntab:Tuning}
-{synopt :{opth c:(svm##c:#)}}For {opt c_svc}, {opt epsilon_svr} and {opt nu_svr} SVMs, the weight on the margin of error. Should be > 0. Default: {cmd:c(1)}{p_end}
-{synopt :{opth eps:ilon(svm##epsilon:#)}}For {opt epsilon_svr} SVMs, the margin of error allowed within which observations will be support vectors. Default: {cmd:eps(0.1)}{p_end}
+{synopt :{opth c:(svm##c:#)}}For {opt svc}, {opt svr} and {opt nu_svr} SVMs, the weight on the margin of error. Should be > 0. Default: {cmd:c(1)}{p_end}
+{synopt :{opth eps:ilon(svm##epsilon:#)}}For {opt svr} SVMs, the margin of error allowed within which observations will be support vectors. Default: {cmd:eps(0.1)}{p_end}
 {synopt :{opth nu:(svm##nu:#)}}For {opt nu_svc}, {opt one_class}, and {opt nu_svr} SVMs, tunes the proportion of expected support vectors. Should be in (0, 1]. Default: {cmd:nu(0.5)}{p_end}
 
 {synopt :{opth g:amma(svm##gamma:#)}}For {opt poly}, {opt rbf} and {opt sigmoid} kernels, a scaling factor for the linear part of the kernel. Default: {cmd:gamma(1/[# {indepvars}])}{p_end}
@@ -166,7 +166,7 @@ but there is no way to give universal default parameters.
 Rather than guessing at the {help svm##tuning_params:tuning parameters},
 you should almost always use cross-validated grid-search to find them.
 Which parameters you need to tune depend on which model you pick; for example,
-for ({opt type(c_svc)}, opt{kernel(rbf)}) you only need to find ({opt c()}, {opt gamma()}).
+for ({opt type(svc)}, opt{kernel(rbf)}) you only need to find ({opt c()}, {opt gamma()}).
 You can grid-search on a subset of your full data, so long as it is a
 representative sample, to quickly find approximations for the optimal parameters.
 The {help svm##libsvmguide:libsvm guide} explains this in-depth.
@@ -175,7 +175,7 @@ The {help svm##libsvmguide:libsvm guide} explains this in-depth.
 {phang}
 {marker type}{...}
 {opt t:ype(type)} specifies which SVM model to run.{p_end}
-{pmore}{opt c_svc} and {opt nu_svc} perform classification.{p_end}
+{pmore}{opt svc} and {opt nu_svc} perform classification.{p_end}
 {pmore2}{depvar} should be a variable containing categories.
 Multiclass classification is automatically handled if necessary using
 the {browse "http://en.wikipedia.org/wiki/Multiclass_classification":class-against-class} method.
@@ -188,7 +188,7 @@ If you end up with almost as many classes as observations,
 you have probably used a continuous {depvar} and
 should use regression instead.{p_end}
 
-{pmore}{opt epsilon_svr} and {opt nu_svr} perform regression.{p_end}
+{pmore}{opt svr} and {opt nu_svr} perform regression.{p_end}
 {pmore2}{depvar} should be a variable containing continuous values.{p_end}
 {pmore2}Rather than try to find a hyperplane which separates data as far as possible,
 this tries to find a hyperplane to which most data is as near as possible.
@@ -246,12 +246,12 @@ is, in theory, operating upon.{p_end}
 {phang}
 {marker tuning_params}{...}
 {marker c}{...}
-{opt c(#)} weights (regularizes) the error term used in {opt c_svc}, {opt epsilon_svr} and {opt nu_svr}.
+{opt c(#)} weights (regularizes) the error term used in {opt svc}, {opt svr} and {opt nu_svr}.
 Larger allows less error, but too large will lead to underfitting.
 
 {phang}
 {marker epsilon}{...}
-{opt eps:ilon(#)} is the margin of error allowed by {opt epsilon_svr}.
+{opt eps:ilon(#)} is the margin of error allowed by {opt svr}.
 Larger makes your fit more able to incorporate more observations, but can lead to underfitting.
 Smaller can lead to overfitting.
 
@@ -344,7 +344,7 @@ On modern machines, a reasonable choice is {opt cache_size(1024)}.
 {pstd}{newvar} must not exist, so if you want to repredict your choices are {cmd:drop {newvar}} or to pick a new name, e.g. {cmd:predict {newvar}2}.{p_end}
 
 {marker predict_prob}{...}
-{phang}For classification ({opt c_svc}, {opt nu_svc}) problems, {opt probability} requests, for each observation, the probability of it being each class.
+{phang}For classification ({opt svc}, {opt nu_svc}) problems, {opt probability} requests, for each observation, the probability of it being each class.
 {newvar} is used as a stem for the new columns.
 Both probabilities and predictions are decided with Platt Scaling, rather than the normal method, and is not guaranteed to give the same results
 as non-probability predictions. If you are getting inconssistent results, investigate the {help svm##tuning_params:tuning} parameters.

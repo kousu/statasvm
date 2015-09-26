@@ -33,7 +33,7 @@
 {phang2}{cmd:. gen err = foreign != P in `test'}{p_end}
 {phang2}{cmd:. sum err in `test'}{p_end}
 
-{pstd}{it:({stata "example svm binary_classification":click to run})}{p_end}
+{pstd}{it:({stata svm_example binary_classification:click to run})}{p_end}
 
 {title:Examples: multiclass classification}
 
@@ -63,7 +63,7 @@
 {pstd}An overly high percentage of SVs means overfitting{p_end}
 {phang2}{cmd:. di "Percentage that are support vectors: `=round(100*e(N_SV)/e(N),.3)'"}{p_end}
 
-{pstd}{it:({stata "example svm multiclass_classification":click to run})}{p_end}
+{pstd}{it:({stata svm_example multiclass_classification:click to run})}{p_end}
 
 {title:Examples: class probability}
 
@@ -98,7 +98,7 @@
 {phang2}{cmd:. gen agree = P == P2 in `test'}{p_end}
 {phang2}{cmd:. sum agree in `test'}{p_end}
 
-{pstd}{it:({stata "example svm class_probability":click to run})}{p_end}
+{pstd}{it:({stata svm_example class_probability:click to run})}{p_end}
 
 {title:Examples: regression}
 
@@ -115,11 +115,11 @@
 {phang2}{cmd:. local train = "1/`=`split'-1'"}{p_end}
 {phang2}{cmd:. local test = "`split'/`=_N'"}{p_end}
 
-{pstd}Regression is invoked with type(epsilon_svr) or type(nu_svr).{p_end}
+{pstd}Regression is invoked with type(svr) or type(nu_svr).{p_end}
 {pstd}Notice that you can expand factors (categorical predictors) into sets of{p_end}
 {pstd}indicator (boolean/dummy) columns with standard i. syntax, and you can{p_end}
 {pstd}record which observations were chosen as support vectors with sv().{p_end}
-{phang2}{cmd:. svm weight height i.race i.sex in `train', type(epsilon_svr) sv(Is_SV)}{p_end}
+{phang2}{cmd:. svm weight height i.race i.sex in `train', type(svr) sv(Is_SV)}{p_end}
 
 {pstd}Examine which observations were SVs. Ideally, a small number of SVs are enough.{p_end}
 {phang2}{cmd:. tab Is_SV in `train'}{p_end}
@@ -130,7 +130,7 @@
 {phang2}{cmd:. gen res = (weight - P) in `test'}{p_end}
 {phang2}{cmd:. sum res}{p_end}
 
-{pstd}{it:({stata "example svm regression":click to run})}{p_end}
+{pstd}{it:({stata svm_example regression:click to run})}{p_end}
 
 {title:Examples: oneclass}
 
@@ -140,5 +140,5 @@
 {pstd}TODO{p_end}
 {phang2}{cmd:. svm, type(one_class)}{p_end}
 
-{pstd}{it:({stata "example svm oneclass":click to run})}{p_end}
+{pstd}{it:({stata svm_example oneclass:click to run})}{p_end}
 

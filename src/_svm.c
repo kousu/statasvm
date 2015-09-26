@@ -473,13 +473,13 @@ ST_retcode train(int argc, char *argv[])
     // XXX there is a string<->enum mapping buried in the libsvm code somewhere, but it's got no API :(
     //     so the mapping is replicated ad naseum
     // enum { C_SVC, NU_SVC, ONE_CLASS, EPSILON_SVR, NU_SVR };	/* svm_type */
-    if(strncmp(argv[0], "C_SVC", 10)==0) {
+    if(strncmp(argv[0], "SVC", 10)==0) {
         param.svm_type = C_SVC;
     } else if(strncmp(argv[0], "NU_SVC", 10)==0) {
         param.svm_type = NU_SVC;
     } else if(strncmp(argv[0], "ONE_CLASS", 10)==0) {
         param.svm_type = ONE_CLASS;
-    } else if(strncmp(argv[0], "EPSILON_SVR", 10)==0) {
+    } else if(strncmp(argv[0], "SVR", 10)==0) {
         param.svm_type = EPSILON_SVR;
     } else if(strncmp(argv[0], "NU_SVR", 10)==0) {
         param.svm_type = NU_SVR;

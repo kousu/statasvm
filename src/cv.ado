@@ -39,20 +39,20 @@
  * Example:
  *
  * . sysuse auto
- * . svm foreign headroom gear_ratio weight, type(c_svc) gamma(0.4) c(51)
+ * . svm foreign headroom gear_ratio weight, type(svc) gamma(0.4) c(51)
  * . predict P
  * . gen err = foreign != P
  * . qui sum err
  * . di "Training error rate: `r(mean)'"
  * . drop P err
  * .
- * . cv svm foreign headroom gear_ratio weight; P, folds(`=floor(_N/3)') est(type(c_svc) gamma(0.4) c(51))
+ * . cv svm foreign headroom gear_ratio weight; P, folds(`=floor(_N/3)') est(type(svc) gamma(0.4) c(51))
  * . gen err = foreign != P
  * . qui sum err
  * . di "Cross-validated error rate: `r(mean)'"
  *
  * Example of if/in:
- * . cv P svm gear_ratio foreign headroom weight if gear_ratio > 3 in 22/63, folds(4) shuffle type(epsilon_svr) eps(0.5)
+ * . cv P svm gear_ratio foreign headroom weight if gear_ratio > 3 in 22/63, folds(4) shuffle type(svr) eps(0.5)
  *
  * You can use this with "unsupervised" estimators---ones which take no {help depvar} (y)---too.
  * cv passes whatever options you give it directly to the estimator; all it handles it the folding.

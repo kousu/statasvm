@@ -45,7 +45,7 @@ cap drop predb
 boost viscosity temp pressure if train, dist(normal) pred(predb) influence shrink(0.1) inter(3)
 bysort train: egen mse_boost=total((viscosity-predb)^2/`trainn')
 
-qui svm viscosity temp pressure if train, eps(1)  c(1) gamma(.1) type(epsilon_SVR)
+qui svm viscosity temp pressure if train, eps(1)  c(1) gamma(.1) type(SVR)
 predict preds
 bysort train: egen mse_svm=total((viscosity-preds)^2/`trainn')
 

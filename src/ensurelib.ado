@@ -135,7 +135,7 @@ program define ensurelib
   /* by checking here, we prevent Stata's "unable to load [...].plugin" with an error which points out the actual problem. */
   capture plugin call _dlopenable, "`lib'"
   if(_rc!=0) {
-    di as error "ensurelib: unable to load `libname'"
+    di as error "ensurelib: unable to load `libname'.  You must install dynamic link library `libname' to use this program."
     exit _rc
   }
   

@@ -3,6 +3,7 @@
 {vieweralsosee "[R] regress" "mansection R regress"}{...}
 {viewerjumpto "Syntax" "svm##syntax"}{...}
 {viewerjumpto "Description" "svm##description"}{...}
+{viewerjumpto "Installation" "svm##installation"}{...}
 {viewerjumpto "Options" "svm##options"}{...}
 {viewerjumpto "Stored results" "svm##results"}{...}
 {viewerjumpto "Remarks" "svm##remarks"}{...}
@@ -111,10 +112,29 @@ Each observation can be thought of as a vector,
 so the {it:support vectors} are those observations which the algorithm deems critical to the fit.
 
 {pstd}
+This package is a thin wrapper for the widely deployed {help svm##libsvm:libsvm}.
+The thinness of this wrapper is an intentional feature:
+it means work done under Stata-SVM should be replicable with other libsvm wrappers such as
+{browse "http://weka.wikispaces.com/LibSVM":Weka} or
+{browse "http://scikit-learn.org/stable/modules/svm.html":sklearn}.
+As a side-effect, some of the options are unfortunately terse.
 
 {pstd}
-This package is a thin wrapper for the widely deployed {help svm##libsvm:libsvm},
-so in addition to the Stata package, {bf:libsvm must be installed}.
+See the {help svm##svmtutorial:libsvm SVM tutorial} for a gentle introduction to the method.
+If you find this manual confusing, refer to the authoritative
+the libsvm {browse "http://www.csie.ntu.edu.tw/~cjlin/libsvm/faq.html":FAQ},
+{browse "https://github.com/cjlin1/libsvm/blob/master/README":README},
+and {help svm##libsvm:implementation paper}.
+Then please write us with your suggestions for clarification.
+
+{pstd}
+Please also feel free to {help svm##authors:send us} any other feature requests.
+
+{marker installation}{...}
+{title:Installation}
+
+{pstd}
+Since this is just a wrapper, {bf:libsvm must be installed} to use this package.
 On Windows, libsvm.dll is bundled with the package,
 and you can find it in your {help adopath} (try {cmd:findfile libsvm.dll} to verify this).
 On OS X, libsvm is available in both {browse "https://brew.sh":brew} and {browse "https://www.macports.org":macports}.
@@ -124,24 +144,6 @@ if you cannot find it in your package manager or if you want the latest libsvm.
 If you are having plugin load errors, please {help svm##authors:contact the authors},
 as we want to make the experience as smooth as possible for our users across as many platforms as possible.
 
-{pstd}
-The thinness of this wrapper is an intentional feature. It means work done under
-Stata-SVM should be replicable with other libsvm wrappers such as
-{browse "http://weka.wikispaces.com/LibSVM":Weka} or
-{browse "http://scikit-learn.org/stable/modules/svm.html":sklearn}.
-We will happily {help svm##authors:field} feature requests,
-since they mean that people are using this software,
-but unless the feature really is Stata-specific
-we will try to get features rolled directly into libsvm
-so that everyone can benefit before trying to squeeze it on top.
-
-{pstd}
-See {help svm##svmtutorial:this SVM tutorial} for a gentle introduction to the method.
-IF this manual is confusing, refer to the authoritative
-the libsvm {browse "http://www.csie.ntu.edu.tw/~cjlin/libsvm/faq.html":FAQ},
-{browse "https://github.com/cjlin1/libsvm/blob/master/README":README},
-and {help svm##libsvm:implementation paper}.
-Then please write us with suggestions for clarification.
 
 {marker options}{...}
 {title:Options}

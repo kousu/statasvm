@@ -1,6 +1,12 @@
 TODO
 ====
 
+quicklist:
+- memory leaks
+- oneclass example
+- rename ensurelib, clockseed and clone to svm_{ensurelib,clockseed,clone} to avoid dist conflicts
+- take cv.ado and mlogit_predict.ado out of mainline.
+
 Copyright
 ---------
 
@@ -47,6 +53,7 @@ Build
 Dist
 ---
 
+* [ ] Check for memory leaks
 * [ ] Implement package checksumming
   -> see help usersite
   -> this is probably reasonably quick to automate by pumping Stata from Make
@@ -94,14 +101,14 @@ Documentation
 -------------
 
 * [ ] svm, predict in svm.sthlp should be under svm_postestimation.sthlp
-* [ ] I should probably undocument svm_import because it causes problems
+* [ ] svmlight should have its own .sthlp file
+* [x] I should probably undocument svm_import because it causes problems
+  - there's no easy way to make it work with predict because the libsvm export format doesn't remember which variables go where.
 * [x] p(0.1) -> eps(0.1)
 * [x]  squash all the TODOs
 * [ ] figure out what is up with the definition of nu
 * [ ] check up on my explanation of what SVR does
 * [ ] describe 
-
-* [ ] make a separate "svm_postestimation.sthlp", to match how glm and regress are
 
 [x] comment out norm, until we decide what we are going to do with it
 [ ] better parameter descriptions (mine sklearn for this)
@@ -334,6 +341,9 @@ Code cleanups:
 Bugs
 ----
 
+* [ ] memory leak: the svm_model hangs around between calls, and there is nowhere good to free it because Stata doesn't give a shutdown hook.
+  - this is only a smallll memory leak, and it gets cleaned up when the program exits
+  - the only option that might be feasible is to use the (platform specific!!) DLL unload hooks.  Or also, when a C++ DLL is unloaded (this might be cross-platform!) all the destructors of its globals get run.
 * [ ] cv should be able to handle multiple outcomes
   - mlogit_p under certain options
   - svm_predict, prob

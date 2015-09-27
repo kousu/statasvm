@@ -440,8 +440,6 @@ ST_retcode _model2stata(int argc, char *argv[])
 struct subcommand_t subcommands[] = {
     {"train", train},
     {"predict", predict},
-    {"export", export},
-    {"import", import},
     {"_model2stata", _model2stata},
     {NULL, NULL}
 };
@@ -722,54 +720,6 @@ cleanup:
     
     return err;
 }
-
-
-ST_retcode export(int argc, char *argv[])
-{
-
-    if (argc != 1) {
-        sterror("Wrong number of arguments\n");
-        return 1;
-    }
-
-    char *fname = argv[0];
-
-    if (model == NULL) {
-        sterror("svm_export: no trained model available to export\n");
-        return 0;
-    }
-
-    if (svm_save_model(fname, model)) {
-        sterror("svm_export: unable to export fitted model\n");
-        return 1;
-    }
-
-    return 0;
-}
-
-
-
-ST_retcode import(int argc, char *argv[])
-{
-
-    if (argc != 1) {
-        sterror("Wrong number of arguments\n");
-        return 1;
-    }
-
-    if (model != NULL) {
-        svm_free_and_destroy_model(&model);
-    }
-
-    char *fname = argv[0];
-    if ((model = svm_load_model(fname)) == NULL) {
-        sterror("unable to import fitted model\n");
-        return 1;
-    }
-
-    return 0;
-}
-
 
 
 STDLL stata_call(int argc, char *argv[])

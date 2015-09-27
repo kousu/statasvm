@@ -15,6 +15,5 @@ extern struct svm_model* model;
 struct svm_problem* stata2libsvm();
 ST_retcode train(int argc, char* argv[]);
 ST_retcode predict(int argc, char* argv[]);
-ST_retcode export(int argc, char* argv[]);
-ST_retcode import(int argc, char* argv[]);
+
 

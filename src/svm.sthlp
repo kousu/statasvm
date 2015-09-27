@@ -79,18 +79,6 @@ INCLUDE help fvvarlist
 {synopt :{opt v:erbose}}Turns on {help svm##verbose:verbose mode}. Default: disabled{p_end}
 
 
-{p 8 16 2}
-{help svm##export:svm_export} using {filename}
-
-{p 8 16 2}
-{help svm##export:svm_import} using {filename}
-
-{synoptset 20 tabbed}{...}
-{synopthdr}
-{synoptline}
-{synopt :{opt using}}The filename to export to or import from a fitted libsvm model.{p_end}
-{synopt :{opt v:erbose}}Turns on {help svm##verbose:verbose mode}. Default: disabled{p_end}
-
 {marker description}{...}
 {title:Description}
 
@@ -359,30 +347,6 @@ This option is not valid for other SVM types.{p_end}
 Prediction implicitly uses the same {indepvars} as during estimation, so be careful about renaming or dropping variables.
 {...}
 {...}
-
-{marker export}{...}
-{dlgtab:import/export}
-
-{pstd}
-libsvm has an ad-hoc format it uses to save trained models.
-The command line programs {cmd:svm-train} and {cmd:svm-predict} which come with libsvm communicate via it.
-We support this format for interoperability.
-
-{pstd}
-{cmd:svm_export} will write a fitted model to disk.
-This can only be run if there is one in memory, either from {help svm##svm:svm} or {help svm##export:svm_import}.
-Conventionally you should name your file with '.model' for a file extension.
-
-{pstd}
-{cmd:svm_import} will load a model from disk, replacing any previous in-memory fit.
-When you import, {opt e(depvar)} and {opt e(cmdline)} will be missing because the import was done without reference to any dataset, and {cmd:predict} will require you to explicitly specify the variables again.  {cmd:svm} is much simpler if import/export is avoided, but you may be given one of these model files created by another libsvm frontend, and it lets you reuse a final model which took a long time to fit.
-
-{phang}
-{opt verbose}: see {help svm##verbose:svm, verbose}.
-
-{pstd}
-Do not confuse these commands with {help svmlight:import_svmlight and export_svmlight}.
-
 
 
 {marker results}{...}

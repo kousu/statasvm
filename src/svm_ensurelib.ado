@@ -3,7 +3,8 @@
          has no sensible way of protecting against namespace conflicts, this
          gets the same prefix as the rest of the package.
 
-   If you want to use ensurelib by itself just delete this header and first function and rename the file.
+   If you want to use ensurelib by itself then delete this header and first function and rename the file,
+   and rename the plugins loaded below.
 */
 
 program define svm_ensurelib
@@ -76,9 +77,9 @@ end
  */
 
 capture noisily {
-program _getenv, plugin
-program _setenv, plugin
-program _dlopenable, plugin
+program _svm_getenv, plugin
+program _svm_setenv, plugin
+program _svm_dlopenable, plugin
 }
 if(_rc != 0) {
   di as error "ensurelib's prerequisites are missing. If you are running this from the source repo you need to 'make'."
@@ -162,19 +163,19 @@ program define _ensurelib
 	
     /* prepend the discovered library path (adopath) to the system library path (libvar) */
     // get the current value of libvar into libpath
-    plugin call _getenv, "`libvar'"
+    plugin call _svm_getenv, "`libvar'"
     local libpath = "`_getenv'"
 	
     // skip prepending if adopath is already there in `libvar', to prevent explosion
     local k = ustrpos("`libpath'", "`adopath'")
     if(`k' == 0) {
       // prepend
-      plugin call _setenv, "`libvar'" "`adopath'`sep'`libpath'"
+      plugin call _svm_setenv, "`libvar'" "`adopath'`sep'`libpath'"
     }
   }
   /* Check that the library is now loadable */
   /* by checking here, we prevent Stata's "unable to load [...].plugin" with an error which points out the actual problem. */
-  capture plugin call _dlopenable, "`lib'"
+  capture plugin call _svm_dlopenable, "`lib'"
   if(_rc!=0) {
     di as error "ensurelib: unable to load `libname'.  You must install dynamic link library `libname' to use this program."
     exit _rc

@@ -197,17 +197,18 @@ _svm.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _svm.c sttrampoline.c stutil.c stplu
 _svm.$(DLLEXT): libsvm_patches.$(OBJEXT)
 _svm.$(DLLEXT): LIBS += svm
 _svmlight.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _svmlight.c sttrampoline.c stutil.c stplugin.c)
-_getenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _getenv.c stutil.c stplugin.c)
-_setenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _setenv.c stutil.c stplugin.c)
-_dlopenable.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _dlopenable.c stutil.c stplugin.c)
+_svm_getenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _svm_getenv.c stutil.c stplugin.c)
+_svm_setenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _svm_setenv.c stutil.c stplugin.c)
+_svm_dlopenable.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _svm_dlopenable.c stutil.c stplugin.c)
 
 
 EXAMPLES:=binary_classification multiclass_classification class_probability regression oneclass
 EXAMPLES:=$(patsubst %,ancillary/%_example.do,$(EXAMPLES))
 ifneq ($(OS),Windows_NT)
-# example2smcl is in awk and so won't run on Windows
-# instead, a hybrid approach: on POSIX, we rebuild the examples is necessary
-# but we also check them into the repo so that Windows can still have them
+# example2smcl is in awk and so won't run on Windows.
+# Instead, a hybrid approach: on POSIX, we rebuild the examples when make detects it's necessary
+# but we also check them into the repo so that Windows can be kept in sync without awk.
+# (notice that if $(OS) is Windows then this rule simply doesn't exist: make doesn't know about examples when run on Windows)
 svm_examples.ihlp: $(EXAMPLES)
 	../scripts/example2smcl -v PKG=$(PKG) $^ > $@
 

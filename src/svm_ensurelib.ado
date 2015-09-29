@@ -1,3 +1,18 @@
+/* svm_ensurelib: at runtime, make sure libsvm is available and loadable */
+/*       This would be ensurelib.ado, but for packaging safety, because Stata
+         has no sensible way of protecting against namespace conflicts, this
+         gets the same prefix as the rest of the package.
+
+   If you want to use ensurelib by itself just delete this header and first function and rename the file.
+*/
+
+program define svm_ensurelib
+  version 13
+  // call the real ensurelib, which is defined below (as an inner "helper" function)
+  ensurelib svm
+end
+
+
 /* ensurelib: edit the OS shared library path to ensure shared library dependencies will be found when Stata loads plugins.
  *
  * This allows you to bundle non-plugin DLLs, which you will have to do to create wrapper plugins

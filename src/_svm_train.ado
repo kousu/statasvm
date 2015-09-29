@@ -5,7 +5,7 @@
   
 
 /* load the C extension */
-ensurelib svm           // check for libsvm
+svm_ensurelib           // check for libsvm
 program _svm, plugin    // load _svm.plugin, the wrapper for libsvm
 
 program define _svm_train, eclass

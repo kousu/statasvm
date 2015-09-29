@@ -170,8 +170,9 @@ As a subroutine, it runs `make dist` which takes `.ado`s and `.sthlp`s in `./` a
 (`ancillary/` is for ancillary files---ones which will not get installed with `. net install svm` but can optionally be pulled *to the working directory* with `. net get svm`; it could contain, for example, datasets (.csv, .dta, .svmlight) and example code (.do)).
 `make pkg` then scans and constructs `dist/svm.pkg` and `dist/stata.toc` from `dist/`.
 
-We do not have a cross-platform build bot set up, so there is a manual process needed to do a complete distribution.
-We've attempted to make the chance for error minimal, and this only needs to be done for releases, never for just developing.
+We do not have a cross-platform build bot set up, so there is a manual process needed to do a complete cross-platform distribution.
+We've attempted to make the chance for error minimal, and this only needs to be done for releases, never for just developing,
+and you can use `make pkg` locally if you just want to test one platform.
 
 There are two similar ways to go about this. The goal these processes is to collect all the `bin/<platform>/` into
 one folder *before* running `make pkg`, so that it can pick them up and index them into the .pkg file.

@@ -1,7 +1,7 @@
 /* svm_predict:  after fitting an SVM model with svm, construct predicted classes/values (depending on the type of the active SVM) */
 
 /* load the C extension */
-ensurelib_aberrance svm // check for libsvm
+ensurelib svm           // check for libsvm
 program _svm, plugin    // load _svm.plugin, the wrapper for libsvm
 
 program define svm_predict, eclass

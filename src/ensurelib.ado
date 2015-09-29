@@ -71,6 +71,32 @@ if(_rc != 0) {
 }
 
 program define ensurelib
+  version 13
+  gettoken lib 0 : 0
+  syntax /* deny further args */
+  
+  /* this handles libraries whose names on Windows follow the aberrant "lib<name>.dll" format,
+     which commonly happens when unix libraries get ported without much care to Windows.
+     
+     The logic is stupid-simple here: first try lib<name>.dll,
+     and if that works we assume it's correct, no further questions asked.
+     Otherwise we fall back to <name>.dll.
+     
+     On non-Windows systems, we immediately fall back to the regular path,
+     which looks up lib<name>.so or <name>.dylib or whatever else dlopen() does.
+   */
+  if("`c(os)'"=="Windows") {
+    capture _ensurelib "lib`lib'"
+    if(_rc==0) {
+      // success!
+      exit
+    }
+  }
+  
+  _ensurelib `lib'
+end
+
+program define _ensurelib
   gettoken libname 0 : 0
   if("`libname'"=="") {
     di as error "ensurelib: argument required"

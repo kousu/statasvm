@@ -10,7 +10,7 @@
  */
 
 /* load the C extension */
-ensurelib_aberrance svm // check for libsvm
+ensurelib svm           // check for libsvm
 program _svm, plugin    // load _svm.plugin, the wrapper for libsvm
 
 program define _svm_model2stata, eclass

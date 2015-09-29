@@ -405,7 +405,7 @@ If Stata's memory limits are an impossible hurdle,
 your best option is to give up on Stata and switching to libsvm's companion {cmd:svm-train} program.
 This will have been installed with the libsvm package if you used a package manager, or
 you can get it {browse "http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/libsvm.cgi?+http://www.csie.ntu.edu.tw/~cjlin/libsvm+zip":from its authors};
-You can use {help svmlight:export svmlight} to extract your dataset for use with {cmd:svm-train}.
+You can use {help svmlight:export_svmlight} to extract your dataset for use with {cmd:svm-train}.
 
 {marker examples}{...}
 {title:Examples}

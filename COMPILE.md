@@ -165,43 +165,48 @@ Stata.exe can only run 32 bit plugins and Stata-64.exe can only run 64 bit plugi
 Deployment
 ----------
 
-`make dist` automates, as much as possible, creating a multiplatform Stata .pkg.
-It takes `.ado`s and `.sthlp`s in `./` along with everything in `bin/`, and `ancillary/`, and makes `dist/svm.pkg` and `dist/stata.toc` from it.
+`make pkg` automates, as much as possible, creating a multiplatform Stata .pkg.
+As a subroutine, it runs `make dist` which takes `.ado`s and `.sthlp`s in `./` along with everything in `bin/`, and `ancillary/`, and places them into `dist/`.
 (`ancillary/` is for ancillary files---ones which will not get installed with `. net install svm` but can optionally be pulled *to the working directory* with `. net get svm`; it could contain, for example, datasets (.csv, .dta, .svmlight) and example code (.do)).
+`make pkg` tehn and makes `dist/svm.pkg` and `dist/stata.toc` from `dist/`
 
-We do not have a cross-platform build bot set up, so there is manual intervention needed to do a complete dist.
-We've attempted to make the chance for error minimal, and this only needs to be done for releases.
+We do not have a cross-platform build bot set up, so there is a manual process needed to do a complete distribution.
+We've attempted to make the chance for error minimal, and this only needs to be done for releases, never for just developing.
 
-The safer way:
+There are two similar ways to go about this. The goal these processes is to collect all the `bin/<platform>/` into
+one folder *before* running `make pkg`, so that it can pick them up and index them into the .pkg file.
 
-* Pick a primary build machine; make sure it is POSIX (`make dist` is not Windows compatible).
-* Login remotely (ssh, RDP, or VNC) to each build machine
-  * Instead of having two Windows-32 and Windows-64 build machines, open terminals on one Windows machine:
+The safe process:
+
+* Pick a primary build machine; make sure it is POSIX (`make pkg` is not Windows compatible).
+* Login remotely (ssh, RDP, or VNC) to each build machine, or just walk across the room to the other build machines.
+  * SPECIAL WINDOWS EXCEPTION: Instead of having two Windows-32 and Windows-64 build machines, open terminals on one Windows machine:
     one with the 64 bit build (Visual Studio or MinGW) build tools loaded, and
     one with the 32 bit (Visual Studio or MinGW) build tools.
     Refer to "Toolchain" above.
-* `cd` to repository/src
+* `cd` to repository/src on each machine
 * synchronize:
   * while repos are out of sync:
     * for each build machine:
       * `git pull` + fix any merge conflicts
       * `git diff; git commit -a; git push`
 * for each build machine: `make clean; make`
-* manually copy the bin/ folder to your primary machine
-* `make dist`
+* manually copy the bin/ folder to your primary machine, over your choice of USB stick, SMB, NFS, SFTP, FTP, etc.
+* on the primary build machine: `make pkg`
 
-The quicker and maybe too clever for it's own good way:
+The quicker and maybe too clever process:
 
-* Pick a primary build machine; make sure it is POSIX (`make dist` is not Windows compatible).
+* Pick a primary build machine; make sure it is POSIX (`make pkg` is not Windows compatible).
 * Login remotely (ssh, RDP, or VNC) to each build machine
 * remotely mount (either via sshfs or smb, depending on platform) the repository from the primary
 * `cd` into repository/src; this means the remotely mounted repository, for non-primary build machines
-* `make clean; make`
-* back on the primary: `make dist`
+* on each machine: `make clean; make`
+  * since the drive is network-shared, everything ends up in the same build folder, but platform-specific pieces get placed under `bin/<platform>/`, so they do not conflict with each other.
+* on the primary: `make pkg`
 
-The goal of both methods is to collect all the `bin/<platform>/` files in one place *before* running `make dist`, so that `make dist` picks them up and indexes them into the .pkg.
 
-Once `dist` has gone through, **test it**. There may have been a packaging glitch which broke, say, 32 bit Windows, and if so you need to start this ritual from the top.
+
+Once `pkg` has gone through, **test it**. There may have been a packaging glitch which broke, say, 32 bit Windows, and if so you need to start this ritual from the top.
 * On the primary, `../scripts/distserver.sh`
 * For each build machine, run Stata and do `. net install svm, from(http://$PRIMARY:8000/)` and make sure everything in the package works.
   * better if you use fresh VM copies of the build machines, ones which definitely lack the repository and libsvm

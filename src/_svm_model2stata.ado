@@ -1,13 +1,18 @@
+/* model2stata: a subroutine to convert the global struct svm_model that lives in the DLL to a mixture of e() entries, variables, and matrices.
+ *
+ * Besides being usefully modular, this *must* be its own subroutine because it needs to be marked eclass.
+ * This is because, due to limitations in the Stata C API, there has to be an awkward dance to get the information out:
+ *   _svm.plugin writes to the (global!) scalar dictionary and then this subroutine code copies those entries to e().
+ *
+ * as with svm_load, the extension function is called multiple times with sub-sub-commands, because it doesn't have permission to perform all the operations needed
+
+ * if passed, SV specifies a column to create and then record svm_model->sv_indecies into
+ */
 
 /* load the C extension */
 ensurelib_aberrance svm // check for libsvm
 program _svm, plugin    // load _svm.plugin, the wrapper for libsvm
 
-* subroutine to convert the global struct svm_model that lives in the DLL to a mixture of e() entries, variables, and matrices
-* this needs to be its own subroutine because, due to limitations in the Stata C API,th 
-* it does an awkward dance where _svm.plugin writes to the (global!) scalar dict and then this code copies those entries to r()
-* as with svm_load, the extension function is called multiple times with sub-sub-commands, because it doesn't have permission to perform all the operations needed
-* if passed, SV specifies a column to create and record svm_model->sv_indecies into
 program define _svm_model2stata, eclass
   version 13
   

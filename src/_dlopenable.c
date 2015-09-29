@@ -1,3 +1,4 @@
+/* _dlopenable.c: this is a Stata extension module which tests if a given dynamic link library (.dll, .so, .dylib, etc) is available at runtime */
 
 #include <stdlib.h>
 #include <stdio.h>

@@ -1,3 +1,4 @@
+/* _setenv.c: a Stata plugin to expose setenv(), which Stata notably---and probably purposely---avoided */
 
 #include <stdlib.h>
 #include <stdio.h>

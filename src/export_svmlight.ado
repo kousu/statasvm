@@ -1,3 +1,4 @@
+/* export_svmlight: export the Stata dataset to a .svmlight format file. See _svmlight.c */
 
 program _svmlight, plugin /*load the C extension if not already loaded*/
 

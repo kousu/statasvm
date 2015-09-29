@@ -1,3 +1,6 @@
+/* _getenv.c: a Stata plugin exposing getenv() */
+/*            Stata has this available as "env", e.g. `. local s : env SHELL` puts "/bin/bash" (or your local shell) into macro s */
+/*            But env does not pick changes made by setenv() */
 
 #include <stdlib.h>
 #include <stdio.h>

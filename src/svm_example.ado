@@ -1,3 +1,7 @@
+/* svm_example: download and run the requested sample code from the svm package */
+/*                                                                              */
+/*              To use this with a different package, just replace every "svm". */
+
 program define svm_example
   example svm `0'
 end

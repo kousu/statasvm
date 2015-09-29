@@ -1,3 +1,8 @@
+/* _svm_train: this is the meat of the Stata interface to the fitting algorithm.
+  This is called by svm_train; though Stata programs can call subprograms defined in the same file as them,
+  similar to Matlab, this has to be a separate file as the special command 'xi' used there apparently cannot
+*/
+  
 
 /* load the C extension */
 ensurelib_aberrance svm // check for libsvm

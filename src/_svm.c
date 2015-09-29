@@ -1,3 +1,4 @@
+/* _svm.c: a Stata plugin to glue Stata to libsvm, providing the Support Vector Machine algorithm. */
 
 #include <stdlib.h>
 #include <stdio.h>

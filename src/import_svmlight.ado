@@ -1,3 +1,4 @@
+/* import_svmlight: import an .svmlight format file, replacing the current Stata dataset. See _svmlight.c */
 
 * The variables created will be 'y' and 'x%d' for %d=[1 through max(feature_id)].
 * Feature IDs are always positive integers, in svmlight format, according to its source code.

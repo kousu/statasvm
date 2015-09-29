@@ -1,4 +1,6 @@
-
+/* sttrampoline.c: this is an optional helper file to link into Stata plugins which provides infrastructure plugins to define subcommands. */
+/*                 This lets a single plugin operate in multiple steps which is necessary sometimes to work around the limited Stata API,  */
+/*                 and it lets a single plugin provide multiple services, if that makes sense. */
 
 #include <string.h>
 

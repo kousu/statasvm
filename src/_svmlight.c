@@ -1,3 +1,4 @@
+/* _svmlight.c: a Stata plugin which can read and write the defacto data format used by Joachim's svm^light program and the libsvm demo programs. */
 
 
 #include <stdlib.h>

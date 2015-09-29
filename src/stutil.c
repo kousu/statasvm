@@ -1,6 +1,4 @@
-/* helpers and other sundry code for dealing with Stata
- * which is cross-plugin
- */
+/* stutil.c: helpers and other sundry code for Stata plugins. */
 
 
 #include <stdlib.h>

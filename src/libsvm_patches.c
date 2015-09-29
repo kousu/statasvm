@@ -1,3 +1,4 @@
+/* libsvm_patches.c: helper methods that fit with libsvm but are not provided by it */
 
 #include <stdlib.h>
 #include <stdio.h>

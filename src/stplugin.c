@@ -2,6 +2,8 @@
     stplugin.c, version 2.0
     copyright (c) 2003, 2006        			StataCorp
     modified 2015        			        Nick Guenther
+    
+    This provides the entry point that is called when Stata loads an extension module from a DLL.
 */
 
 #include "stplugin.h"

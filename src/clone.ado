@@ -1,6 +1,4 @@
-
-* TODO: rename to 'clone'
-/* generate a perfect copy of a variable, (type, labels, etc) of an variable
+/* clone.ado: generate a perfect copy of a variable: type, labels, etc.
 
  syntax:
   clone newvar oldvar [if] [in]
@@ -8,8 +6,9 @@
  You can use 'if' and 'in' to control what values; values that don't match will be set to missing.
  If you want to clone a variable's metadata but not values use the idiom ". clone new old if 0".
 
- The reason the syntax is not "clone newvar = oldvar" is because but =/exp insists on numeric expressions,
- so string variables wouldn't be cloneable.
+ NB: The reason the syntax is not "clone newvar = oldvar", even though that would fit the pattern
+     set by generate and egen, is that syntax's =/exp option insists on parsing numeric expressions,
+     so string variables wouldn't be cloneable.
  */
  
 

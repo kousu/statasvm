@@ -169,17 +169,19 @@ Deployment
 As a subroutine, it runs `make dist` which takes `.ado`s and `.sthlp`s in `./` along with everything in `bin/`, and `ancillary/`, and places them into `dist/`.
 (`ancillary/` is for ancillary files---ones which will not get installed with `. net install svm` but can optionally be pulled *to the working directory* with `. net get svm`; it could contain, for example, datasets (.csv, .dta, .svmlight) and example code (.do)).
 `make pkg` then scans and constructs `dist/svm.pkg` and `dist/stata.toc` from `dist/`.
+The package is likely to install in subtly wrong ways if the .pkg file is malformed, so it is poor form to try to hand-roll it.
 
-We do not have a cross-platform build bot set up, so there is a manual process needed to do a complete cross-platform distribution.
-We've attempted to make the chance for error minimal, and this only needs to be done for releases, never for just developing,
-and you can use `make pkg` locally if you just want to test one platform.
+We do not have a cross-platform build bot available, so there is a manual process needed to do a complete (i.e. cross-platform) distribution.
+We've attempted to make the chance for error minimal, and this only needs to be done for releases, never for just developing.
+The goal this processes is to synchronize the code on all machines, build it,
+and eventually collect the platform-specific pieces into *the same* `bin/` folder, each platform under `bin/<platform>/`,
+*before* running `make pkg`, so that it can pick them up and index everything into the .pkg file.
+Notice that if you are only testing one platform, you just need to run `make pkg` locally instead of this complication.
 
-There are two similar ways to go about this. The goal these processes is to collect all the `bin/<platform>/` into
-one folder *before* running `make pkg`, so that it can pick them up and index them into the .pkg file.
+Process:
 
-The safe process:
-
-* Pick a primary build machine; make sure it is POSIX (`make pkg` is not Windows compatible).
+* Make sure the tree is clean of scrap .ado or backup files, to avoid cruft getting pulled in accidentally; `make dist` is intentionally simplistic. `git status` will help you determine if there is mess.
+* Pick a primary build machine. It *must* be POSIX (`make pkg` is not Windows compatible); if you do not have a POSIX machine handy, consider making a virtual machine with VirtualBox or VMWare.
 * Login remotely (ssh, RDP, or VNC) to each build machine, or just walk across the room to the other build machines.
   * SPECIAL WINDOWS EXCEPTION: Instead of having two Windows-32 and Windows-64 build machines, open terminals on one Windows machine:
     one with the 64 bit build (Visual Studio or MinGW) build tools loaded, and
@@ -195,8 +197,10 @@ The safe process:
 * manually copy the bin/ folder to your primary machine, over your choice of USB stick, SMB, NFS, SFTP, FTP, etc.
 * on the primary build machine: `make pkg`
 
-The quicker and maybe too clever process:
 
+There is a shortcut version of this process, quicker but more prone to mistakes:
+
+* Make sure the tree is clean, as above.
 * Pick a primary build machine; make sure it is POSIX (`make pkg` is not Windows compatible).
 * Login remotely (ssh, RDP, or VNC) to each build machine
 * remotely mount (either via sshfs or smb, depending on platform) the repository from the primary

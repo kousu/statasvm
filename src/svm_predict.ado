@@ -6,7 +6,7 @@ program _svm, plugin    // load _svm.plugin, the wrapper for libsvm
 
 program define svm_predict, eclass
   version 13
-  syntax newvarname [if] [in], [PROBability] [Verbose]
+  syntax newvarname [if] [in], [PROBability] [DECision] [Verbose]
   local target = "`varlist'"
   local _in = "`in'" //these need to be stashed because the hack below will smash them
   local _if = "`if'"
@@ -25,6 +25,12 @@ program define svm_predict, eclass
   syntax varlist [if] [in], * //* puts the remainder in `options' and allows this code to be isolated from svm_train (it's not like we actually could tweak anything, since the svm_model is stored on the plugin's C heap)
   gettoken y varlist : varlist // remove the first column to check
   assert "`y'" == "`e(depvar)'" // consistency with the svm_train
+
+  if("`probability'"!="" & "`decision'"!="") {
+    di as err "Error: probability and decision are mutually exclusive options."
+    exit 2
+  }
+  
   
   // make the target column
   // it is safe to assume that `target' is a valid variable name: "syntax" above enforces that
@@ -35,9 +41,10 @@ program define svm_predict, eclass
     label variable `target' "Predicted `L'"
   }
   
-  // allocate space (we use new variables) to put probability estimates for each class for each prediction
-  // this only makes sense in a classification problem, but we do not check for that
+  
   if("`probability'"!="") {
+    // allocate space (we use new variables) to put probability estimates for each class for each prediction
+
     // ensure model is a classification
     // this duplicates code over in svm_train, but I think this is safest:
     //  svm_import allows you to pull in svm_models created by other libsvm
@@ -65,13 +72,19 @@ program define svm_predict, eclass
     //     it MUST match the order in svm_model->labels or results will silently be permuted
     //     the only way to achieve this is to record the order in svm_model->labels and loop over that explicitly, which is what e(levels) is for
     assert "`e(levels)'" != ""
-    foreach c in `e(levels)' {
-      // this command is obscure; what it does is look up the
-      // value label for variable `target' for value `c'
-      // *or* give back `c' unchanged if `target' has no labels
-      // which is precisely what we want it to do here
-      local L : label (`target') `c'
-      // compute the full variable name for level `c'
+    foreach l in `e(levels)' {
+      // l is the "label" for each class, but it's just an integer (whatever was in the original data table)
+      
+      // We try to label each column by the appropriate string label, for readability,
+      //  but if it doesn't exist we fall back on the integer label.
+      //
+      // The command to do this is poorly documented. What this line does is
+      //  look up the value label for value `l'
+      //  *or* give back `l' unchanged if `target' has no labels
+      //  which is precisely what we want it to do here.
+      local L : label (`e(depvar)') `l'
+      
+      // compute the full variable name for level `l'
       local stemmed = "`target'_`L'"
       local stemmed = strtoname("`stemmed'") //sanitize the new name; this summarily avoids problems like one of your classes being "1.5"
       
@@ -89,7 +102,38 @@ program define svm_predict, eclass
       local varlist = "`varlist' `stemmed'"
     }
   }
-  
+  else if("`decision'"!="") { // else-if because these options are mutually exclusive (which is enforced above)
+    // Allocate space for the decision values
+    // This is more complicated because we need to go down a lower triangle of a matrix -- so, a length-changing nested loop.
+    // we have to use word("`e(levels)'", i) to extract the ith level
+    // which means we have an extra layer of indirection to deal with, so there's x_i the index into e(labels), x the integer label, and X the string (or possibly integer) label
+    //
+    assert "`e(levels)'" != ""
+    local no_levels = `e(N_class)'
+    forvalues l_i = 1/`no_levels' {
+      //di "l_i = `l_i'"
+      local l = word("`e(levels)'", `l_i')
+      local L : label (`e(depvar)') `l'
+      forvalues r_i = `=`l_i'+1'/`no_levels' {
+        //di "r_i = `r_i'"
+        local r = word("`e(levels)'", `r_i')  // map the index into the labels
+        local R : label (`e(depvar)') `r'
+        //di "generating decision value column (`l_i',`r_i') <=> (`l',`r') <=> (`L',`R')"
+        
+        // generate the name of the new column.
+        // it is, unfortunate, somewhat terse, in hopes of keeping within 32 characters
+        local stemmed = "`target'_`L'_`R'"
+        local stemmed = strtoname("`stemmed'")  //make it Stata-safe
+        
+        // allocate the decision value column
+        quietly generate double `stemmed' = .
+        label variable `stemmed' "`target' decision value `L' vs `R'"
+        
+        // attach the newcomers to the varlist so the plugin is allowed to edit them
+        local varlist = "`varlist' `stemmed'"
+      }
+    }
+  }
   
   // call down into C
   // we indicate "probability" mode by passing a non-empty list of levels
@@ -98,7 +142,7 @@ program define svm_predict, eclass
   // Subtlety: we don't quote levels, on the assumption that it is always a list of integers;
   //           that way, the levels are pre-tokenized and the count easily available as argc
   
-  plugin call _svm `target' `varlist' `_if' `_in', `verbose' predict `probability'
+  plugin call _svm `target' `varlist' `_if' `_in', `verbose' predict `probability' `decision'
 end
 
 

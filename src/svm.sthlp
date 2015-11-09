@@ -76,6 +76,7 @@ INCLUDE help fvvarlist
 {synopthdr}
 {synoptline}
 {synopt :{opt prob:ability}}If specified, estimate class probabilities for each observation. The fit must have been previously made with {opt probability}.{p_end}
+{synopt :{opt dec:ision}}If specified, output the decision values which measure each observation's distance to its hyperplane. Incompatible with {opt probability}.{p_end}
 {synopt :{opt v:erbose}}Turns on {help svm##verbose:verbose mode}. Default: disabled{p_end}
 
 
@@ -336,9 +337,20 @@ On modern machines, a reasonable choice is {opt cache_size(1024)}.
 {marker predict_prob}{...}
 {phang}For classification ({opt svc}, {opt nu_svc}) problems, {opt probability} requests, for each observation, the probability of it being each class.
 {newvar} is used as a stem for the new columns.
-Both probabilities and predictions are decided with Platt Scaling, rather than the normal method, and is not guaranteed to give the same results
-as non-probability predictions. If you are getting inconssistent results, investigate the {help svm##tuning_params:tuning} parameters.
+Both probabilities are computed with Platt Scaling.  When enabled, so are predictions, and this algorithm is not guaranteed to give the same results
+as otherwise. The results should be sensible either way, so if you are getting inconsistent results between the two algorithms,
+investigate the {help svm##tuning_params:tuning} parameters.
 This option is not valid for other SVM types.{p_end}
+
+{phang}
+{marker decision}{...}
+{opt dec:ision} outputs the values that {cmd:svm} uses to decide which side of the hyperplane a particular observation falls.
+{newvar} is used as a stem for the new columns.
+For classifications, there is one decision value for every pair of classes (k classes means k(k-1)/2 new columns!),
+ since libsvm uses the one-against-one algorithm to aggregate the binary svm algorithm into one that can handle a multiclass situation.
+For {opt type(one_class)} and regressions, there is only one decision value.
+This option is incompatible with {opt probability} because, once trained, the Platt Scaling algorithm does not use decision values.{p_end}
+
 
 {phang}
 {opt verbose}: see {help svm##verbose:svm, verbose}.
@@ -380,7 +392,7 @@ If {opt e(N_SV)}/{opt e(N)} is close to 100% your fit is inefficient; perhaps yo
 {synopt:{cmd:e(svm_type)}}SVM type string, as above{p_end}
 {synopt:{cmd:e(svm_kernel)}}kernel string, as above{p_end}
 {synopt:{cmd:e(predict)}}program used to implement {cmd:predict}{p_end}
-{synopt:{cmd:e(levels)}}list of the classes detected, in the order they were detected, if applicable{p_end}
+{synopt:{cmd:e(levels)}}list of the classes detected, in the order they were detected. Only defined for {opt type(svc)} and {opt type(nu_svc)}.{p_end}
 {* {synopt:{cmd:e(estat_cmd)}}program used to implement {cmd:estat}{p_end} }{...}
 
 {synoptset 20 tabbed}{...}

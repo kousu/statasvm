@@ -192,6 +192,8 @@ Documentation
 Features
 --------
 
+* [ ] export dec_values from svm_predict_values()
+  * tricky because dec_values is a lower-triangular matrix (as a list) and labelling is tricky
 * [ ] svm_predict needs to take varlist optionally, because svm_import has no way to know what variables it goes with;
   - the libsvm people, following on svmlight, simply assume that the variables are given in order in the data matrix passed to it, and that all train/test split files are in the identical (and totally unlabelled) order. Since Stata is actually meant for humans to use in daily work, it is all about labelled variables.
 * [ ] svm_import does not set all the same macros as svm_train
@@ -293,9 +295,14 @@ Maintenance
 
 Code cleanups:
 
-* [ ] Give one-liner introductions on each code file.
+* [ ] factor stata2libsvm and predict() back into one code base
+  -> struct svm_node* stata_to_svm_node(int x_l, int x_u)
+     then turn the current stata2libsvm into stata_to_svm_prob(int y, int x_l, int x_u)
+ 
 
-* [ ] Roll ensurelib_aberrances into ensurelib
+* [x] Give one-liner introductions on each code file.
+
+* [x] Roll ensurelib_aberrances into ensurelib
    -> and for brevity, roll the plugins it depends on (dlopenable, getenv, setenv) into a single _ensurelib.plugin
    and make this into a separate project
 * [ ] put ado_from as a subroutine inline in example.ado

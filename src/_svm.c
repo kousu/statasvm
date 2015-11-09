@@ -625,8 +625,8 @@ ST_retcode predict(int argc, char *argv[])
     double *probabilities = NULL;
     if(argc > 0 && strcmp(argv[0],"probability")==0) {
         if(!svm_check_probability_model(model)) {
-          sterror("svm_predict: active model cannot produce probabilities.\n");
-          return 1;
+            sterror("svm_predict: active model cannot produce probabilities.\n");
+            return 1;
         }
 
         // svm_predict.ado must pass a trailing set of variables where writeback goes
@@ -644,7 +644,7 @@ ST_retcode predict(int argc, char *argv[])
         
         // Init probabilities to catch bugs
         for(int k=0; k<no_levels; k++) {
-          probabilities[k] = SV_missval;
+            probabilities[k] = SV_missval;
         }
 
         argc--; argv++; //shift
@@ -662,7 +662,13 @@ ST_retcode predict(int argc, char *argv[])
             free(probabilities);
             return 1;
         }
-        // assert 1 + no_level_pairs + no_vars
+        // svm_predict.ado must pass a trailing set of variables where writeback goes
+        if((1 + model_p + no_level_pairs) != SF_nvars()) {
+            sterror("svm_predict: in decision mode, there must be exactly %d + %d + %d columns passed, but instead got %d columns.\n", 1, model_p, no_level_pairs, SF_nvars());
+            return 1;
+        }
+        no_vars -= no_level_pairs;
+
         decision = true;
         argc--; argv++; //shift
     }
@@ -678,7 +684,6 @@ ST_retcode predict(int argc, char *argv[])
         free(probabilities);
         return 1;
     }
-
     for(int k=0; k<no_level_pairs; k++) { // init decision_values to make bugs more obvious
         decision_values[k] = SV_missval;
     }
@@ -735,28 +740,41 @@ ST_retcode predict(int argc, char *argv[])
               continue_outer = false;
               continue;
             }
-            X[c].index = -1;    //mark end-of-row
+            X[c].index = -1;            //mark end-of-row
             X[c].value = SV_missval;    //not strictly necessary, but it makes me feel good
             
             // do the prediction! (one observation at a time)
             double y;
             if(!probabilities) {
-              y = svm_predict_values(model, X, decision_values);
-            } else {
-              y = svm_predict_probability(model, X, probabilities);
-              
-              // PRECONDITION: the variables as presented to the plugin are ordered *in the same order as the levels in model->label and probabilities are ordered* 
-              for(int k=0; k<no_levels; k++) {
-                err = SF_vstore(no_vars+1+k, i, probabilities[k]);
-                //stdebug("prob: [%d,%d]=%lf\n", i,no_vars+1+k,probabilities[k]);
-                if(err) {
-                  sterror("svm_predict: unable to writeback probability for level #%d (target column %d) at observation %d\n", k,  no_vars+1+k, i);
-                  goto cleanup;
+                y = svm_predict_values(model, X, decision_values);
+                
+                if(decision) {
+                    // Export decision_values
+                    // PRECONDITION: the variables as presented to the plugin are ordered *in the right order*: model->label[0] vs model->label[1], [...] model->label[0] vs model->label[no_levels], model->label[1] vs model->label[2] ...  (from svm_predict_values() in libsvm/README)
+                    for(int k=0; k<no_level_pairs; k++) {
+                        err = SF_vstore(no_vars+1+k, i, decision_values[k]);
+                        if(err) {
+                            sterror("svm_predict: unable to writeback decision value %d (target column %d) at observation %d\n", k,  no_vars+1+k, i);
+                            goto cleanup;
+                        }
+                    }
                 }
-              }
+            } else {
+                y = svm_predict_probability(model, X, probabilities);
+                
+                // Export probabilities
+                // PRECONDITION: the variables as presented to the plugin are ordered *in the same order as the levels in model->label and probabilities are ordered* 
+                for(int k=0; k<no_levels; k++) {
+                    err = SF_vstore(no_vars+1+k, i, probabilities[k]);
+                    //stdebug("prob: [%d,%d]=%lf\n", i,no_vars+1+k,probabilities[k]);
+                    if(err) {
+                        sterror("svm_predict: unable to writeback probability for level #%d (target column %d) at observation %d\n", k,  no_vars+1+k, i);
+                        goto cleanup;
+                    }
+                }
             }
             
-            // write back
+            // write back the prediction
             // by convention wtih svm_predict.ado, the 1th variable, i.e. the first on the varlist (not the first in the dataset), is the output location
             err = SF_vstore(1 /* stata counts from 1 */ , i, y);
             if (err) {

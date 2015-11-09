@@ -295,7 +295,7 @@ Maintenance
 
 Code cleanups:
 
-* [ ] factor stata2libsvm and predict() back into one code base
+* [x] factor stata2libsvm and predict() back into one code base
   -> struct svm_node* stata_to_svm_node(int x_l, int x_u)
      then turn the current stata2libsvm into stata_to_svm_prob(int y, int x_l, int x_u)
  

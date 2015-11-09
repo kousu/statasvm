@@ -70,6 +70,64 @@ int model_p = -1;                // the number of explanatory (X) variables; >= 
 
 
 
+/* convert a (contiguous!) set of Stata variables x_l through x_u into a svm_node[].
+ *
+ * The range is *inclusive* of x_l and x_u (so the length is x_u - x_l + 1)
+ * The row to read from is i.
+ *
+ * result is an array of svm_nodes.
+ * caller is responsible for freeing the result.
+ *
+ * returns NULL if it fails.
+ */
+struct svm_node* stata_to_svm_nodes(int x_l, int x_u, int i) {
+
+    if(!( 1<= x_l && x_l <= x_u && x_u <= SF_nvars())) {
+        sterror("stata_to_svm_nodes: x = [%d,%d] is not a valid subrange of available variables [%d,%d].\n", x_l, x_u, 1, SF_nvars());
+        return NULL;
+    }
+    
+    // svm_node[] is used like a C-string: its actual length is one more than it's stated length, since it needs a final finisher token.
+    // the length of each row is indicated by index=-1 on the last entry]
+    // also it's a sparse array: each entry is a pair {index, value}
+    // which we faithfully fill in.
+    // But, because Stata isn't sparse there's no win to trying to make the inner thing be sparse.
+    // So the particular order of values doesn't matter and there can be gaps.
+    // 
+    // This datastructure connotes that missing values can (should?) not be allocated, and they'll just be ignored,
+    // but empirically that causes wrong values (if you read libsvm::k_function() you can see why), so we deny it.
+    struct svm_node* x = calloc(x_u - x_l + 1 + 1, sizeof(struct svm_node));
+
+    double z;           // scratch space to pass data out of Stata
+    int c = 0;          //and the current position within the subarray is tracked here
+                        // note that this is ZERO-BASED not one-based like Stata; libsvm doesn't care what base you use so long as you are consistent
+                        // TODO: factor predict() so that this code is the same as used there
+    for (int j = x_l; j <= x_u; j++) { // this was j = 1 to SF_nvars() - 1, inclusive, which then was shifted by j+2 to 2 to SF_nvars() for everything
+       if (SF_vdata(j, i, &z) != 0) {
+            sterror("error reading Stata column %d on observation %d into libsvm\n", j, i);
+            goto fail;
+        }
+        if (SF_is_missing(z)) {
+            // Stata's regress and logistic and mlogit silently ignore missing data
+            // but it's unclear what effect this will have long-term, so we ban it.
+            sterror("svm cannot handle missing data. Found at X[%d,%d]\n", i, j);
+            goto fail;
+        }
+        stdebug("read stata[%d,%d] = %f\n", j, i, z);
+        x[c].index = c;
+        x[c].value = z;
+        c++;
+    }
+    x[c].index = -1;      // mark the last entry as end-of-row.
+    x[c].value = NAN;     // setting this one is not actually necessary.
+
+    return x;
+
+fail:
+    free(x);
+    return NULL;
+}
+
 /* 
  * convert the Stata varlist format to libsvm sparse format
  *
@@ -88,13 +146,13 @@ int model_p = -1;                // the number of explanatory (X) variables; >= 
  * Compare sklearn's [dense2libsvm](TODO), which does the same job but coming from a numpy matrix instead 
  * TODO: factor into stata2svm_problem() and stata2svm_node(int obs, int startvar, int endvar)
  */
-struct svm_problem *stata2libsvm(int y, int x_l, int x_u)
+struct svm_problem *stata_to_svm_problem(int y, int x_l, int x_u)
 {
     ST_retcode err = -1;
     double z = NAN;
 
-    if (SF_nvars() < 1) {
-        sterror("stata2libsvm: no outcome variable specified\n");
+    if(!( 1<= y && y <= SF_nvars())) {
+        sterror("stata_to_svm_problem: y = %d is not in range of available variables [%d,%d].\n", y, 1, SF_nvars());
         return NULL;
     }
 
@@ -147,50 +205,20 @@ struct svm_problem *stata2libsvm(int y, int x_l, int x_u)
                 return NULL;
             }
             if(SF_is_missing(z)) {
-                // regress and logistic and mlogit silently ignore missing data
-                // since that is drastically easier for everyone, we'll do that too
-                // although it will lead to silent bias if the user doesn't notice
-                stdebug("skipping because Y[%d] is missing\n", i);
-                continue;
+                // Stata's regress and logistic and mlogit silently ignore missing data
+                // but it's unclear what effect this will have long-term, so we ban it.
+                sterror("svm cannot handle missing data. Found at Y[%d]\n", i);
+                goto cleanup;
             }
             prob->y[prob->l] = z;
 
             // put data into X[l]
-            // (there are many values)
-            prob->x[prob->l] = calloc(SF_nvars(), sizeof(struct svm_node));     //TODO: make these inner arrays also dynamically grow. for a sparse problem this will drastically overallocate. (though I suppose your real bottleneck will be Stata, which doesn't do sparse)
-            //svm_node[] is like a C-string: its actual length is one more than it's stated length, since it needs a final finisher token; so (SF_nvars()-1)+1 is the upper limit that we might need: -1 to take out the y column, +1 for the finisher token
-            if (prob->x[prob->l] == NULL) {
+            // (there are multiple values so we use a subroutine)
+            if((prob->x[prob->l] = stata_to_svm_nodes(x_l, x_u, i)) == NULL) {
                 goto cleanup;
             }
-            // libsvm uses a sparse datastructure, a pairlist [{index, value}, ...
-            // the length of each row is indicated by index=-1 on the last entry]
-            // which we faithfully fill in.
-            // This datastructure connotes that missing values can (should?) not be allocated, but empirically that causes wrong values,
-            //  so we deny it (e.g. rho = all 0, sv_coef = all {-1, 1}), which means that it is actually impossible to input an actually sparse data structure
-
-            int c = 0;          //and the current position within the subarray is tracked here
-                                // note that this is ZERO-BASED not one-based like Stata; libsvm doesn't care what base you use so long as you are consistent
-                                // TODO: factor predict() so that this code is the same as used there
-            for (int j = x_l; j <= x_u; j++) { // this was j = 1 to SF_nvars() - 1, inclusive, which then was shifted by j+2 to 2 to SF_nvars() for everything
-                if ((err = SF_vdata(j, i, &z))) {
-                    sterror("error reading Stata columns into libsvm\n");
-                    goto cleanup;
-                }
-                if (SF_is_missing(z)) {
-                    stdebug("skipping because X[%d,%d] is missing\n", i, j);
-                    goto continue_outer; // see above
-                    // XXX memory leak
-                }
-                stdebug("read stata[%d,%d] = %f\n", j, i, z);
-                prob->x[prob->l][c].index = c;
-                prob->x[prob->l][c].value = z;
-                c++;
-            }
-            prob->x[prob->l][c].index = -1;      //mark the next entry as the current end-of-row
-            prob->x[prob->l][c].value = NAN;     //libsvm is *supposed* to ignore this; if you get NaNs everywhere you have a clue it didn't.
+            
             prob->l++;
-continue_outer:
-            (void)z; /*NOP*/
         }
     }
 
@@ -201,7 +229,7 @@ continue_outer:
     return prob;
 
   cleanup:
-    stdebug("XXX stata2libsvm failed\n");
+    stdebug("stata_to_svm_problem failed\n");
     
     //TODO: clean up after ourselves
     //TODO: be careful to check the last entry for partially initialized subarrays
@@ -568,9 +596,9 @@ ST_retcode train(int argc, char *argv[])
     }
     
     
-    struct svm_problem *prob = stata2libsvm(1, 2, SF_nvars());
+    struct svm_problem *prob = stata_to_svm_problem(1, 2, SF_nvars());
     if (prob == NULL) {
-        //assumption: stata2libsvm has already printed any relevant error messages
+        //assumption: stata_to_svm_problem already printed relevant error messages
         return 1;
     }
     
@@ -689,68 +717,29 @@ ST_retcode predict(int argc, char *argv[])
     }
     
     stdebug("svm_predict: no_levels = %d, no_vars = %d, probability mode = %s, decision mode = %s\n", no_levels, no_vars, probabilities ? "on" : "off", decision ? "on" : "off");
-    
-    // TODO: error if probabilites is set but the svm_model is not a classification one
-    // (svm_predict_probabilities should do this, but instead it just silently falls back to svm_predict())
-    
-    if (no_vars < 1) {
-        sterror("svm_predict: need at least a target\n");
-        return 1;
-    }
-    
-    struct svm_node *X = calloc(no_vars, sizeof(struct svm_node));
-    if (X == NULL) {
-        sterror("svm_predict: unable to allocate memory\n");
-        err = 1;
-        goto cleanup;
-    }
-    
-    //TODO: C doesn't have a real `break outer`, but if I factor out the svm_node[] generating loop I can use error returns to fake exceptions
-    //      for now a flag will have to do
-    //      this is used let the inner loop cause the outer loop to skip to the next observation if one of the datapoints is bad
-    bool continue_outer = false;
-    
+        
+    struct svm_node* X = NULL;
     for (ST_int i = SF_in1(); i <= SF_in2(); i++) {     //respect `in' option
-        if (SF_ifobs(i)) {      //respect `if' option
+        if (SF_ifobs(i)) {                              //respect `if' option
             // Map the current row into a libsvm svm_node list
-            //XXX TODO: this code was copied verbatim from stata2libsvm then tweaked; it needs to be factored instead!!
-            
-            // libsvm uses a sparse datastructure
-            // that means that missing values should not be allocated
-            // the length of each row is indicated by index=-1 on the last entry
-            int c = 0;          //and the current position within the subarray is tracked here
-            for (int j = 2; j <= no_vars; j++) {
-                ST_double value;
-                err = SF_vdata(j, i, &value);
-                //stdebug("[%d,%d]=%lf\n", i,j,value);
-                if(err) {
-                  sterror("svm_predict: unable to read observation %d, column %d. err=%d\n", i, j, err);
-                  goto cleanup;
-                }
-                if(SF_is_missing(value)) {
-                  stdebug("svm_predict: svm cannot handle missing data (found at observation %d, column %d), so skipping.\n", i, j);
-                  continue_outer = true;
-                  break;
-                }
-                X[c].index = c;
-                X[c].value = value;
-                c++;
+            if((X = stata_to_svm_nodes(2, no_vars, i)) == NULL) {
+                err = 1;
+                goto cleanup;
             }
-            if(continue_outer) {
-              continue_outer = false;
-              continue;
-            }
-            X[c].index = -1;            //mark end-of-row
-            X[c].value = SV_missval;    //not strictly necessary, but it makes me feel good
             
-            // do the prediction! (one observation at a time)
+            // Do the prediction! (one observation at a time)
             double y;
             if(!probabilities) {
                 y = svm_predict_values(model, X, decision_values);
                 
                 if(decision) {
                     // Export decision_values
-                    // PRECONDITION: the variables as presented to the plugin are ordered *in the right order*: model->label[0] vs model->label[1], [...] model->label[0] vs model->label[no_levels], model->label[1] vs model->label[2] ...  (from svm_predict_values() in libsvm/README)
+                    // PRECONDITION: the variables as presented to the plugin are ordered *in the right order* for svm_predict_values (described in libsvm/README)
+                    //   model->label[0] vs model->label[1], [...] model->label[0] vs model->label[no_levels], then
+                    //   model->label[1] vs model->label[2] [...] model->label[1] vs model->label[no_levels], then
+                    //   [...]
+                    //   model->label[no_levels-2] vs model->label[no_levels-1],  model->label[no_levels-2] vs model->label[no_levels]
+                    //   model->label[no_levels-1] vs model->label[no_levels]
                     for(int k=0; k<no_level_pairs; k++) {
                         err = SF_vstore(no_vars+1+k, i, decision_values[k]);
                         if(err) {
@@ -760,6 +749,9 @@ ST_retcode predict(int argc, char *argv[])
                     }
                 }
             } else {
+                // TODO: should we error if svm_model is not a classification?
+                // (libsvm::svm_predict_probabilities() should be responsible for this, but instead it just silently falls back to svm_predict())
+
                 y = svm_predict_probability(model, X, probabilities);
                 
                 // Export probabilities
@@ -774,14 +766,15 @@ ST_retcode predict(int argc, char *argv[])
                 }
             }
             
-            // write back the prediction
+            // Write back the prediction
             // by convention wtih svm_predict.ado, the 1th variable, i.e. the first on the varlist (not the first in the dataset), is the output location
             err = SF_vstore(1 /* stata counts from 1 */ , i, y);
             if (err) {
-                sterror("unable to store prediction\n");
-                return err;
+                sterror("predict: unable to store prediction to [%d,%d].\n", 1, i);
+                goto cleanup;
             }
-
+            
+            free(X); X = NULL;
         }
     }
 

@@ -3,6 +3,7 @@
 
 #hide paper
 /paper
+/paper.nick
 
 # avoid committing build products
 *.plugin

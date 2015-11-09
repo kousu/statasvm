@@ -60,18 +60,24 @@ static void libsvm_nodisplay(const char *s)
 // We could probably fake encapsulation by storing our 'this' pointers in global macros with giant namespacing-faking prefixes,
 // but this would be foreign to Stata's style anyway
 // and break strangely if someone did "clear" in Stata (which would not notify ths plugin)
-// And that is why there is a global here.
-struct svm_model *model = NULL;
-
+// And that is why there is lobal state here;
+struct svm_model *model = NULL;  // a fitted SVM model (or NULL)
+int model_p = -1;                // the number of explanatory (X) variables; >= 0 when model is non-NULL;
+                                 //   model doesn't track this because it works entirely in terms of kernel distances;
+                                 //   instead it assumes that it can call "Kernel::k_function(x,model->SV[i],model->param);" and get a sensible result;
+                                 //   but if the dimension of x doesn't agree with that of the i'th SV, there *will* be silent corruption.
+                                 // In order to ensure predict() is behaving, it is simplest to have train() record model_p so that predict() can later check it was called correctly.
 
 
 
 /* 
  * convert the Stata varlist format to libsvm sparse format
- * takes no arguments because the varlist is an implicit global (from stplugin.h)
- * as is Stata-standard, the first variable is the regressor Y, the rest are regressees (aka features) X
+ *
+ * y: the index of the outcome (Y) variable
+ * x_l, x_u: the lower and upper bounds (inclusive!) of the explanator (aka features) (aka X) variables
+ * 
  * The result is a svm_problem, which is essentially just two arrays:
- * the Y vector and the X design matrix. See svm.h for details.
+ * the Y vector and the X design matrix. See svm.h for details of svm_problem.
  *
  * Note that this will mangle the indecies: the libsvm indecies will start from 1, mapping *whichever variable was 2nd given in varlist to 1, 3rd to 2, ...*.
  * If your workflow is "svm load using file.svmlight; svm train *" then there will be no mangling, but if you instead say "svm train y x3 x9" then 3 [Stata]->1 [libsvm] and 9 [Stata]->2 [libsvm]
@@ -82,7 +88,7 @@ struct svm_model *model = NULL;
  * Compare sklearn's [dense2libsvm](TODO), which does the same job but coming from a numpy matrix instead 
  * TODO: factor into stata2svm_problem() and stata2svm_node(int obs, int startvar, int endvar)
  */
-struct svm_problem *stata2libsvm()
+struct svm_problem *stata2libsvm(int y, int x_l, int x_u)
 {
     ST_retcode err = -1;
     double z = NAN;
@@ -134,7 +140,7 @@ struct svm_problem *stata2libsvm()
             }
             // put data into Y[l]
             // (there is only one Y so we hard-code the variable index)
-            err = SF_vdata(1, i, &z);
+            err = SF_vdata(y, i, &z);
             stdebug("Reading in Y[%d]=%lf, (err=%d)\n", i, z, err);
             if(err) {
                 sterror("Unable to read Stata dependent variable column into libsvm\n");
@@ -158,29 +164,30 @@ struct svm_problem *stata2libsvm()
             }
             // libsvm uses a sparse datastructure, a pairlist [{index, value}, ...
             // the length of each row is indicated by index=-1 on the last entry]
-            // which we faithfully fill in 
-            // and which connotes that missing values should not be allocated, but empirically that causes wrong values,
+            // which we faithfully fill in.
+            // This datastructure connotes that missing values can (should?) not be allocated, but empirically that causes wrong values,
             //  so we deny it (e.g. rho = all 0, sv_coef = all {-1, 1}), which means that it is actually impossible to input an actually sparse data structure
 
             int c = 0;          //and the current position within the subarray is tracked here
-            for (int j = 1; j < SF_nvars(); j++) {
-                if ((err = SF_vdata(j + 1
-                                    /*this +1 accounts for the y variable: variable 2 in the Stata dataset is x1 */
-                                    , i, &z))) {
+                                // note that this is ZERO-BASED not one-based like Stata; libsvm doesn't care what base you use so long as you are consistent
+                                // TODO: factor predict() so that this code is the same as used there
+            for (int j = x_l; j <= x_u; j++) { // this was j = 1 to SF_nvars() - 1, inclusive, which then was shifted by j+2 to 2 to SF_nvars() for everything
+                if ((err = SF_vdata(j, i, &z))) {
                     sterror("error reading Stata columns into libsvm\n");
                     goto cleanup;
                 }
                 if (SF_is_missing(z)) {
-                    stdebug("skipping because X[%d,%d] is missing\n", i, j+1);
+                    stdebug("skipping because X[%d,%d] is missing\n", i, j);
                     goto continue_outer; // see above
                     // XXX memory leak
                 }
-                prob->x[prob->l][c].index = j;
+                stdebug("read stata[%d,%d] = %f\n", j, i, z);
+                prob->x[prob->l][c].index = c;
                 prob->x[prob->l][c].value = z;
                 c++;
             }
-            prob->x[prob->l][c].index = -1;     //mark end-of-row
-            prob->x[prob->l][c].value = SV_missval;     //not necessary for libsvm, but it makes me feel good
+            prob->x[prob->l][c].index = -1;      //mark the next entry as the current end-of-row
+            prob->x[prob->l][c].value = NAN;     //libsvm is *supposed* to ignore this; if you get NaNs everywhere you have a clue it didn't.
             prob->l++;
 continue_outer:
             (void)z; /*NOP*/
@@ -553,8 +560,15 @@ ST_retcode train(int argc, char *argv[])
         param.gamma = ((double) 1) / (SF_nvars() - 1);  // remember: without the cast this does integer division and gives 0
     }
     
+
+    if (model != NULL) {
+        // we have a singleton struct svm_model, so we need to clean up the old one before allocating a new one
+        svm_free_and_destroy_model(&model);     //_and_destroy() means set pointer to NULL
+        model_p = -1;                           // and clear model_p, which is our extension to struct svm_model
+    }
     
-    struct svm_problem *prob = stata2libsvm();
+    
+    struct svm_problem *prob = stata2libsvm(1, 2, SF_nvars());
     if (prob == NULL) {
         //assumption: stata2libsvm has already printed any relevant error messages
         return 1;
@@ -575,11 +589,10 @@ ST_retcode train(int argc, char *argv[])
         return 1;
     }
 
-    if (model != NULL) {
-        // we have a singleton struct svm_model, so we need to clean up the old one before allocating a new one
-        svm_free_and_destroy_model(&model);     //_and_destroy() means set pointer to NULL
-    }
-    model = svm_train(prob, &param);    //a 'model' in libsvm is what I would call a 'fit' (I would call the structure being fitted to---svm---the model), but beggars can't be choosers
+    // compute the fit
+    // a 'model' in libsvm is what I would call a 'fit', but beggars can't be choosers
+    model = svm_train(prob, &param);
+    model_p = SF_nvars() - 1;           // NB: pretend model_p is model->p;
 
     // export r(N)
     SF_scal_save("_model2stata_N", (ST_double)prob->l);
@@ -607,8 +620,6 @@ ST_retcode predict(int argc, char *argv[])
         return 1;
     }
     
-    // svm_predict.ado signals that we are in svm_predict_probability() mode by passing an order list of levels
-    // corresponding to a trailing set of variables where writeback goes
     int no_levels = svm_get_nr_class(model);                 //the number of levels
     int no_vars = SF_nvars(); //the number of variables, i.e. n+1 in [y; x1; x2; ... ; xn]
     double *probabilities = NULL;
@@ -616,6 +627,12 @@ ST_retcode predict(int argc, char *argv[])
         if(!svm_check_probability_model(model)) {
           sterror("svm_predict: active model cannot produce probabilities.\n");
           return 1;
+        }
+
+        // svm_predict.ado must pass a trailing set of variables where writeback goes
+        if((1 + model_p + no_levels) != SF_nvars()) {
+            sterror("svm_predict: in probability mode, there must be exactly %d + %d + %d columns passed, but instead got %d columns.\n", 1, model_p, no_levels, SF_nvars());
+            return 1;
         }
         no_vars -= no_levels;
         
@@ -634,7 +651,7 @@ ST_retcode predict(int argc, char *argv[])
     stdebug("svm_predict: no_levels = %d, no_vars = %d, probability mode = %s\n", no_levels, no_vars, probabilities ? "on" : "off");
     
     // TODO: error if probabilites is set but the svm_model is not a classification one
-    // (svm_predict_probabilities should do this, but instead it just silently falls back
+    // (svm_predict_probabilities should do this, but instead it just silently falls back to svm_predict())
     
     if (no_vars < 1) {
         sterror("svm_predict: need at least a target\n");
@@ -648,7 +665,7 @@ ST_retcode predict(int argc, char *argv[])
         goto cleanup;
     }
     
-    //TODO: C doesn't have a real break outer, but if I factor out the svm_node[] generating loop I can use error returns to fake exceptions
+    //TODO: C doesn't have a real `break outer`, but if I factor out the svm_node[] generating loop I can use error returns to fake exceptions
     //      for now a flag will have to do
     //      this is used let the inner loop cause the outer loop to skip to the next observation if one of the datapoints is bad
     bool continue_outer = false;
@@ -675,7 +692,7 @@ ST_retcode predict(int argc, char *argv[])
                   continue_outer = true;
                   break;
                 }
-                X[c].index = c+1; //hilarious: if index *doesn't* start from 1, instead of warning or crashing libsvm gives the same results for all predictions
+                X[c].index = c;
                 X[c].value = value;
                 c++;
             }
@@ -706,7 +723,7 @@ ST_retcode predict(int argc, char *argv[])
             
             // write back
             // by convention wtih svm_predict.ado, the 1th variable, i.e. the first on the varlist (not the first in the dataset), is the output location
-            err = SF_vstore(1 /*stata counts from 1 */ , i, y);
+            err = SF_vstore(1 /* stata counts from 1 */ , i, y);
             if (err) {
                 sterror("unable to store prediction\n");
                 return err;

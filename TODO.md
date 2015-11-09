@@ -295,9 +295,14 @@ Maintenance
 
 Code cleanups:
 
-* [ ] Give one-liner introductions on each code file.
+* [ ] factor stata2libsvm and predict() back into one code base
+  -> struct svm_node* stata_to_svm_node(int x_l, int x_u)
+     then turn the current stata2libsvm into stata_to_svm_prob(int y, int x_l, int x_u)
+ 
 
-* [ ] Roll ensurelib_aberrances into ensurelib
+* [x] Give one-liner introductions on each code file.
+
+* [x] Roll ensurelib_aberrances into ensurelib
    -> and for brevity, roll the plugins it depends on (dlopenable, getenv, setenv) into a single _ensurelib.plugin
    and make this into a separate project
 * [ ] put ado_from as a subroutine inline in example.ado

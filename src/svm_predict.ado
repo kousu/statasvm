@@ -107,31 +107,52 @@ program define svm_predict, eclass
     // This is more complicated because we need to go down a lower triangle of a matrix -- so, a length-changing nested loop.
     // we have to use word("`e(levels)'", i) to extract the ith level
     // which means we have an extra layer of indirection to deal with, so there's x_i the index into e(labels), x the integer label, and X the string (or possibly integer) label
-    //
-    assert "`e(levels)'" != ""
-    local no_levels = `e(N_class)'
-    forvalues l_i = 1/`no_levels' {
-      //di "l_i = `l_i'"
-      local l = word("`e(levels)'", `l_i')
-      local L : label (`e(depvar)') `l'
-      forvalues r_i = `=`l_i'+1'/`no_levels' {
-        //di "r_i = `r_i'"
-        local r = word("`e(levels)'", `r_i')  // map the index into the labels
-        local R : label (`e(depvar)') `r'
-        //di "generating decision value column (`l_i',`r_i') <=> (`l',`r') <=> (`L',`R')"
+    
+    // we need to split the cases of classification and non-classification models
+    //  reason i:  non-classification models have model->label == NULL which means e(levels) is missing which breaks this code
+    //  reason ii: non-classification models only have one decision value, so the sensible label is just "`target'_decision"
+    if("`e(svm_type)'" == "ONE_CLASS" | "`e(svm_type)'" == "SVR" | "`e(svm_type)'" == "NU_SVR") {
+      // generate the name of the new column.
+      // it is, unfortunate, somewhat terse, in hopes of keeping within 32 characters
+      local stemmed = "`target'_decision"
+      local stemmed = strtoname("`stemmed'")  //make it Stata-safe
+      
+      // allocate the decision value column
+      quietly generate double `stemmed' = .
+      label variable `stemmed' "`target' decision value"
+      
+      // attach the newcomers to the varlist so the plugin is allowed to edit them
+      local varlist = "`varlist' `stemmed'"
+    }
+    else if("`e(svm_type)'" == "SVC" | "`e(svm_type)'" == "NU_SVC") {
+      local no_levels = `e(N_class)'
+      forvalues l_i = 1/`no_levels' {
+        //di "l_i = `l_i'"
+        local l = word("`e(levels)'", `l_i')
+        local L : label (`e(depvar)') `l'
+        forvalues r_i = `=`l_i'+1'/`no_levels' {
+          //di "r_i = `r_i'"
+          local r = word("`e(levels)'", `r_i')  // map the index into the labels
+          local R : label (`e(depvar)') `r'
+          //di "generating decision value column (`l_i',`r_i') <=> (`l',`r') <=> (`L',`R')"
+          
+          // generate the name of the new column.
+          // it is, unfortunate, somewhat terse, in hopes of keeping within 32 characters
+          local stemmed = "`target'_`L'_`R'"
+          local stemmed = strtoname("`stemmed'")  //make it Stata-safe
         
-        // generate the name of the new column.
-        // it is, unfortunate, somewhat terse, in hopes of keeping within 32 characters
-        local stemmed = "`target'_`L'_`R'"
-        local stemmed = strtoname("`stemmed'")  //make it Stata-safe
-        
-        // allocate the decision value column
-        quietly generate double `stemmed' = .
-        label variable `stemmed' "`target' decision value `L' vs `R'"
-        
-        // attach the newcomers to the varlist so the plugin is allowed to edit them
-        local varlist = "`varlist' `stemmed'"
+          // allocate the decision value column
+          quietly generate double `stemmed' = .
+          label variable `stemmed' "`target' decision value `L' vs `R'"
+          
+          // attach the newcomers to the varlist so the plugin is allowed to edit them
+          local varlist = "`varlist' `stemmed'"
+        }
       }
+    }
+    else {
+      di as error "Unrecognized svm_type `e(svm_type)'; unable to define decision value columns."
+      exit 2
     }
   }
   

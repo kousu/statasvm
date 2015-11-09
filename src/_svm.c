@@ -646,9 +646,44 @@ ST_retcode predict(int argc, char *argv[])
         for(int k=0; k<no_levels; k++) {
           probabilities[k] = SV_missval;
         }
+
+        argc--; argv++; //shift
     }
     
-    stdebug("svm_predict: no_levels = %d, no_vars = %d, probability mode = %s\n", no_levels, no_vars, probabilities ? "on" : "off");
+    // we can also ask for decision values (what the svm evaluates to classify things)
+    // (this is redundant in regression (NU/EPSILON_SVR) models, but we allow users to discover that for themselves)
+    int no_level_pairs = no_levels*(no_levels - 1)/2; // how many *pairs of levels* there are, which is important to figure out which in the variable list corresponds to which here
+    double* decision_values = NULL;
+    bool decision = false;
+    if(argc > 0 && strcmp(argv[0],"decision")==0) {
+        if(probabilities) {
+            sterror("svm_predict: probability and decision are mutually exclusive options.\n"); // because probability => svm_predict_probability() which uses generates predictions from the Platt-Scaled model instead of using decision values directly.
+            // now clean up and bail
+            free(probabilities);
+            return 1;
+        }
+        // assert 1 + no_level_pairs + no_vars
+        decision = true;
+        argc--; argv++; //shift
+    }
+    // Allocate space for the lower-triangular matrix (compressed) that svm_predict_values() wants.
+    // NB: we do this *regardless* of if decision is passed because then we can just call svm_predict_values() in all cases anyway;
+    ///    svm_predict() internally does this allocation, so it saves no work (actually, uses a little extra CPU) to try to coordinate the right API with the given options.
+    // NB: svm_predict() is misleading: it special-cases the classification models to fix no_level_pairs = 1,
+    //     but svm.h and experiment both show "no_levels = 2 in regression/one class svm" which implies no_level_pairs = 1, so we can drop the special case
+    //     however in EPSILON_SVR and NU_SVR, the single decision value is the same as the prediction, but redundant isn't /wrong/.
+    decision_values = calloc(no_level_pairs, sizeof(double));
+    if(decision_values == NULL) {
+        sterror("svm_predict: unable to allocate memory\n");
+        free(probabilities);
+        return 1;
+    }
+
+    for(int k=0; k<no_level_pairs; k++) { // init decision_values to make bugs more obvious
+        decision_values[k] = SV_missval;
+    }
+    
+    stdebug("svm_predict: no_levels = %d, no_vars = %d, probability mode = %s, decision mode = %s\n", no_levels, no_vars, probabilities ? "on" : "off", decision ? "on" : "off");
     
     // TODO: error if probabilites is set but the svm_model is not a classification one
     // (svm_predict_probabilities should do this, but instead it just silently falls back to svm_predict())
@@ -706,7 +741,7 @@ ST_retcode predict(int argc, char *argv[])
             // do the prediction! (one observation at a time)
             double y;
             if(!probabilities) {
-              y = svm_predict(model, X);
+              y = svm_predict_values(model, X, decision_values);
             } else {
               y = svm_predict_probability(model, X, probabilities);
               
@@ -735,6 +770,7 @@ ST_retcode predict(int argc, char *argv[])
 cleanup:
     if(X) { free(X); }
     if(probabilities) { free(probabilities); }
+    if(decision_values) { free(decision_values); }
     
     return err;
 }

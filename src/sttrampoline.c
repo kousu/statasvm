@@ -17,7 +17,7 @@
 
 ST_retcode sttrampoline(int argc, char* argv[]) {
     for (int i = 0; i < argc; i++) {
-        stdebug("argv[%d]=%s\n", i, argv[i]);
+        stdebug("\targv[%d]=%s\n", i, argv[i]);
     }
 
     stdebug("Total dataset size: %dx%d. We have been asked operate on [%d:%d,%d].\n",

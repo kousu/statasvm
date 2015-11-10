@@ -14,6 +14,26 @@ Toolchain
 
 To build, you will need to have your platform's compilation toolchain installed, as well as GNU make (gmake), as the Makefile is written against gmake.
 
+You can test if you have the compiler installed with (*nix, including OS X and MinGW):
+```
+$ gcc -v
+```
+
+or (Windows with VS)
+```
+C:> cl.exe
+```
+
+And you can test if you have make installed by running it in an empty directory:
+```
+$ make
+make: *** No targets specified and no makefile found.  Stop.
+```
+
+If either of these fail, you will need to install your compilers before continuing.
+
+### Windows
+
 On Windows, you can [get the gmake package](http://gnuwin32.sourceforge.net/packages/make.htm) or install it [MinGW's subproject MSYS](http://www.mingw.org/wiki/MSYS).
 In the former case, you will need to add it to your %PATH% manually, by [editing your environment variables](http://www.computerhope.com/issues/ch000549.htm) to append
 the GnuWin32 program folder, usually "C:\Program Files (x86)\GnuWin32\bin" to the PATH variable; for the latter you will have to follow their instructions.
@@ -33,25 +53,25 @@ There are also "Developer Command Prompt" shortcuts in your start menu, as descr
 For the former, make sure you've followed the [official MinGW setup instructions](http://www.mingw.org/wiki/Getting_Started). Those instructions leave some things up to you, however: you can install [MSYS]() and, or your can add C:\MinGW\bin to your %PATH%.  Be warned though: MinGW only does 32-bit builds (there is a [MinGW64 fork](http://mingw-w64.yaxm.org/) and some sketchy [instructions](http://ascend4.org/Setting_up_a_MinGW-w64_build_environment#Switchable_32-_and_64-bit_modes) which let you dual-boot them), and the only symptom you will have of tripping over this is mysterious linker errors that won't go away.   TODO
 The Makefile checks for VS first, so if you have both installed you can choose which to use simply by amending or not amending your %PATH%.  TODO
 
-On OS X, you will need the [Command Line Tools](TODO) package. If you have XCode, this is available [in the menus](TODO); otherwise, you will need to sign up for an Apple ID and download it: make sure you get the one that matches your version of OS X!
+### OS X
 
-On Linux or other *nix, there will usually be a toolchain metapackage, but its name differs depending on your distro. In Debian, use `apt-get install build-essentials`, on Arch use `pacman -S base-devel`, and the BSDs install the toolchain with the OS.
-
-You can test if you have the compiler installed with (*nix, including OS X and MinGW):
+On OS X, you will need the **Command Line Tools** package.
+If you have an older version XCode, this is available [in the menus](TODO, depending on version.
+Otherwise, you can get them from the [ADC Downloads page](https://developer.apple.com/downloads/),
+ but you will need to sign up for an Apple ID and agree to Apple's terms.
+ Make sure you get the one that matches your version of OS X!
+Finally, you can apparently, with no account, [on recent OS Xs](http://osxdaily.com/2014/02/12/install-command-line-tools-mac-os-x/), simply run
 ```
-$ gcc -v
-```
-
-or (Windows with VS)
-```
-C:> cl.exe
+$ xcode-select --install
 ```
 
-And you can test if you have make installed by running it in an empty directory:
-```
-$ make
-make: *** No targets specified and no makefile found.  Stop.
-```
+### *nix
+
+On Linux or other *nix, there will usually be a toolchain metapackage, but its name differs depending on your distro.
+In Debian, use `apt-get install build-essentials`,
+on Arch use `pacman -S base-devel`, and
+on the BSDs the toolchain should be installed as a core part of the OS.
+
 
 
 libsvm

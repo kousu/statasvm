@@ -679,20 +679,21 @@ ST_retcode predict(int argc, char *argv[])
     }
     
     // we can also ask for decision values (what the svm evaluates to classify things)
+    // NOTE: the internal libsvm API says "decision values", but for conciseness we decided the external API says "scores". Keep this in mind as you read on.
     // (this is redundant in regression (NU/EPSILON_SVR) models, but we allow users to discover that for themselves)
     int no_level_pairs = no_levels*(no_levels - 1)/2; // how many *pairs of levels* there are, which is important to figure out which in the variable list corresponds to which here
     double* decision_values = NULL;
     bool decision = false;
-    if(argc > 0 && strcmp(argv[0],"decision")==0) {
+    if(argc > 0 && strcmp(argv[0],"scores")==0) {
         if(probabilities) {
-            sterror("svm_predict: probability and decision are mutually exclusive options.\n"); // because probability => svm_predict_probability() which uses generates predictions from the Platt-Scaled model instead of using decision values directly.
+            sterror("svm_predict: probability and scores are mutually exclusive options.\n"); // because probability => svm_predict_probability() which uses generates predictions from the Platt-Scaled model instead of using decision values directly.
             // now clean up and bail
             free(probabilities);
             return 1;
         }
         // svm_predict.ado must pass a trailing set of variables where writeback goes
         if((1 + model_p + no_level_pairs) != SF_nvars()) {
-            sterror("svm_predict: in decision mode, there must be exactly %d + %d + %d columns passed, but instead got %d columns.\n", 1, model_p, no_level_pairs, SF_nvars());
+            sterror("svm_predict: in scores mode, there must be exactly %d + %d + %d columns passed, but instead got %d columns.\n", 1, model_p, no_level_pairs, SF_nvars());
             return 1;
         }
         no_vars -= no_level_pairs;
@@ -716,7 +717,7 @@ ST_retcode predict(int argc, char *argv[])
         decision_values[k] = SV_missval;
     }
     
-    stdebug("svm_predict: no_levels = %d, no_vars = %d, probability mode = %s, decision mode = %s\n", no_levels, no_vars, probabilities ? "on" : "off", decision ? "on" : "off");
+    stdebug("svm_predict: no_levels = %d, no_vars = %d, probability mode = %s, scores mode = %s\n", no_levels, no_vars, probabilities ? "on" : "off", decision ? "on" : "off");
         
     struct svm_node* X = NULL;
     for (ST_int i = SF_in1(); i <= SF_in2(); i++) {     //respect `in' option
@@ -743,7 +744,7 @@ ST_retcode predict(int argc, char *argv[])
                     for(int k=0; k<no_level_pairs; k++) {
                         err = SF_vstore(no_vars+1+k, i, decision_values[k]);
                         if(err) {
-                            sterror("svm_predict: unable to writeback decision value %d (target column %d) at observation %d\n", k,  no_vars+1+k, i);
+                            sterror("svm_predict: unable to writeback svm score %d (target column %d) at observation %d\n", k,  no_vars+1+k, i);
                             goto cleanup;
                         }
                     }

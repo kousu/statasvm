@@ -76,7 +76,7 @@ INCLUDE help fvvarlist
 {synopthdr}
 {synoptline}
 {synopt :{opt prob:ability}}If specified, estimate class probabilities for each observation. The fit must have been previously made with {opt probability}.{p_end}
-{synopt :{opt dec:ision}}If specified, output the decision values which measure each observation's distance to its hyperplane. Incompatible with {opt probability}.{p_end}
+{synopt :{opt scores}}If specified, output the scores, sometimes called decision values, that measure each observation's distance to its hyperplane. Incompatible with {opt probability}.{p_end}
 {synopt :{opt v:erbose}}Turns on {help svm##verbose:verbose mode}. Default: disabled{p_end}
 
 
@@ -343,13 +343,13 @@ investigate the {help svm##tuning_params:tuning} parameters.
 This option is not valid for other SVM types.{p_end}
 
 {phang}
-{marker decision}{...}
-{opt dec:ision} outputs the values that {cmd:svm} uses to decide which side of the hyperplane a particular observation falls.
+{marker scores}{...}
+{opt scores} outputs the values that {cmd:svm} uses to decide which side of the hyperplane a particular observation falls.
 {newvar} is used as a stem for the new columns.
-For classifications, there is one decision value for every pair of classes (k classes means k(k-1)/2 new columns!),
- since libsvm uses the one-against-one algorithm to aggregate the binary svm algorithm into one that can handle a multiclass situation.
-For {opt type(one_class)} and regressions, there is only one decision value.
-This option is incompatible with {opt probability} because, once trained, the Platt Scaling algorithm does not use decision values.{p_end}
+For {opt type(one_class)} and regressions, there is only one score.
+For classifications, there is one score for every pair of classes (this is expensive: k classes means k(k-1)/2 new columns!),
+ because libsvm aggregates the basic binary-only svm algorithm into a multiclass algorithm with the one-against-one technique.
+This option is incompatible with {opt probability} because, once trained, the Platt Scaling algorithm does not directly compute scores.{p_end}
 
 
 {phang}

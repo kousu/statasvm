@@ -6,7 +6,7 @@ program _svm, plugin    // load _svm.plugin, the wrapper for libsvm
 
 program define svm_predict, eclass
   version 13
-  syntax newvarname [if] [in], [PROBability] [DECision] [Verbose]
+  syntax newvarname [if] [in], [PROBability] [scores] [Verbose]
   local target = "`varlist'"
   local _in = "`in'" //these need to be stashed because the hack below will smash them
   local _if = "`if'"
@@ -26,8 +26,8 @@ program define svm_predict, eclass
   gettoken y varlist : varlist // remove the first column to check
   assert "`y'" == "`e(depvar)'" // consistency with the svm_train
 
-  if("`probability'"!="" & "`decision'"!="") {
-    di as err "Error: probability and decision are mutually exclusive options."
+  if("`probability'"!="" & "`scores'"!="") {
+    di as err "Error: probability and scores are mutually exclusive options."
     exit 2
   }
   
@@ -102,7 +102,7 @@ program define svm_predict, eclass
       local varlist = "`varlist' `stemmed'"
     }
   }
-  else if("`decision'"!="") { // else-if because these options are mutually exclusive (which is enforced above)
+  else if("`scores'"!="") { // else-if because these options are mutually exclusive (which is enforced above)
     // Allocate space for the decision values
     // This is more complicated because we need to go down a lower triangle of a matrix -- so, a length-changing nested loop.
     // we have to use word("`e(levels)'", i) to extract the ith level
@@ -110,16 +110,16 @@ program define svm_predict, eclass
     
     // we need to split the cases of classification and non-classification models
     //  reason i:  non-classification models have model->label == NULL which means e(levels) is missing which breaks this code
-    //  reason ii: non-classification models only have one decision value, so the sensible label is just "`target'_decision"
+    //  reason ii: non-classification models only have one decision value, so the sensible label is just "`target'_score"
     if("`e(svm_type)'" == "ONE_CLASS" | "`e(svm_type)'" == "SVR" | "`e(svm_type)'" == "NU_SVR") {
       // generate the name of the new column.
       // it is, unfortunate, somewhat terse, in hopes of keeping within 32 characters
-      local stemmed = "`target'_decision"
+      local stemmed = "`target'_score"
       local stemmed = strtoname("`stemmed'")  //make it Stata-safe
       
       // allocate the decision value column
       quietly generate double `stemmed' = .
-      label variable `stemmed' "`target' decision value"
+      label variable `stemmed' "`target' svm score"
       
       // attach the newcomers to the varlist so the plugin is allowed to edit them
       local varlist = "`varlist' `stemmed'"
@@ -134,7 +134,7 @@ program define svm_predict, eclass
           //di "r_i = `r_i'"
           local r = word("`e(levels)'", `r_i')  // map the index into the labels
           local R : label (`e(depvar)') `r'
-          //di "generating decision value column (`l_i',`r_i') <=> (`l',`r') <=> (`L',`R')"
+          //di "generating svm score column (`l_i',`r_i') <=> (`l',`r') <=> (`L',`R')"
           
           // generate the name of the new column.
           // it is, unfortunate, somewhat terse, in hopes of keeping within 32 characters
@@ -143,7 +143,7 @@ program define svm_predict, eclass
         
           // allocate the decision value column
           quietly generate double `stemmed' = .
-          label variable `stemmed' "`target' decision value `L' vs `R'"
+          label variable `stemmed' "`target' svm score `L' vs `R'"
           
           // attach the newcomers to the varlist so the plugin is allowed to edit them
           local varlist = "`varlist' `stemmed'"
@@ -151,7 +151,7 @@ program define svm_predict, eclass
       }
     }
     else {
-      di as error "Unrecognized svm_type `e(svm_type)'; unable to define decision value columns."
+      di as error "Unrecognized svm_type `e(svm_type)'; unable to define svm score columns."
       exit 2
     }
   }
@@ -163,7 +163,7 @@ program define svm_predict, eclass
   // Subtlety: we don't quote levels, on the assumption that it is always a list of integers;
   //           that way, the levels are pre-tokenized and the count easily available as argc
   
-  plugin call _svm `target' `varlist' `_if' `_in', `verbose' predict `probability' `decision'
+  plugin call _svm `target' `varlist' `_if' `_in', `verbose' predict `probability' `scores'
 end
 
 

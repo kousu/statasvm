@@ -36,11 +36,6 @@ CFLAGS+=-Wall -Werror
 
 # --- testing ---
 
-STATA := $(shell which stata)
-ifndef STATA
-  # quick hack: be just a little bit case insensitive
-  STATA := $(shell which Stata)
-endif
 
 # --- cleaning ---
 

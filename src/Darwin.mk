@@ -14,9 +14,9 @@ _svm.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_svm.c sttrampoline.c stutil.c stplug
 _svm.$(DLLEXT): libsvm_patches.$(OBJEXT)
 _svm.$(DLLEXT): LIBS += svm
 _svmlight.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_svmlight.c sttrampoline.c stutil.c stplugin.c)
-_getenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_getenv.c stutil.c stplugin.c)
-_setenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_setenv.c stutil.c stplugin.c)
-_dlopenable.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _dlopenable.c stutil.c stplugin.c)
+_svm_getenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_svm_getenv.c stutil.c stplugin.c)
+_svm_setenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_svm_setenv.c stutil.c stplugin.c)
+_svm_dlopenable.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _svm_dlopenable.c stutil.c stplugin.c)
 
 
 DLLEXT:=dylib
@@ -38,11 +38,6 @@ LDFLAGS+=-bundle
 
 # --- testing ---
 
-ifndef STATA #i.e. if the user doesn't have stata in their path
-  # it should be safe to hardcode the path to Stata on OS X, because it has an installer which doesn't give you much choice
-  # though admittedly there *is* going to be the rare user that gets bit by this
-  STATA := $(wildcard /Applications/Stata/Stata.app/Contents/MacOS/Stata)
-endif
 
 printdeps:
 	otool -L $^

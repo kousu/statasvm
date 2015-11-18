@@ -183,6 +183,42 @@ You must match the architecture the plugin to the architecture of Stata:
 Stata.exe can only run 32 bit plugins and Stata-64.exe can only run 64 bit plugins **including sub-DLLs**.
 
 
+Testing
+-------
+
+There is a haphazard suite of test cases in `src/tests/`. Working in `src/`, for each file `tests/x.do` the test can be run with
+```
+src/$ make tests/x
+```
+
+To see more details you can use either Stata's tracing or the internal debug flag or together:
+```
+src/$ TRACE=1 DEBUG=1 make tests/x
+```
+
+Once you have a package, described below, you should make sure it installs properly.
+First, put up an HTTP server in the `dist/` folder:
+```
+src/dist/$ python3 -m http.server  #there are lots of other options too if you do not have python3
+```
+Then point Stata at it:
+```
+. net from http://localhost:8000
+. net install svm
+. 
+. // For a single package, it is equivalent and faster to write:
+. net install svm, from(http://localhost:8000)
+```
+
+
+A tip: as you fix bugs in this stage, you can force reinstallation of only your changes. After you `make pkg` do
+```
+. net install svm, from(http://localhost:8000) replace
+```
+The "replace" option will report only those files it discovered needed updating, which should match your changes.
+
+
+
 Deployment
 ----------
 

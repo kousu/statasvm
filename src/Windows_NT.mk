@@ -79,22 +79,6 @@ endif
 
 # --- testing ---
 
-# Locate Stata
-# in two acts:
-# 1) amend the PATH
-# 2) State the name of the Stata executable
-ifeq ($(STATA),) # an hard 
-  # subtlety: make is always forward-slashes for directories and backslashes for escapes, even on Windows.
-  STATAPATH := $(call FixPath,$(wildcard c:/Program*/Stata*/)) #XXX in the rare case there are two Statapaths (e.g. 32 bit and 64 bit Stata) this breaks badly because Windows has spaces in "Program Files", and wildcard uses spaces as delimiter
-  # amend the PATH
-  PATH:=$(PATH);$(strip $(STATAPATH))
-  export PATH
-  
-  STATA := Stata
-  ifeq ($(ARCH),x86_64)
-    STATA := $(STATA)-64
-  endif
-endif
 
 
 # --- cleaning ---

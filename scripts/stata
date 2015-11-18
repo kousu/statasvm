@@ -1,30 +1,48 @@
 #!/bin/sh
 # a wrapper for Stata to make it more behave like a Unix interpreter:
-# - the last argument is a .do file to run
-# - optional first argument of -q, which is passed into Stata's -q
+# - the only argument is a .do file to run
 # - the output is sent to stdout
-# But because of how Stata is hard-coded
-# 1) if you script is named script.do and you happen to have script.log in the current directory, it will be stomped
-# 2) you won't see output until the entire script is finished
+#  - But because of how Stata is hard-coded you won't see output until the entire script is finished
 
 # TODO: try to auto-locate Stata based on platform, and pull the corresponding spaghetti code out of test.mk
 # TODO: write Stata.bat so this works on Wandows too
 
 
-if [ "$1" = "-q" ]; then
-  Q="-q"
-  shift
+STATA=stata
+if [ "$(uname)" = "Darwin" ]; then
+  PATH=/Applications/Stata/Stata.app/Contents/MacOS/:$PATH
+  # Note: Stata installs to /Applications/Stata/Stata.app/Contents/MacOS/Stata on OS X,
+  #       but OS X is happily case-insensitive.
 fi
 
-if [ "$#" -gt 1 ]; then
-  echo "Wrong number of arguments" >&2
+if ! which "$STATA" >/dev/null 2>/dev/null; then
+  echo "Stata not found."
   exit 1
 fi
 
-INPUT="$1"; shift
+SCRIPT="$1"; shift
 
-OUTPUT=$(basename "$INPUT" | sed 's/.do$/.log/')
+# TODO: detect if we're pointed at console Stata or GUI Stata
+# GUI Stata (which is all you get on OS X and Windows) can only be automated with -e,
+#  which requires running the thing and waiting for it to spit out a logfile which we then parse
 
-stata $Q -e "$INPUT"
-cat "$OUTPUT"
-rm "$OUTPUT"
+WRAPPER=$(dirname $0)/stata_wrap.do
+
+# allocate a folder for stata_wrap to return data via
+if (mktemp --version 2>/dev/null | grep GNU); then
+  # GNU and 
+  # Under GNU -p "" means use /tmp or other system-defined default
+  CRUFT=$(mktemp -d -p "" "$TEMPLATE")
+else
+  # Assume BSD mktemp
+  CRUFT=$(mktemp -d -t statawrap)
+fi
+LOG="$CRUFT"/session.log
+RC="$CRUFT"/rc
+
+$STATA -q -e do "$WRAPPER" "$SCRIPT" "$LOG" "$RC"
+
+cat $LOG
+RC=$(cat "$RC")
+rm -r $CRUFT
+exit $RC

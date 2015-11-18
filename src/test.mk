@@ -9,10 +9,10 @@ tests/%.svmlight: tests/%.bz2
 	mv tests/$* tests/$*.svmlight
 
 tests/%.bz2:
-	wget http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary/$*.bz2 -O $@
+	curl http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary/$*.bz2 -o $@
 
 # add test-specific files
-tests/preload tests/load: tests/duke.svmlight
+tests/import_svmlight: tests/duke.svmlight
 $(call FixPath,tests/auto.model): tests/export #the make manual claims on Windows all paths use forward slashes and only forward slashes, but apparently this doesn't apply to targets, only prerequisites.
      # maybe what I should do is give up and move all this into a sub Makefile and use recursive make to avoid dealing with path separators.
 tests/import: tests/auto.model #for example, this one is created by export.do, and so that has to run first; stating it like this lets make figure that out
@@ -36,8 +36,8 @@ TESTS:=$(patsubst %.do,%,$(TESTS))
 $(TESTS): plugin
 tests/preimport_svmlight tests/import_svmlight tests/export_svmlight: _svmlight.plugin
 tests/auto.model: tests/export
-tests/getenv: _getenv.plugin
-tests/setenv: _setenv.plugin
+tests/getenv: _svm_getenv.plugin
+tests/setenv: _svm_setenv.plugin
 
 
 

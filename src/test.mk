@@ -36,8 +36,8 @@ TESTS:=$(patsubst %.do,%,$(TESTS))
 $(TESTS): plugin
 tests/preimport_svmlight tests/import_svmlight tests/export_svmlight: _svmlight.plugin
 tests/auto.model: tests/export
-tests/getenv: _getenv.plugin
-tests/setenv: _setenv.plugin
+tests/getenv: _svm_getenv.plugin
+tests/setenv: _svm_setenv.plugin
 
 
 

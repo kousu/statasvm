@@ -78,6 +78,7 @@ libsvm
 ------
 
 [libsvm](http://www.csie.ntu.edu.tw/~cjlin/libsvm/) is the C library which does the heavy lifting. Stata-SVM is a thin wrapper which exposes its routines and makes them Stata-esque.
+If you get "'svm.h' file not found" when compiling, you are missing a libsvm installation.
 
 ### Windows
 

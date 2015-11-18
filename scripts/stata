@@ -1,7 +1,6 @@
 #!/bin/sh
 # a wrapper for Stata to make it more behave like a Unix interpreter:
 # - the last argument is a .do file to run
-# - optional first argument of -q, which is passed into Stata's -q
 # - the output is sent to stdout
 # But because of how Stata is hard-coded
 # 1) if you script is named script.do and you happen to have script.log in the current directory, it will be stomped

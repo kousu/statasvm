@@ -1,7 +1,8 @@
 Compiling Stata-SVM
 ===================
 
-This is a guide for building the code for developers of Stata-SVM.
+This is the developer documentation for Stata-SVM.
+It covers how to install dependencies, build the code, test and release it.
 If you just want to use it, see [INSTALL](INSTALL.md).
 
 Build requirements:
@@ -140,26 +141,47 @@ $ make clean
 (you have to do this, for example, when you change the Makefile, as make doesn't track its own Makefile)
 
 Development Installation
------------------------
+------------------------
 
 The proper way to install Stata-SVM is to use the [install instructions](INSTALL.md).
 However, for development you want to be able to use the code in the repository.
-The simplest way and most replicable way to do this is to write a test case for every feature, bug, or change, and use `make tests`.
-But if that is too slow for you---it is for me---or if you want to use bleeding edge in your daily Stata usage, follow these instructions; if you are familiar with python, these are similar to using `python setup.py develop`.
+The most replicable way to do this is to write a test case for every feature, bug, or change, and use `make tests` (see below).
+But if that feels too slow for you follow these instructions
 
-We will add the build directory to Stata's adopath, using [`profile.do`](http://www.stata.com/manuals13/gswb.pdf#B.3ExecutingcommandseverytimeStataisstarted). **If you have already customized your profile.do, you should edit the one you already have as Stata only runs one**.  If not, you can make `profile.do` in your home folder; this is typically `/home/<username>/ado' on Unix, '/Users/<username>/ado' on OS X, and 'C:\Users\<username>\Documents' on Windows. See the linked Stata documentation if you need more help.
+The idea is to make sure the folder with the runnable .ado files is on the adopath.
+Since Stata, like Windows, by default considers the current directory to be on the adopath
+the shortest method is to side-step installation entirely: just make sure you ". cd" Stata to `statasvm/src/`;
+ with the Unix console Stata this is easy: launching Stata from the command line in `statasvm/src/` sets its working directory there.
 
+But with the Windows and OS X graphical interface this is not so simple: they tend to start in a different directory.
+The more involved but time-saving method is similar to python's `python setup.py develop`:
+add the build directory to Stata's adopath,
+using [`profile.do`](http://www.stata.com/manuals13/gswb.pdf#B.3ExecutingcommandseverytimeStataisstarted).
+**If you have already customized your profile.do, you should edit the one you already have as Stata only runs one**.
+If not, you can make `profile.do` in your home folder; this is typically
+`/home/<username>/ado' on Unix,
+'/Users/<username>/ado' on OS X, and
+'C:\Users\<username>\Documents' on Windows.
 Once you have found your `profile.do`, add this one line:
 ```
 adopath + "path/to/statasvm/src"
 ```
 
-Restart Stata and you should be able to run
+Restart Stata and try to run `. svm`. You should see
 ```
 . svm
 varlist required
 r(100);
 ```
+
+If you see
+```
+. program _svm, plugin
+Could not load plugin: .\_svm.plugin
+```
+then you have the path set right but the plugin is unloadable for some other reason ---
+the file or one of its dependencies is corrupt, or you are trying to run the
+wrong architecture (Windows code on OS X, 32 bit Windows on 64 bit Windows, etc).
 
 If instead you see
 ```
@@ -167,24 +189,15 @@ If instead you see
 command svm is unrecognized
 r(199);
 ```
-then *either* you have the path set wrong *or* the .plugin file is unloadable, which might happen if you have compiled a 32 bit version and are running 64 bit Stata or you're trying to run a Mac OS X build on Windows, and unfortunately Stata does not distinguish the cases for us. To tell, first try to load the .plugin manually:
-```
-. program _svm, plugin
-```
-If that says "file not found" then your path is wrong, and you should double check it with `adopath`.
-
-If instead you see
-```
-. program _svm, plugin
-Could not load plugin: .\_svm.plugin
-```
-then the plugin is corrupted; especially if you are on Windows, you probably have mistakenly cross-compiled StataSVM or libsvm.
-You must match the architecture the plugin to the architecture of Stata:
-Stata.exe can only run 32 bit plugins and Stata-64.exe can only run 64 bit plugins **including sub-DLLs**.
+then you have the path set wrong. Check it with `adopath`.
 
 
 Testing
 -------
+
+Quick tips:
+* `. program drop _all` forgets cached .ado and dlclose()s all loaded DLLs, without needing to restart Stata
+* `.
 
 There is a haphazard suite of test cases in `src/tests/`. Working in `src/`, for each file `tests/x.do` the test can be run with
 ```
@@ -273,4 +286,9 @@ Once `pkg` has gone through, **test it**. There may have been a packaging glitch
 * For each build machine, run Stata and do `. net install svm, from(http://$PRIMARY:8000/)` and make sure everything in the package works.
   * better if you use fresh VM copies of the build machines, ones which definitely lack the repository and libsvm
 
-Once you think the package is ready for deployment, zip up the `dist/` folder and submit it to [ssc](http://www.stata.com/support/ssc-installation/) by contacting [TODO]
+
+Once you think the package is ready for deployment, zip up the `dist/` folder and submit it to
+[ssc](http://www.stata.com/support/ssc-installation/) by contacting [TODO].
+When you make the zip **make sure extraneous files do not get included**:
+OS X's GUI archiver adds a folder `__MAXOSX` to the root of every zip; that OS itself scatters `.DS_Store` files everywhere;
+if you use vim or emacs you might have hidden backup files in the folder.

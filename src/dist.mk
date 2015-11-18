@@ -47,12 +47,12 @@ pkg: dist dist/$(PKG).pkg dist/stata.toc
 ifneq ($(OS),Windows_NT)
  # These scripts don't work under Windows, so simply don't define them on Windows
 .PHONY: dist/stata.toc
-dist/stata.toc: scripts/maketoc dist
+dist/stata.toc: ../scripts/maketoc dist
 	"$<" $(dir $@) "$(DESCRIPTION)"
 dist/stata.toc: DESCRIPTION:=Stata repo
 
 .PHONY: dist/$(PKG).pkg
-dist/$(PKG).pkg: scripts/makepluginpkg dist
+dist/$(PKG).pkg: ../scripts/makepluginpkg dist
 	"$<" "$@" "$(DESCRIPTION)" "$(AUTHOR)"
 endif
 

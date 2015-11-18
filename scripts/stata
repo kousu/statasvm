@@ -1,10 +1,8 @@
 #!/bin/sh
 # a wrapper for Stata to make it more behave like a Unix interpreter:
-# - the last argument is a .do file to run
+# - the only argument is a .do file to run
 # - the output is sent to stdout
-# But because of how Stata is hard-coded
-# 1) if you script is named script.do and you happen to have script.log in the current directory, it will be stomped
-# 2) you won't see output until the entire script is finished
+#  - But because of how Stata is hard-coded you won't see output until the entire script is finished
 
 # TODO: try to auto-locate Stata based on platform, and pull the corresponding spaghetti code out of test.mk
 # TODO: write Stata.bat so this works on Wandows too
@@ -28,7 +26,9 @@ SCRIPT="$1"; shift
 # GUI Stata (which is all you get on OS X and Windows) can only be automated with -e,
 #  which requires running the thing and waiting for it to spit out a logfile which we then parse
 
-# make 
+WRAPPER=$(dirname $0)/stata_wrap.do
+
+# allocate a folder for stata_wrap to return data via
 if (mktemp --version 2>/dev/null | grep GNU); then
   # GNU and 
   # Under GNU -p "" means use /tmp or other system-defined default
@@ -37,23 +37,10 @@ else
   # Assume BSD mktemp
   CRUFT=$(mktemp -d -t statawrap)
 fi
-
-WRAPPER="$CRUFT"/wrapped.do
 LOG="$CRUFT"/session.log
 RC="$CRUFT"/rc
 
-# This Stata script wraps $SCRIPT so that its output goes to $LOG and error code to $RC,
-# and it ensures Stata comes down at the end even if there was an error.
-# - almost: $LOG ends up with header and footer cruft from 'log', unfortunately, and *this is a variable number of lines*
-cat > "$WRAPPER" <<EOF
-log using "$LOG", text
-capture noisily do "$SCRIPT"
-log close
-shell echo "\`=_rc'" > "$RC"
-exit, clear STATA
-EOF
-
-$STATA -q -e do "$WRAPPER"
+$STATA -q -e do "$WRAPPER" "$SCRIPT" "$LOG" "$RC"
 
 cat $LOG
 RC=$(cat "$RC")

@@ -10,20 +10,52 @@
 # TODO: write Stata.bat so this works on Wandows too
 
 
-if [ "$1" = "-q" ]; then
-  Q="-q"
-  shift
+STATA=stata
+if [ "$(uname)" = "Darwin" ]; then
+  PATH=/Applications/Stata/Stata.app/Contents/MacOS/:$PATH
+  # Note: Stata installs to /Applications/Stata/Stata.app/Contents/MacOS/Stata on OS X,
+  #       but OS X is happily case-insensitive.
 fi
 
-if [ "$#" -gt 1 ]; then
-  echo "Wrong number of arguments" >&2
+if ! which "$STATA" >/dev/null 2>/dev/null; then
+  echo "Stata not found."
   exit 1
 fi
 
-INPUT="$1"; shift
+SCRIPT="$1"; shift
 
-OUTPUT=$(basename "$INPUT" | sed 's/.do$/.log/')
+# TODO: detect if we're pointed at console Stata or GUI Stata
+# GUI Stata (which is all you get on OS X and Windows) can only be automated with -e,
+#  which requires running the thing and waiting for it to spit out a logfile which we then parse
 
-stata $Q -e "$INPUT"
-cat "$OUTPUT"
-rm "$OUTPUT"
+# make 
+if (mktemp --version 2>/dev/null | grep GNU); then
+  # GNU and 
+  # Under GNU -p "" means use /tmp or other system-defined default
+  CRUFT=$(mktemp -d -p "" "$TEMPLATE")
+else
+  # Assume BSD mktemp
+  CRUFT=$(mktemp -d -t statawrap)
+fi
+
+WRAPPER="$CRUFT"/wrapped.do
+LOG="$CRUFT"/session.log
+RC="$CRUFT"/rc
+
+# This Stata script wraps $SCRIPT so that its output goes to $LOG and error code to $RC,
+# and it ensures Stata comes down at the end even if there was an error.
+# - almost: $LOG ends up with header and footer cruft from 'log', unfortunately, and *this is a variable number of lines*
+cat > "$WRAPPER" <<EOF
+log using "$LOG", text
+capture noisily do "$SCRIPT"
+log close
+shell echo "\`=_rc'" > "$RC"
+exit, clear STATA
+EOF
+
+$STATA -q -e do "$WRAPPER"
+
+cat $LOG
+RC=$(cat "$RC")
+rm -r $CRUFT
+exit $RC

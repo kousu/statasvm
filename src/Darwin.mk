@@ -38,11 +38,6 @@ LDFLAGS+=-bundle
 
 # --- testing ---
 
-ifndef STATA #i.e. if the user doesn't have stata in their path
-  # it should be safe to hardcode the path to Stata on OS X, because it has an installer which doesn't give you much choice
-  # though admittedly there *is* going to be the rare user that gets bit by this
-  STATA := $(wildcard /Applications/Stata/Stata.app/Contents/MacOS/Stata)
-endif
 
 printdeps:
 	otool -L $^

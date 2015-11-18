@@ -47,9 +47,10 @@ tests/setenv: _setenv.plugin
 .PHONY: tests
 tests: $(TESTS)
 
-tests/%: tests/wrapped/%.do
-	"$(STATA)" -q $(call FixPath,$<)
-	(RC=$$(cat $*.out); rm -f $*.out; exit $$RC)
+STATA:=../scripts/stata
+
+tests/%: tests/%.do
+	"$(call FixPath,$(STATA))" $(call FixPath,$<)
   
 # auto-wrap tests with the code in tests/helpers/
 # Stata doesn't pass command line arguments to batch scripts

@@ -93,7 +93,7 @@ program define ado_from, rclass
   // the matching package and its source
 
   qui findfile stata.trk
-  file open `fd' using `r(fn)', read text
+  file open `fd' using "`r(fn)'", read text
   while(!("`curpkg'"=="`pkg'.pkg" & "`from'"!="")) {
   
     file read `fd' line

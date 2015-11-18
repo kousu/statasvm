@@ -32,7 +32,7 @@ WRAPPER=$(dirname $0)/stata_wrap.do
 if (mktemp --version 2>/dev/null | grep GNU); then
   # GNU and 
   # Under GNU -p "" means use /tmp or other system-defined default
-  CRUFT=$(mktemp -d -p "" "$TEMPLATE")
+  CRUFT=$(mktemp -d -p "" "statawrap.XXXXXXXX")
 else
   # Assume BSD mktemp
   CRUFT=$(mktemp -d -t statawrap)

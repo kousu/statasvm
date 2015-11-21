@@ -68,11 +68,8 @@ $ xcode-select --install
 
 ### *nix
 
-On Linux or other *nix, there will usually be a toolchain metapackage, but its name differs depending on your distro.
-In Debian, use `apt-get install build-essentials`,
-on Arch use `pacman -S base-devel`, and
-on the BSDs the toolchain should be installed as a core part of the OS.
-
+On modern Linux or other *nix, gcc and make will usually be installed by default.
+If they are not, search your distro's documentation.
 
 
 libsvm
@@ -120,7 +117,26 @@ or maybe [chocolatey](https://chocolatey.org/packages) will get a libsvm package
 
 ### *nix: (including OS X)
 
-On OS X and Linux, installing the libsvm as normal will get you its build dependencies and will place them in system-accessible locations. See [INSTALL](INSTALL.md) for suggestions about what counts as 'as normal'.
+Debian (including Ubuntu):
+```
+# apt-get install libsvm-3
+# apt-get install libsvm-dev # svm.h is in a separate package
+```
+
+Arch (use the [AUR](https://aur.archlinux.org)):
+```
+$ yaourt -S libsvm
+```
+
+OS X (using brew):
+```
+$ brew install libsvm
+```
+
+OS X (using MacPorts):
+```
+# port install libsvm
+```
 If you choose to use MacPorts, pay attention to the part where you tell the system to look for libraries in /opt, much like the situation on Windows.
 
 Building

@@ -103,7 +103,7 @@ endif
 # BEWARE: this must be *before* the recipes are defined (in contrast to the implicit rules and(?) in contrast to pattern rules)
 #         or else you get "warning: overriding commands for target `printdeps'"
 .PHONY: printdeps
-printdeps: $(PLUGIN).plugin
+printdeps: _svm.plugin
 
 
 include $(OS).mk

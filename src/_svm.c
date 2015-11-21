@@ -6,9 +6,6 @@
 #include <stdbool.h>
 #include <math.h>               //for NAN
 
-#if __linux__
-#include <bsd/string.h>
-#endif
 
 #include "libsvm_patches.h"
 #include "stutil.h"
@@ -19,20 +16,39 @@
 
 /* ******************************** */
 /* platform cruft */
-#if _WIN32
+#ifndef HAVE_STRLCAT
+#define HAVE_STRLCAT 1
 
-// TODO: check security ;)
-// TODO: find a posix-to-windows compat libc
 size_t strlcat(char * dst, const char * src, size_t size) {
+        int d, s;
+        d = strlen(dst);
+        s = strlen(src);
+
+        //stdebug("strlcat: dst[%d]='%s', src[%d]='%s', size=%d\n", s, dst, s, src, size);
+#if _WIN32
+        // TODO: check security ;)
+        // TODO: find a better posix-to-windows compat libc
 	errno_t err = strcat_s(dst, size, src);
 	if(err) {
-		// pass
+		// pass ???
+                sterror("strlcat: errno=%d", err);
+                return size; //strlcat can't signal an error directly, but all callers should be checking for the return to be size or more, signalling errorl
 	}
-	return strlen(dst) + strlen(src);
+#else
+        /* strl*() gets the total length of the buffer, including the null;
+         strn*() gets the length remaining;
+         if dst is size in total, and d+1 is used already (d chars plus one nul which will be overwritten but recreated at the end),
+         then there's size-(d+1) remaining
+        */
+        strncat(dst, src, size - d - 1); 
+#endif // _WIN32
+        // strlcat returns "the number of chars it tried to write" except if it overflows, in which "size" and it *doesn't* nul-terminate
+        // notice that in proper operation the return value is always less than size, because the return value doesn't count the terminating null byte size does.
+        // and anything else should be treated as an error
+        return d + s < size ? d + s : size;
 }
 
-
-#endif
+#endif // HAVE_STRLCAT
 
 /* ******************************** */
 /* libsvm print hooks */
@@ -314,7 +330,11 @@ ST_retcode _model2stata(int argc, char *argv[])
             for (int i = 0; i < model->nr_class; i++) {
                 /* copy out model->label *as a string of space separated tokens; this is a shortcut for 'matrix rownames' */
                 snprintf(buf, sizeof(buf), " %d", model->label[i]);
-                strlcat(strLabels, buf, lstrLabels);
+                if(strlcat(strLabels, buf, lstrLabels) >= lstrLabels) {
+                  sterror("overflow while writing to _labels");
+                  // XXX memory leak
+                  return 1;
+                }
                 stdebug("labels now = |%s|\n", strLabels);
             }
         }

@@ -123,10 +123,23 @@ Debian (including Ubuntu):
 # apt-get install libsvm-dev # svm.h is in a separate package
 ```
 
+Fedora 23+:
+```
+# dnf install libsvm
+# dnf install libsvm-devel
+```
+
+Fedora 22-:
+```
+# yum install libsvm
+# yum install libsvm-devel
+```
+
 Arch (use the [AUR](https://aur.archlinux.org)):
 ```
 $ yaourt -S libsvm
 ```
+
 
 OS X (using brew):
 ```

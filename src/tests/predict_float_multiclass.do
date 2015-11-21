@@ -8,5 +8,5 @@ svm * if !missing(rep78), sv(SV)
 list SV
 do tests/helpers/inspect_model.do
 
-predict Q if !missing(rep78)
+predict Q
 list `e(depvar)' Q

@@ -27,7 +27,7 @@
 
 {pstd}Predict on the test set.{p_end}
 {pstd}Unlike training, predict can handle missing data: it simply predicts missing.{p_end}
-{phang2}{cmd:. predict P if !missing(rep78) in `test'}{p_end}
+{phang2}{cmd:. predict P in `test'}{p_end}
 
 {pstd}Compute error rate: the percentage of mispredictions is the mean of err.{p_end}
 {phang2}{cmd:. gen err = foreign != P in `test'}{p_end}

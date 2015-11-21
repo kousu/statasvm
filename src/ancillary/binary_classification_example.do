@@ -25,7 +25,7 @@ svm foreign price-gear_ratio if !missing(rep78) in `train', v
 
 // Predict on the test set.
 // Unlike training, predict can handle missing data: it simply predicts missing.
-predict P if !missing(rep78) in `test'
+predict P in `test'
 
 // Compute error rate: the percentage of mispredictions is the mean of err.
 gen err = foreign != P in `test'

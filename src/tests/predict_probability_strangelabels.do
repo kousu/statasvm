@@ -7,8 +7,8 @@ replace foreign = foreign+7
 label define space_station 7 "DS9" 8 "Ferengi" // foreign was 0/1, now it's 7/8
 label values foreign space_station
 svm foreign price-gear_ratio if !missing(rep78), prob
-capture noisily predict P if !missing(rep78), prob
-capture noisily predict P2 if !missing(rep78)
+capture noisily predict P, prob
+capture noisily predict P2
 
 list foreign P*
 

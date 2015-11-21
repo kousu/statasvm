@@ -135,10 +135,43 @@
 {title:Examples: oneclass}
 
 {pstd}Setup{p_end}
-{pstd}[....]{p_end}
+{phang2}{cmd:. pause on}{p_end}
+{phang2}{cmd:. sysuse nlsw88, clear}{p_end}
 
-{pstd}TODO{p_end}
-{phang2}{cmd:. svm, type(one_class)}{p_end}
+{pstd}This dataset has labour data: employment conditions crossed with demographic information.{p_end}
+{pstd}If we separate by race, we can see that the support of the bivariate (wage, hours worked) differs.{p_end}
+{pstd}Roughly: the shape is the same for white and black respondents, but white respondents have a wider range.{p_end}
+{phang2}{cmd:. drop if race == 3  //cut the small amount of respondents which answered "other"}{p_end}
+{phang2}{cmd:. twoway (scatter wage hours), by(race)}{p_end}
+{phang2}{cmd:. pause "Type q to continue."}{p_end}
+
+{pstd}We will ask one-class SVM to detect the shape of the smaller region{p_end}
+{pstd}Notice that we need to further cull the data because SVM cannot handle missing data.{p_end}
+{phang2}{cmd:. drop if missing(wage) | missing(hours) // for clarity, we }{p_end}
+{phang2}{cmd:. svm wage hours if race == 2, type(one_class) sv(SV_wage_hours)}{p_end}
+
+{pstd}There is a well balanced mix of support to non-support vectors{p_end}
+{pstd}(Remember that missings here are just observations that weren't in the training set){p_end}
+{phang2}{cmd:. tab SV_wage_hours}{p_end}
+
+{pstd}Now, show whether each point "empirically" is in the distribution or not{p_end}
+{phang2}{cmd:. predict S}{p_end}
+{phang2}{cmd:. twoway (scatter wage hours), by(S)}{p_end}
+{phang2}{cmd:. pause "Type q to continue."}{p_end}
+
+{pstd}The result looks degenerate: all the {p_end}
+{pstd}By jittering, we can see what happened: in the black respondents,{p_end}
+{pstd}the bulk have a strict 40 hours work week and low pay.{p_end}
+{pstd}one_class detects and reflects the huge weight at the center,{p_end}
+{pstd}culling the spread as irrelevant.{p_end}
+{phang2}{cmd:. twoway (scatter wage hours, jitter(2)), by(S)}{p_end}
+{phang2}{cmd:. pause "Type q to continue."}{p_end}
+
+{pstd}We can summarize how one_class handled the test and training sets{p_end}
+{phang2}{cmd:. bysort race: tab S}{p_end}
+{pstd}Notice that the percentage of matches in the training set is higher than in the test set,{p_end}
+{pstd}because the training extracted the distribution of the test set. Seeing this difference{p_end}
+{pstd}supports our intution that the distribution for white respondents differs from black.{p_end}
 
 {pstd}{it:({stata svm_example oneclass:click to run})}{p_end}
 

@@ -22,7 +22,7 @@
   /* OS X's libc has strlcat() */
 #else
 size_t strlcat(char * dst, const char * src, size_t size) {
-        int d, s;
+        size_t d, s;
         d = strlen(dst);
         s = strlen(src);
 
@@ -335,7 +335,7 @@ ST_retcode _model2stata(int argc, char *argv[])
     } else if (phase == '2') {
         
         char buf[20]; //XXX is 20 big enough?
-        int lstrLabels = model->nr_class*sizeof(buf) + 1;
+        size_t lstrLabels = model->nr_class*sizeof(buf) + 1;
         char *strLabels = malloc(lstrLabels);
         if(strLabels == NULL) {
             sterror("unable to allocate memory for strLabels\n");

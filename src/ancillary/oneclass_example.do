@@ -28,7 +28,7 @@ twoway (scatter wage hours if !S) (scatter wage hours if S)
 pause "Type q to continue."
 
 // The result looks degenerate: the entire predicted distribution is along the line hours=40.
-// By jittering, we can see whyt this happened: in the black respondents,
+// By jittering, we can see why this happened: in the black respondents,
 // the bulk have a strict 40 hours work week and low pay.
 // one_class detects and reflects the huge weight at the center,
 // culling the spread as irrelevant.

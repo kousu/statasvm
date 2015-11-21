@@ -18,7 +18,9 @@
 /* platform cruft */
 #ifndef HAVE_STRLCAT
 #define HAVE_STRLCAT 1
-
+#if __APPLE__
+  /* OS X's libc has strlcat() */
+#else
 size_t strlcat(char * dst, const char * src, size_t size) {
         int d, s;
         d = strlen(dst);
@@ -47,7 +49,7 @@ size_t strlcat(char * dst, const char * src, size_t size) {
         // and anything else should be treated as an error
         return d + s < size ? d + s : size;
 }
-
+#endif //__APPLE__
 #endif // HAVE_STRLCAT
 
 /* ******************************** */

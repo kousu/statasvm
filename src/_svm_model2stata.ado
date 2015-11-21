@@ -97,13 +97,18 @@ program define _svm_model2stata, eclass
   
   * Phase 3
   * Export the SVs 
-  if(`have_sv_indices'==1 & `e(N_SV)'>0 & "`sv'"!="") {
-    capture noisily {
-      // he internal libsvm format is a list of indices
-      // we want indicators, which are convenient for Stata
-      // so we  *start* with all 0s (rather than missings) and overwrite with 1s as we discover SVs
-      quietly generate `sv' `if' `in' = 0
-      plugin call _svm `sv' `if' `in', `verbose' "_model2stata" 3
+  if("`sv'"!="") {
+    if(`have_sv_indices'==0) {
+      di as err "SV statuses missing. Perhaps your underlying version of libsvm is too old to support sv()."
+    }
+    else {
+      capture noisily {
+        // he internal libsvm format is a list of indices
+        // we want indicators, which are convenient for Stata
+        // so we  *start* with all 0s (rather than missings) and overwrite with 1s as we discover SVs
+        quietly generate `sv' `if' `in' = 0
+        plugin call _svm `sv' `if' `in', `verbose' "_model2stata" 3
+      }
     }
   }
   

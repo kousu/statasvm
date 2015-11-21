@@ -14,6 +14,12 @@ CFLAGS+=-fPIC
 
 LDFLAGS+=-shared  #the only reason this isn't in posix.mk is because it's wrong on OS X (XXX is it?)
 
+# Debian derivatives put libsvm in a subfolder
+# Now, maybe the right solution is to #include <libsvm/svm.h>,
+# but both Arch and OS X do not so it would be a headache to switch
+ifneq ($(wildcard /usr/include/libsvm),)
+  CFLAGS+=-I/usr/include/libsvm
+endif
 
 # --- testing ---
 

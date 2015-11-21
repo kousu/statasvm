@@ -20,7 +20,8 @@ endif
 release: ../statasvm.$(RELEASE_FORMAT)
 
 
-
+../statasvm.zip:
+	(cd dist; zip -x ".*" "*/.*" -x "*~" -r ../../statasvm.zip .)
 
 
 DIST:=$(wildcard *.ado *.sthlp *.ihlp bin/*/* ancillary/*)

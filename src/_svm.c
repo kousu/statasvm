@@ -75,12 +75,15 @@ int model_p = -1;                // the number of explanatory (X) variables; >= 
  * The range is *inclusive* of x_l and x_u (so the length is x_u - x_l + 1)
  * The row to read from is i.
  *
- * result is an array of svm_nodes.
- * caller is responsible for freeing the result.
+ * result is a array of svm_nodes; caller is responsible for freeing it when done; the result is slab-allocated so a single free() is enough.
+ * If there was an error then err_missing, if non-null, tells if the exception was because of missing data (which libsvm does not handle);
+ *  this is a kludge in order to support the subtly different uses this function has in the two places it is called.
  *
  * returns NULL if it fails.
  */
-struct svm_node* stata_to_svm_nodes(int x_l, int x_u, int i) {
+struct svm_node* stata_to_svm_nodes(int x_l, int x_u, int i, bool *err_missing) {
+
+    if(err_missing) { *err_missing = false; }
 
     if(!( 1<= x_l && x_l <= x_u && x_u <= SF_nvars())) {
         sterror("stata_to_svm_nodes: x = [%d,%d] is not a valid subrange of available variables [%d,%d].\n", x_l, x_u, 1, SF_nvars());
@@ -97,7 +100,11 @@ struct svm_node* stata_to_svm_nodes(int x_l, int x_u, int i) {
     // This datastructure connotes that missing values can (should?) not be allocated, and they'll just be ignored,
     // but empirically that causes wrong values (if you read libsvm::k_function() you can see why), so we deny it.
     struct svm_node* x = calloc(x_u - x_l + 1 + 1, sizeof(struct svm_node));
-
+    if(x == NULL) {
+        sterror("stata_to_svm_nodes: Unable to allocate memory.");
+        return NULL;
+    }
+    
     double z;           // scratch space to pass data out of Stata
     int c = 0;          //and the current position within the subarray is tracked here
                         // note that this is ZERO-BASED not one-based like Stata; libsvm doesn't care what base you use so long as you are consistent
@@ -110,7 +117,7 @@ struct svm_node* stata_to_svm_nodes(int x_l, int x_u, int i) {
         if (SF_is_missing(z)) {
             // Stata's regress and logistic and mlogit silently ignore missing data
             // but it's unclear what effect this will have long-term, so we ban it.
-            sterror("svm cannot handle missing data. Found at X[%d,%d]\n", i, j);
+            if(err_missing) { *err_missing = true; }
             goto fail;
         }
         stdebug("read stata[%d,%d] = %f\n", j, i, z);
@@ -153,12 +160,12 @@ struct svm_problem *stata_to_svm_problem(int y, int x_l, int x_u)
 
     if(!( 1<= y && y <= SF_nvars())) {
         sterror("stata_to_svm_problem: y = %d is not in range of available variables [%d,%d].\n", y, 1, SF_nvars());
-        return NULL;
+        goto cleanup;
     }
 
     struct svm_problem *prob = malloc(sizeof(struct svm_problem));
     if (prob == NULL) {
-        // TODO: error
+        sterror("stata_to_svm_problem: unable to allocate memory.");
         goto cleanup;
     }
     memset(prob, 0, sizeof(struct svm_problem));        //zap the memory just in case
@@ -178,9 +185,11 @@ struct svm_problem *stata_to_svm_problem(int y, int x_l, int x_u)
         //TODO: error
         goto cleanup;
     }
-    //TODO: double-check this for off-by-one bugs
-    // This code is super confusing because we're dealing with three numbering systems: C's 0-based, Stata's 1-based, and libsvm's (.index) which is 0-based but sparse
 
+    // Copy in the data.
+    // BEWARE:
+    // This code is super prone to off-by-one errors because we're dealing with three enumeration systems:
+    //  C's 0-based, Stata's 1-based, and libsvm's (.index) which is 0-based and also sparse
     for (ST_int i = SF_in1(); i <= SF_in2(); i++) {     //respect `in' option
         if (SF_ifobs(i)) {      //respect `if' option            
             if (prob->l >= capacity) {  // amortized-resizing
@@ -214,7 +223,11 @@ struct svm_problem *stata_to_svm_problem(int y, int x_l, int x_u)
 
             // put data into X[l]
             // (there are multiple values so we use a subroutine)
-            if((prob->x[prob->l] = stata_to_svm_nodes(x_l, x_u, i)) == NULL) {
+            bool missing;
+            if((prob->x[prob->l] = stata_to_svm_nodes(x_l, x_u, i, &missing)) == NULL) {
+                if(missing) {
+                    sterror("missing data found in observation %d. svm cannot handle this.\n", i);
+                }
                 goto cleanup;
             }
             
@@ -723,9 +736,18 @@ ST_retcode predict(int argc, char *argv[])
     for (ST_int i = SF_in1(); i <= SF_in2(); i++) {     //respect `in' option
         if (SF_ifobs(i)) {                              //respect `if' option
             // Map the current row into a libsvm svm_node list
-            if((X = stata_to_svm_nodes(2, no_vars, i)) == NULL) {
-                err = 1;
-                goto cleanup;
+            bool missing;
+            if((X = stata_to_svm_nodes(2, no_vars, i, &missing)) == NULL) {
+                if(missing) {
+                    // we can't handle missing data directly, but we can "predict" missing.
+                    // just skipping ("continue") the current observation effectively does this
+                    // because svm_train.ado inits a column of missings for us to write into
+                    continue;
+                } else {
+                    // but if the call failed for some other reason, we should bail
+                    err = 1;
+                    goto cleanup;
+                }
             }
             
             // Do the prediction! (one observation at a time)

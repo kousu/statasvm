@@ -8,7 +8,7 @@ replace foreign = 2 in 20/22
 replace foreign = 3 in 4/10
 
 svm foreign price-gear_ratio if !missing(rep78)
-capture noisily predict P if !missing(rep78), scores
+capture noisily predict P, scores
 
 list foreign P*
 desc P*

@@ -289,6 +289,8 @@ ST_retcode _model2stata(int argc, char *argv[])
         SF_scal_save("_model2stata_l", model->l);
 		
         /* these macros have underscores because, according to the official docs, Stata actually only has a single global namespace for macros and just prefixes locals with _ */
+
+#if LIBSVM_VERSION >= 320
         if (model->sv_indices != NULL) {
             err = SF_macro_save("_have_sv_indices", "1");
             if (err) {
@@ -296,6 +298,7 @@ ST_retcode _model2stata(int argc, char *argv[])
                 return err;
             }
         }
+#endif
         if (model->sv_coef != NULL) {
             err = SF_macro_save("_have_sv_coef", "1");
             if (err) {
@@ -424,13 +427,14 @@ ST_retcode _model2stata(int argc, char *argv[])
         }
     
     } else if(phase == '3') {
+#if LIBSVM_VERSION >= 320
         /* copy out model->sv_indices */
         /* these end up as indicators variables in the (single)  */
         if(SF_nvars() != 1) {
             sterror("wrong number of variables to _model2stata phase 3: got %d, expected 1\n", SF_nvars());
             return 3;
         }
-    
+        
         if (model->sv_indices) {
             // sort the indices, in place (libsvm does not guarantee this)
             // XXX is it safe to do this? does libsvm make assumptions about its array being unsorted?
@@ -476,6 +480,7 @@ ST_retcode _model2stata(int argc, char *argv[])
                 return 1;
             }
         }
+#endif
     }
 
     return 0;

@@ -99,7 +99,7 @@ program define _svm_model2stata, eclass
   * Export the SVs 
   if("`sv'"!="") {
     if(`have_sv_indices'==0) {
-      di as err "SV statuses missing. Perhaps your underlying version of libsvm is too old to support sv()."
+      di as err "Warning: SV statuses missing. Perhaps your underlying version of libsvm is too old to support sv()."
     }
     else {
       capture noisily {

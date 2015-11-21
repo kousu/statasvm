@@ -11,6 +11,7 @@ program _svm, plugin    // load _svm.plugin, the wrapper for libsvm
 program define _svm_train, eclass
   version 13
   
+  /* argument parsing */
   // these defaults were taken from svm-train.c
   // (except that we have shrinking off by default)
   #delimit ;
@@ -52,14 +53,55 @@ program define _svm_train, eclass
   local _varlist = "`varlist'"
   local _if = "`if'"
   local _in = "`in'"
-  gettoken depvar indepvars : _varlist
   
-  /* fill in defaults for the string values */
+  // make the string variables case insensitive (by forcing them to CAPS and letting the .c deal with them that way)
+  local type = upper("`type'")
+  local kernel = upper("`kernel'")
+  
+  // translate the boolean flags into integers
+  // the protocol here is silly, because syntax special-cases "no" prefixes:
+  // *if* the user gives the no form of the option, a macro is defined with "noprobability" in lower case in it
+  // in all *other* cases, the macro is undefined (so if you eval it you get "")
+  // conversely, with regular option flags, if the user gives it you get a macro with "shrinking" in it, and otherwise the macro is undefined  
+  if("`shrinking'"=="shrinking") {
+    local shrinking = 1
+  }
+  else {
+    local shrinking = 0
+  }
+
+  if("`probability'"=="probability") {
+    local probability = 1
+  }
+  else {
+    local probability = 0
+  }
+
+
+  /* fill in default values (only for the string vars, because syntax doesn't support defaults for them) */
   if("`type'"=="") {
     local type = "SVC"
   }
   
-  if("`type'" == "SVC" | "`type'" == "NU_SVC" /* | "`type'" == "ONE_CLASS" ???? */) {
+  if("`kernel'"=="") {
+    local kernel = "RBF"
+  }
+
+  /* preprocessing */
+  if("`type'" == "ONE_CLASS") {
+    // handle the special-case that one-class is unsupervised and so takes no
+    //  libsvm still reads a Y vector though; it just, apparently, ignores it
+    //  rather than tweaking numbers to be off-by-one, the easiest is to silently
+    //  duplicate the pointer to one of the variables.
+    gettoken Y : _varlist
+    local _varlist = "`Y' `_varlist'"
+  }
+  else {
+    gettoken depvar indepvars : _varlist
+  }
+
+  /* sanity checks */
+  if("`type'" == "SVC" | "`type'" == "NU_SVC") {
     // "ensure" type is categorical
     local T : type `depvar'
     if("`T'"=="float" | "`T'"=="double") {
@@ -77,40 +119,8 @@ program define _svm_train, eclass
       di as error
     }
   }
-  
-  if("`type'" == "ONE_CLASS") {
-    // handle the special-case that one-class is unsupervised and so takes no
-    //  libsvm still reads a Y vector though; it just, apparently, ignores it
-    //  rather than tweaking numbers to be off-by-one, the easiest is to silently
-    //  duplicate the pointer to one of the variables.
-    gettoken Y : varlist
-    local varlist = "`Y' `varlist'"
-  }
-  
-  if("`kernel'"=="") {
-    local kernel = "RBF"
-  }
-  
-  /* make the string variables case insensitive (by forcing them to CAPS and letting the .c deal with them that way) */
-  local type = upper("`type'")
-  local kernel = upper("`kernel'")
-  
-  /* translate the boolean flags into integers */
-  // the protocol here is silly, because syntax special-cases "no" prefixes:
-  // *if* the user gives the no form of the option, a macro is defined with "noprobability" in lower case in it
-  // in all *other* cases, the macro is undefined (so if you eval it you get "")
-  // conversely, with regular option flags, if the user gives it you get a macro with "shrinking" in it, and otherwise the macro is undefined
-  
-  if("`shrinking"=="shrinking") {
-    local shrinking = 1
-  }
-  else {
-    local shrinking = 0
-  }
 
-  if("`probability'"=="probability") {
-    local probability = 1
-    
+  if(`probability'==1) {
     // ensure model is a classification
     if("`type'" != "SVC" & "`type'" != "NU_SVC") {
       // the command line tools *allow* this combination, but at prediction time silently change the parameters
@@ -119,17 +129,14 @@ program define _svm_train, eclass
       exit 2
     }
   }
-  else {
-    local probability = 0
-  }
   
-  // fail-fast on name errors in sv()
   if("`sv'"!="") {
+    // fail-fast on name errors in sv()
     local 0 = "`sv'"
     syntax newvarname
     
   }
-  
+
   
   /* call down into C */
   /* CAREFUL: epsilon() => svm_param->p and tol() => svm_param->epsilon */ 
@@ -160,7 +167,7 @@ program define _svm_train, eclass
   ereturn local svm_type = "`type'"
   ereturn local svm_kernel = "`kernel'"
   
-  ereturn local depvar = "`depvar'"
+  ereturn local depvar = "`depvar'" //NB: if depvar is "", namely if we're in ONE_CLASS, then Stata effectively ignores this line (which we want).
   //ereturn local indepvars = "`indepvars'" //XXX Instead svm_predict reparses cmdline. This needs vetting.
   
   // append the svm_model structure to e()

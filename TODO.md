@@ -192,11 +192,12 @@ Documentation
 Features
 --------
 
-* [ ] export dec_values from svm_predict_values()
+* [x] export dec_values from svm_predict_values()
   * tricky because dec_values is a lower-triangular matrix (as a list) and labelling is tricky
-* [ ] svm_predict needs to take varlist optionally, because svm_import has no way to know what variables it goes with;
+* [/] svm_predict needs to take varlist optionally, because svm_import has no way to know what variables it goes with;
   - the libsvm people, following on svmlight, simply assume that the variables are given in order in the data matrix passed to it, and that all train/test split files are in the identical (and totally unlabelled) order. Since Stata is actually meant for humans to use in daily work, it is all about labelled variables.
-* [ ] svm_import does not set all the same macros as svm_train
+  - WONTFIX: instead I culled svm_{export,import}; there is no sensible way to integrate saved models with Stata's workflow, and most Stata people save their workflow as .do files to be run from scratch anyhow.
+* [/] svm_import does not set all the same macros as svm_train
 * [x] Stata in -e mode writes to its logfile as it runs, so there should be a way to wrap it such that it behaves like other scripting languages: printing/taking output as it gets it but also quitting when the program ends
   Actually, 'exit' has a 'STATA' option which does a proper exit() call
   the next step is to output _rc somewhere and wrap a script around the whole thing which exits with _rc as a proper error code

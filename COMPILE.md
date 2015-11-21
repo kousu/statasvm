@@ -309,6 +309,8 @@ There is a shortcut version of this process, quicker but more prone to mistakes:
 * on the primary: `make pkg`
 
 
+There is a [Mac Mini](BUILDBOT.md) which has VMs all in one place for doing all the above work. Ask a project member about it if you want to use it.
+
 
 Once `pkg` has gone through, **test it**. There may have been a packaging glitch which broke, say, 32 bit Windows, and if so you need to start this ritual from the top.
 * On the primary, `../scripts/distserver.sh`

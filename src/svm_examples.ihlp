@@ -160,7 +160,9 @@
 {pstd}to demonstrate the detected distribution{p_end}
 {pstd}(you could also construct an evenly spaced grid of test points to get better resolution){p_end}
 {phang2}{cmd:. predict S}{p_end}
-{phang2}{cmd:. twoway (scatter wage hours if !S) (scatter wage hours if S)}{p_end}
+{phang2}{cmd:. twoway (scatter wage hours if !S) ///}{p_end}
+{phang2}{cmd:.        (scatter wage hours if S), ///}{p_end}
+{phang2}{cmd:.        legend(label(1 "Outliers") label(2 "Within Support"))}{p_end}
 {phang2}{cmd:. pause "Type q to continue."}{p_end}
 
 {pstd}The result looks degenerate: the entire predicted distribution is along the line hours=40.{p_end}
@@ -168,7 +170,9 @@
 {pstd}the bulk have a strict 40 hours work week and low pay.{p_end}
 {pstd}one_class detects and reflects the huge weight at the center,{p_end}
 {pstd}culling the spread as irrelevant.{p_end}
-{phang2}{cmd:. twoway (scatter wage hours if !S, jitter(5)) (scatter wage hours if S, jitter(5))}{p_end}
+{phang2}{cmd:. twoway (scatter wage hours if !S, jitter(5)) ///}{p_end}
+{phang2}{cmd:.        (scatter wage hours if S, jitter(5)), ///}{p_end}
+{phang2}{cmd:.        legend(label(1 "Outliers") label(2 "Within Support"))}{p_end}
 {phang2}{cmd:. pause "Type q to continue."}{p_end}
 
 {pstd}We can summarize how one_class handled both sets test and training sets{p_end}

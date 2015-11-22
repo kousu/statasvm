@@ -264,11 +264,14 @@ The "replace" option will report only those files it discovered needed updating,
 Deployment
 ----------
 
-`make pkg` automates, as much as possible, creating a multiplatform Stata .pkg.
-As a subroutine, it runs `make dist` which takes `.ado`s and `.sthlp`s in `./` along with everything in `bin/`, and `ancillary/`, and places them into `dist/`.
+`make release` automates, as much as possible, creating a multiplatform Stata .pkg.
+The package is likely to install in subtly wrong ways if the .pkg file is malformed, so use the automated method.
+
+`make release` uses other make targets as subroutines.
+It first runs `make dist` which takes `.ado`s and `.sthlp`s in `./` along with everything in `bin/`, and `ancillary/`, and places them into `dist/`.
 (`ancillary/` is for ancillary files---ones which will not get installed with `. net install svm` but can optionally be pulled *to the working directory* with `. net get svm`; it could contain, for example, datasets (.csv, .dta, .svmlight) and example code (.do)).
-`make pkg` then scans and constructs `dist/svm.pkg` and `dist/stata.toc` from `dist/`.
-The package is likely to install in subtly wrong ways if the .pkg file is malformed, so it is poor form to try to hand-roll it.
+Then `make pkg` scans and constructs `dist/svm.pkg` and `dist/stata.toc` from `dist/`.
+`make release` finally puts this all into a zip file.
 
 We do not have a cross-platform build bot available, so there is a manual process needed to do a complete (i.e. cross-platform) distribution.
 We've attempted to make the chance for error minimal, and this only needs to be done for releases, never for just developing.

@@ -1,6 +1,9 @@
 # hide backup files
 *~
 
+# hide OS X cruft
+.DS_Store
+
 #hide paper
 /paper
 /paper.nick

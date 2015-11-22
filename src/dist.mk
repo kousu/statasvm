@@ -20,8 +20,13 @@ endif
 release: ../statasvm.$(RELEASE_FORMAT)
 
 
-../statasvm.zip:
-	(cd dist; zip -r ../../statasvm.zip .)
+../statasvm.zip: pkg
+	(cd dist && zip -r ../../statasvm.zip .)
+	@echo " "
+	@echo "--------------------------------------------------------------------------"
+	@echo release has been constructed.  Was your repository clean before you did this?
+	@echo         DOUBLE CHECK THAT IT CONTAINS WHAT YOU INTEND TO SUBMIT.
+	@echo "--------------------------------------------------------------------------"
 
 # compute the list of files
 # note: this is somewhat loose: it grabs EVERYTHING in certain folders
@@ -33,11 +38,6 @@ _dist: $(DIST)
 # the build has happened, but all $(wildcard)s are eval'd at Makefile-scan time, not Makefile-exec time
 dist: all
 	$(MAKE) _dist
-	@echo " "
-	@echo "--------------------------------------------------------------------------"
-	@echo dist/ has been constructed.  Was your repository clean before you did this?
-	@echo DOUBLE CHECK THAT IT CONTAINS ONLY WHAT YOU INTEND TO SUBMIT.
-	@echo "--------------------------------------------------------------------------"
 
 # copy listed files into the distribution directory
 dist/$(PKG)/%: %

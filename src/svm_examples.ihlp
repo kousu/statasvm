@@ -146,11 +146,12 @@
 {phang2}{cmd:. drop if missing(hours)}{p_end}
 
 {pstd}If we separate by race, we can see that the support of the bivariate (wage, hours worked) differs.{p_end}
-{pstd}A first guest: the shape is the same for white and black respondents, but white respondents have a wider range.{p_end}
+{pstd}A first guess: the shape is the same for white and black respondents, but white respondents have a wider range.{p_end}
 {phang2}{cmd:. twoway (scatter wage hours), by(race)}{p_end}
 {phang2}{cmd:. pause "Type q to continue."}{p_end}
 
-{pstd}We will now ask one-class SVM to detect the shape of that less varied region, to give us a sense of the black labour market in 1988.{p_end}
+{pstd}We will now ask one-class SVM to detect the shape of that less varied region,{p_end}
+{pstd}to give us a sense of the black labour market in 1988.{p_end}
 {phang2}{cmd:. svm wage hours if race == 2, type(one_class) sv(SV_wage_hours)}{p_end}
 
 {pstd}There is a well balanced mix of support to non-support vectors. This is a good sign.{p_end}
@@ -160,7 +161,10 @@
 {pstd}to demonstrate the detected distribution{p_end}
 {pstd}(you could also construct an evenly spaced grid of test points to get better resolution){p_end}
 {phang2}{cmd:. predict S}{p_end}
-{phang2}{cmd:. twoway (scatter wage hours if !S) (scatter wage hours if S)}{p_end}
+{phang2}{cmd:. twoway (scatter wage hours if !S) ///}{p_end}
+{phang2}{cmd:.        (scatter wage hours if S), ///}{p_end}
+{phang2}{cmd:.        title("SVM Estimated Labour Distribution") ///}{p_end}
+{phang2}{cmd:.        legend(label(1 "Outliers") label(2 "Within Support"))}{p_end}
 {phang2}{cmd:. pause "Type q to continue."}{p_end}
 
 {pstd}The result looks degenerate: the entire predicted distribution is along the line hours=40.{p_end}
@@ -168,7 +172,10 @@
 {pstd}the bulk have a strict 40 hours work week and low pay.{p_end}
 {pstd}one_class detects and reflects the huge weight at the center,{p_end}
 {pstd}culling the spread as irrelevant.{p_end}
-{phang2}{cmd:. twoway (scatter wage hours if !S, jitter(5)) (scatter wage hours if S, jitter(5))}{p_end}
+{phang2}{cmd:. twoway (scatter wage hours if !S, jitter(5)) ///}{p_end}
+{phang2}{cmd:.        (scatter wage hours if S, jitter(5)), ///}{p_end}
+{phang2}{cmd:.        title("SVM Estimated Labour Distribution, fuzzed") ///}{p_end}
+{phang2}{cmd:.        legend(label(1 "Outliers") label(2 "Within Support"))}{p_end}
 {phang2}{cmd:. pause "Type q to continue."}{p_end}
 
 {pstd}We can summarize how one_class handled both sets test and training sets{p_end}

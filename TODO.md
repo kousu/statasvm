@@ -102,6 +102,9 @@ Dist
 Documentation
 -------------
 
+* [ ] oneclass_example.do:
+  * there should actually be four plots on each of the outputs, to demonstrate how (training set, outlier) correlate.
+    we can probably arrange that both training plots have the same colour, and both outlier plots have the same shape
 * [ ] svm, predict in svm.sthlp should be under svm_postestimation.sthlp
 * [ ] svmlight should have its own .sthlp file
 * [x] I should probably undocument svm_import because it causes problems

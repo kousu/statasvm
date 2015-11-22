@@ -15,7 +15,6 @@ Copyright
 Build
 -----
 
-
 * [x] stata.trk (click-to-run) bug
 * [ ] Handle looking up libsvm.dll using .LIBPATTERNS + using -lsvm as a dependency, instead of special-casing it (FIXED_LIBS)
    - see 4.5.6 Directory Search for Link Libraries in the make manual
@@ -53,6 +52,9 @@ Build
 Dist
 ---
 
+* [ ] Figure out a way to automatically cull things in .gitignore from being put into dist/;
+   Maybe the best way is to just enforce that "git clean -x" is clean before? But that will require some reworking..
+   [x] For now, add a warning to the user to check it every time.
 * [ ] Check for memory leaks
 * [ ] Implement package checksumming
   -> see help usersite

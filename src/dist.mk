@@ -21,9 +21,10 @@ release: ../statasvm.$(RELEASE_FORMAT)
 
 
 ../statasvm.zip:
-	(cd dist; zip -x ".*" "*/.*" -x "*~" -r ../../statasvm.zip .)
+	(cd dist; zip -r ../../statasvm.zip .)
 
-
+# compute the list of files
+# note: this is somewhat loose: it grabs EVERYTHING in certain folders
 DIST:=$(wildcard *.ado *.sthlp *.ihlp bin/*/* ancillary/*)
 DIST:=$(patsubst %,dist/$(PKG)/%,$(DIST))
 #$(info DIST=$(DIST)) #DEBUG
@@ -32,6 +33,11 @@ _dist: $(DIST)
 # the build has happened, but all $(wildcard)s are eval'd at Makefile-scan time, not Makefile-exec time
 dist: all
 	$(MAKE) _dist
+	@echo " "
+	@echo "--------------------------------------------------------------------------"
+	@echo dist/ has been constructed.  Was your repository clean before you did this?
+	@echo DOUBLE CHECK THAT IT CONTAINS ONLY WHAT YOU INTEND TO SUBMIT.
+	@echo "--------------------------------------------------------------------------"
 
 # copy listed files into the distribution directory
 dist/$(PKG)/%: %

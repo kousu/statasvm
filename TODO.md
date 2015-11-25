@@ -53,6 +53,7 @@ Build
 Dist
 ---
 
+* [ ] from StataJournal: rename svm->svmachine (or svectorm), because three letter commands are reserved
 * [ ] Check for memory leaks
 * [ ] Implement package checksumming
   -> see help usersite

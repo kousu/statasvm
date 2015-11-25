@@ -68,11 +68,8 @@ $ xcode-select --install
 
 ### *nix
 
-On Linux or other *nix, there will usually be a toolchain metapackage, but its name differs depending on your distro.
-In Debian, use `apt-get install build-essentials`,
-on Arch use `pacman -S base-devel`, and
-on the BSDs the toolchain should be installed as a core part of the OS.
-
+On modern Linux or other *nix, gcc and make will usually be installed by default.
+If they are not, search your distro's documentation.
 
 
 libsvm
@@ -120,7 +117,39 @@ or maybe [chocolatey](https://chocolatey.org/packages) will get a libsvm package
 
 ### *nix: (including OS X)
 
-On OS X and Linux, installing the libsvm as normal will get you its build dependencies and will place them in system-accessible locations. See [INSTALL](INSTALL.md) for suggestions about what counts as 'as normal'.
+Debian (including Ubuntu):
+```
+# apt-get install libsvm-3
+# apt-get install libsvm-dev # svm.h is in a separate package
+```
+
+Fedora 23+:
+```
+# dnf install libsvm
+# dnf install libsvm-devel
+```
+
+Fedora 22-:
+```
+# yum install libsvm
+# yum install libsvm-devel
+```
+
+Arch (use the [AUR](https://aur.archlinux.org)):
+```
+$ yaourt -S libsvm
+```
+
+
+OS X (using brew):
+```
+$ brew install libsvm
+```
+
+OS X (using MacPorts):
+```
+# port install libsvm
+```
 If you choose to use MacPorts, pay attention to the part where you tell the system to look for libraries in /opt, much like the situation on Windows.
 
 Building
@@ -235,11 +264,14 @@ The "replace" option will report only those files it discovered needed updating,
 Deployment
 ----------
 
-`make pkg` automates, as much as possible, creating a multiplatform Stata .pkg.
-As a subroutine, it runs `make dist` which takes `.ado`s and `.sthlp`s in `./` along with everything in `bin/`, and `ancillary/`, and places them into `dist/`.
+`make release` automates, as much as possible, creating a multiplatform Stata .pkg.
+The package is likely to install in subtly wrong ways if the .pkg file is malformed, so use the automated method.
+
+`make release` uses other make targets as subroutines.
+It first runs `make dist` which takes `.ado`s and `.sthlp`s in `./` along with everything in `bin/`, and `ancillary/`, and places them into `dist/`.
 (`ancillary/` is for ancillary files---ones which will not get installed with `. net install svm` but can optionally be pulled *to the working directory* with `. net get svm`; it could contain, for example, datasets (.csv, .dta, .svmlight) and example code (.do)).
-`make pkg` then scans and constructs `dist/svm.pkg` and `dist/stata.toc` from `dist/`.
-The package is likely to install in subtly wrong ways if the .pkg file is malformed, so it is poor form to try to hand-roll it.
+Then `make pkg` scans and constructs `dist/svm.pkg` and `dist/stata.toc` from `dist/`.
+`make release` finally puts this all into a zip file.
 
 We do not have a cross-platform build bot available, so there is a manual process needed to do a complete (i.e. cross-platform) distribution.
 We've attempted to make the chance for error minimal, and this only needs to be done for releases, never for just developing.
@@ -279,6 +311,8 @@ There is a shortcut version of this process, quicker but more prone to mistakes:
   * since the drive is network-shared, everything ends up in the same build folder, but platform-specific pieces get placed under `bin/<platform>/`, so they do not conflict with each other.
 * on the primary: `make pkg`
 
+
+There is a [Mac Mini](BUILDBOT.md) which has VMs all in one place for doing all the above work. Ask a project member about it if you want to use it.
 
 
 Once `pkg` has gone through, **test it**. There may have been a packaging glitch which broke, say, 32 bit Windows, and if so you need to start this ritual from the top.

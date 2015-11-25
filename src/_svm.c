@@ -22,7 +22,7 @@
   /* OS X's libc has strlcat() */
 #else
 size_t strlcat(char * dst, const char * src, size_t size) {
-        int d, s;
+        size_t d, s;
         d = strlen(dst);
         s = strlen(src);
 
@@ -335,7 +335,7 @@ ST_retcode _model2stata(int argc, char *argv[])
     } else if (phase == '2') {
         
         char buf[20]; //XXX is 20 big enough?
-        int lstrLabels = model->nr_class*sizeof(buf) + 1;
+        size_t lstrLabels = model->nr_class*sizeof(buf) + 1;
         char *strLabels = malloc(lstrLabels);
         if(strLabels == NULL) {
             sterror("unable to allocate memory for strLabels\n");
@@ -527,7 +527,7 @@ struct subcommand_t subcommands[] = {
 ST_retcode train(int argc, char *argv[])
 {
 
-    // XXX there is a VERY FIXED set of arguments
+    // BEWARE: there is a VERY FIXED set of arguments
     // corresponding to entries
     // in a VERY PARTICULAR order
     // make sure you keep svm_train.ado and this function in sync
@@ -635,7 +635,12 @@ ST_retcode train(int argc, char *argv[])
         model_p = -1;                           // and clear model_p, which is our extension to struct svm_model
     }
     
-    
+    // read the given data into a libsvm datastructure
+    //  special case: in ONE_CLASS the y column still exists, but libsvm (seems to) ignore(s) it.
+    //                the quick-and-dirty way that we handle this is by having svm_train.ado duplicate
+    //                one of the columns, so if you run "svm G H K, type(one_class)" it actually calls "train G G H K"
+    //                the first G gets read in as the y column, because stata_to_svm_problem() doesn't know any better.
+    //                so this one line just works for all five SVM types.
     struct svm_problem *prob = stata_to_svm_problem(1, 2, SF_nvars());
     if (prob == NULL) {
         //assumption: stata_to_svm_problem already printed relevant error messages
@@ -676,11 +681,10 @@ ST_retcode train(int argc, char *argv[])
 
 /* 
  * wrap libsvm:svm_predict()
- * that function is *not* vectorized, but Stata is all about operating on whole datasets, so this is looped, in CPU
+ * TODO: pull out the predict_one part in the middle to a subroutine.
  */
 ST_retcode predict(int argc, char *argv[])
 {
-
     ST_retcode err = 0;
 
     if (model == NULL) {
@@ -690,6 +694,8 @@ ST_retcode predict(int argc, char *argv[])
     
     int no_levels = svm_get_nr_class(model);                 //the number of levels
     int no_vars = SF_nvars(); //the number of variables, i.e. n+1 in [y; x1; x2; ... ; xn]
+    
+    
     double *probabilities = NULL;
     if(argc > 0 && strcmp(argv[0],"probability")==0) {
         if(!svm_check_probability_model(model)) {
@@ -698,8 +704,8 @@ ST_retcode predict(int argc, char *argv[])
         }
 
         // svm_predict.ado must pass a trailing set of variables where writeback goes
-        if((1 + model_p + no_levels) != SF_nvars()) {
-            sterror("svm_predict: in probability mode, there must be exactly %d + %d + %d columns passed, but instead got %d columns.\n", 1, model_p, no_levels, SF_nvars());
+        if((1 + model_p + no_levels) != no_vars) {
+            sterror("svm_predict: in probability mode, there must be exactly %d + %d + %d columns passed, but instead got %d columns.\n", 1, model_p, no_levels, no_vars);
             return 1;
         }
         no_vars -= no_levels;
@@ -716,7 +722,13 @@ ST_retcode predict(int argc, char *argv[])
         }
 
         argc--; argv++; //shift
+    } else {
+        if(1+model_p != no_vars) {
+            // TODO: this can be factored with the similar check above, given that we do no_vars -= no_levels; but I am worried about being too loose: if the number of levels is just a few too many it can make this code think its sucked up all the vars and then the error message will be confusing
+            sterror("svm_predict: there must be exactly %d + %d columns passed, but instead got %d columns.\n", 1, model_p, no_vars);
+        }
     }
+
     
     // we can also ask for decision values (what the svm evaluates to classify things)
     // NOTE: the internal libsvm API says "decision values", but for conciseness we decided the external API says "scores". Keep this in mind as you read on.

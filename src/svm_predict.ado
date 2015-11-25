@@ -10,6 +10,11 @@ program define svm_predict, eclass
   local target = "`varlist'"
   local _in = "`in'" //these need to be stashed because the hack below will smash them
   local _if = "`if'"
+
+  if("`probability'"!="" & "`scores'"!="") {
+    di as err "Error: probability and scores are mutually exclusive options."
+    exit 2
+  }
   
   // C plugins can only speak to variables mentioned in the varlist they are called with
   // that is, if we are going predict on some vectors, we need to know what X variables we're
@@ -23,24 +28,24 @@ program define svm_predict, eclass
   local 0 = "`e(cmdline)'"
   gettoken cmd 0 : 0 /*remove the command which was artificially tacked on by svm_train*/
   syntax varlist [if] [in], * //* puts the remainder in `options' and allows this code to be isolated from svm_train (it's not like we actually could tweak anything, since the svm_model is stored on the plugin's C heap)
-  gettoken y varlist : varlist // remove the first column to check
-  assert "`y'" == "`e(depvar)'" // consistency with the svm_train
+  if("`e(svm_type)'"!="ONE_CLASS") {
+    gettoken y varlist : varlist  // pop the first variable
+    assert "`y'" == "`e(depvar)'" // and check consistency with the svm_train
 
-  if("`probability'"!="" & "`scores'"!="") {
-    di as err "Error: probability and scores are mutually exclusive options."
-    exit 2
+    // make the target column
+    // it is safe to assume that `target' is a valid variable name: "syntax" above enforces that
+    //  and it should be safe to assume the same about `e(depvar)': unless the user is messing with us (in which case, more power to them), it should have been created by svm_train and validated at that point
+    quietly clone `target' `e(depvar)' if 0 //'if 0' leaves the values as missing, which is important: we don't want a bug in the plugin to translate to source values sitting in the variable (and thus inflating the observed prediction rate)
+    local L : variable label `target'
+    if("`L'"!="") {
+      label variable `target' "Predicted `L'"
+    }
   }
-  
-  
-  // make the target column
-  // it is safe to assume that `target' is a valid variable name: "syntax" above enforces that
-  //  and it should be safe to assume the same about `e(depvar)': unless the user is messing with us (in which case, more power to them), it should have been created by svm_train and validated at that point
-  quietly clone `target' `e(depvar)' if 0 //'if 0' leaves the values as missing, which is important: we don't want a bug in the plugin to translate to source values sitting in the variable (and thus inflating the observed prediction rate)
-  local L : variable label `target'
-  if("`L'"!="") {
-    label variable `target' "Predicted `L'"
+  else {
+    //ONE_CLASS
+    quietly gen int `target' = .
+    label variable `target' "Within support"
   }
-  
   
   if("`probability'"!="") {
     // allocate space (we use new variables) to put probability estimates for each class for each prediction
@@ -164,6 +169,12 @@ program define svm_predict, eclass
   //           that way, the levels are pre-tokenized and the count easily available as argc
   
   plugin call _svm `target' `varlist' `_if' `_in', `verbose' predict `probability' `scores'
+
+  if("`e(svm_type)'"=="ONE_CLASS") {    
+    // libsvm gives {1,-1} for its one-class predictions;
+    // normalize these to {1,0}
+    qui replace `target' = 0 if `target' == -1
+  }
 end
 
 

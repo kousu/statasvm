@@ -59,7 +59,7 @@ program define example
   qui clear
   
   // run example
-  capture noisily do `example'_example.do
+  capture noisily do `example'_example.do, nostop
   
   qui snapshot restore `snapshot'
   //restore // this is unneeded, because this runs automatically at scope end

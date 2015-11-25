@@ -145,7 +145,7 @@ endif
 ifeq ($(wildcard bin/$(PLATFORM)),)
 # if bin/ does not not exist for the current platform
 # we need to do a fresh build
-# which I do with recursive make
+# which I do with (undesirable) recursive make
 # TODO: GNU make's system of automatically rebuilding makefiles as needed is a way to workaround the fact that it runs all $(wildcard)s at the init
 
 rebuild:
@@ -224,7 +224,7 @@ endif
 # *.log *should* get cleaned up by the testing recipe, but in case it doesn't or you have made some manually we clean it again here
 clean:
 	-$(RM) *.o *.plugin *.log *.model
-	-$(RMDIR) bin
+	-$(RMDIR) $(call FixPath,bin/$(PLATFORM))
 
 	
 	

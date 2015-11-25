@@ -135,10 +135,54 @@
 {title:Examples: oneclass}
 
 {pstd}Setup{p_end}
-{pstd}[....]{p_end}
+{phang2}{cmd:. pause on}{p_end}
+{phang2}{cmd:. sysuse nlsw88, clear}{p_end}
 
-{pstd}TODO{p_end}
-{phang2}{cmd:. svm, type(one_class)}{p_end}
+{pstd}This dataset has labour data: employment conditions crossed with demographic information.{p_end}
+{pstd}(for clarity, we cut out distracting observations: the small amount of respondents which answered "other" and the few rows with missing data that svm cannot tolerate){p_end}
+{pstd}(in a real analysis you should handle your missing data more thoughtfully){p_end}
+{phang2}{cmd:. drop if race == 3}{p_end}
+{phang2}{cmd:. drop if missing(wage)}{p_end}
+{phang2}{cmd:. drop if missing(hours)}{p_end}
+
+{pstd}If we separate by race, we can see that the support of the bivariate (wage, hours worked) differs.{p_end}
+{pstd}A first guess: the shape is the same for white and black respondents, but white respondents have a wider range.{p_end}
+{phang2}{cmd:. twoway (scatter wage hours), by(race)}{p_end}
+{phang2}{cmd:. pause "Type q to continue."}{p_end}
+
+{pstd}We will now ask one-class SVM to detect the shape of that less varied region,{p_end}
+{pstd}to give us a sense of the black labour market in 1988.{p_end}
+{phang2}{cmd:. svm wage hours if race == 2, type(one_class) sv(SV_wage_hours)}{p_end}
+
+{pstd}There is a well balanced mix of support to non-support vectors. This is a good sign.{p_end}
+{phang2}{cmd:. tab SV_wage_hours}{p_end}
+
+{pstd}Now, plot whether each point "empirically" is in the distribution or not{p_end}
+{pstd}to demonstrate the detected distribution{p_end}
+{pstd}(you could also construct an evenly spaced grid of test points to get better resolution){p_end}
+{phang2}{cmd:. predict S}{p_end}
+{phang2}{cmd:. twoway (scatter wage hours if !S) ///}{p_end}
+{phang2}{cmd:.        (scatter wage hours if S), ///}{p_end}
+{phang2}{cmd:.        title("SVM Estimated Labour Distribution") ///}{p_end}
+{phang2}{cmd:.        legend(label(1 "Outliers") label(2 "Within Support"))}{p_end}
+{phang2}{cmd:. pause "Type q to continue."}{p_end}
+
+{pstd}The result looks degenerate: the entire predicted distribution is along the line hours=40.{p_end}
+{pstd}By jittering, we can see why this happened: in the black respondents,{p_end}
+{pstd}the bulk have a strict 40 hours work week and low pay.{p_end}
+{pstd}one_class detects and reflects the huge weight at the center,{p_end}
+{pstd}culling the spread as irrelevant.{p_end}
+{phang2}{cmd:. twoway (scatter wage hours if !S, jitter(5)) ///}{p_end}
+{phang2}{cmd:.        (scatter wage hours if S, jitter(5)), ///}{p_end}
+{phang2}{cmd:.        title("SVM Estimated Labour Distribution, fuzzed") ///}{p_end}
+{phang2}{cmd:.        legend(label(1 "Outliers") label(2 "Within Support"))}{p_end}
+{phang2}{cmd:. pause "Type q to continue."}{p_end}
+
+{pstd}We can summarize how one_class handled both sets test and training sets{p_end}
+{phang2}{cmd:. tab S race, col}{p_end}
+{pstd}Notice that the percentage of matches in the training set is higher than in the test set,{p_end}
+{pstd}because the training extracted the distribution of the test set. Seeing this difference{p_end}
+{pstd}supports our intution that the distribution for white respondents differs from black.{p_end}
 
 {pstd}{it:({stata svm_example oneclass:click to run})}{p_end}
 

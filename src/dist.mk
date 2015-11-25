@@ -20,9 +20,16 @@ endif
 release: ../statasvm.$(RELEASE_FORMAT)
 
 
+../statasvm.zip: pkg
+	(cd dist && zip -r ../../statasvm.zip .)
+	@echo " "
+	@echo "--------------------------------------------------------------------------"
+	@echo release has been constructed.  Was your repository clean before you did this?
+	@echo         DOUBLE CHECK THAT IT CONTAINS WHAT YOU INTEND TO SUBMIT.
+	@echo "--------------------------------------------------------------------------"
 
-
-
+# compute the list of files
+# note: this is somewhat loose: it grabs EVERYTHING in certain folders
 DIST:=$(wildcard *.ado *.sthlp *.ihlp bin/*/* ancillary/*)
 DIST:=$(patsubst %,dist/$(PKG)/%,$(DIST))
 #$(info DIST=$(DIST)) #DEBUG
@@ -56,6 +63,12 @@ dist/$(PKG).pkg: ../scripts/makepluginpkg dist
 	"$<" "$@" "$(DESCRIPTION)" "$(AUTHOR)"
 endif
 
+
+.PHONY: collect
+collect: bin/$(PLATFORM)
+	@echo 'make collect' is meant to be run VM->Mac Mini build host.
+	@echo It collects the platform-specific parts into one place.
+	scp -r bin/$(PLATFORM) 10.0.2.2:statasvm/src/bin/
 	
 # quick hack: deploy to my personal account
 # this puts up a Stata repo so that

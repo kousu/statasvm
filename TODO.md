@@ -52,6 +52,8 @@ Build
 Dist
 ---
 
+
+* [ ] from StataJournal: rename svm->svmachine (or svectorm), because three letter commands are reserved
 * [ ] Figure out a way to automatically cull things in .gitignore from being put into dist/;
    Maybe the best way is to just enforce that "git clean -x" is clean before? But that will require some reworking..
    [x] For now, add a warning to the user to check it every time.

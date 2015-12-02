@@ -17,11 +17,11 @@ ifndef RELEASE_FORMAT
   RELEASE_FORMAT:=zip
 endif
 .PHONY: release
-release: ../statasvm.$(RELEASE_FORMAT)
+release: ../$(PKG).$(RELEASE_FORMAT)
 
 
-../statasvm.zip: pkg
-	(cd dist && zip -r ../../statasvm.zip .)
+../$(PKG).zip: pkg
+	(cd dist && zip -r ../../svmachines.zip .)
 	@echo " "
 	@echo "--------------------------------------------------------------------------"
 	@echo release has been constructed.  Was your repository clean before you did this?

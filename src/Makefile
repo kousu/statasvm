@@ -44,7 +44,7 @@ all: plugin
 
 MAKEFLAGS+=--no-print-directory
 
-PKG:=svm
+PKG:=svmachines
 
 # --- includes ---
 

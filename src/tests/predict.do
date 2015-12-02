@@ -1,7 +1,7 @@
 * export.do
 
 sysuse auto
-svm foreign price-gear_ratio if !missing(rep78) in 41/60  /*train on some of the data; this range is chosen to cover 10 each of each kind of car*/
+svmachines foreign price-gear_ratio if !missing(rep78) in 41/60  /*train on some of the data; this range is chosen to cover 10 each of each kind of car*/
 predict P in 50/70 /* test, on both part of the training and part of the testing data */
 
 * fill in the rest and observe the error rate

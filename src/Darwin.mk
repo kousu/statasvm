@@ -10,9 +10,9 @@ include posix.mk
 # - the main goal of this was to attach extra commands (otool) to the build
 #   is there a way to augment? maybe by adding extra targets? or..something?????
 # - is this a time for recurisve make?
-_svm.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_svm.c sttrampoline.c stutil.c stplugin.c)
-_svm.$(DLLEXT): libsvm_patches.$(OBJEXT)
-_svm.$(DLLEXT): LIBS += svm
+_svmachines.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_svmachines.c sttrampoline.c stutil.c stplugin.c)
+_svmachines.$(DLLEXT): libsvm_patches.$(OBJEXT)
+_svmachines.$(DLLEXT): LIBS += svm
 _svmlight.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_svmlight.c sttrampoline.c stutil.c stplugin.c)
 _svm_getenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_svm_getenv.c stutil.c stplugin.c)
 _svm_setenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT),_svm_setenv.c stutil.c stplugin.c)

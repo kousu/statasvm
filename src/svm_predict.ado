@@ -2,7 +2,7 @@
 
 /* load the C extension */
 svm_ensurelib           // check for libsvm
-program _svm, plugin    // load _svm.plugin, the wrapper for libsvm
+program _svmachines, plugin    // load the wrapper for libsvm
 
 program define svm_predict, eclass
   version 13
@@ -168,7 +168,7 @@ program define svm_predict, eclass
   // Subtlety: we don't quote levels, on the assumption that it is always a list of integers;
   //           that way, the levels are pre-tokenized and the count easily available as argc
   
-  plugin call _svm `target' `varlist' `_if' `_in', `verbose' predict `probability' `scores'
+  plugin call _svmachines `target' `varlist' `_if' `_in', `verbose' predict `probability' `scores'
 
   if("`e(svm_type)'"=="ONE_CLASS") {    
     // libsvm gives {1,-1} for its one-class predictions;

@@ -7,7 +7,7 @@ label define origin 3 "Buick", add
 replace foreign = 2 in 20/22
 replace foreign = 3 in 4/10
 
-svm foreign price-gear_ratio if !missing(rep78)
+svmachines foreign price-gear_ratio if !missing(rep78)
 capture noisily predict P, scores
 
 list foreign P*

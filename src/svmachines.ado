@@ -1,6 +1,6 @@
-/* svm: the entry point to the support vector fitting algorithm */
+/* svmachines: the entry point to the support vector fitting algorithm */
 
-program define svm
+program define svmachines
   version 13
   
   //plugin call does not handle factor variables.

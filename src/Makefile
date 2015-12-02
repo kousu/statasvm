@@ -103,7 +103,7 @@ endif
 # BEWARE: this must be *before* the recipes are defined (in contrast to the implicit rules and(?) in contrast to pattern rules)
 #         or else you get "warning: overriding commands for target `printdeps'"
 .PHONY: printdeps
-printdeps: _svm.plugin
+printdeps: _svmachines.plugin
 
 
 include $(OS).mk
@@ -137,8 +137,8 @@ bin/$(PLATFORM)/libsvm.dll: windows/$(ARCH)/libsvm.dll
 	$(LN) $(call FixPath,$<) $(call FixPath,$@)
 
 # specific dist dependencies
-# 1) _svm.plugin depends on libsvm
-bin/$(PLATFORM)/_svm.plugin: bin/$(PLATFORM)/libsvm.dll
+# 1) _svmachines.plugin depends on libsvm
+bin/$(PLATFORM)/_svmachines.plugin: bin/$(PLATFORM)/libsvm.dll
 endif
 
 
@@ -193,9 +193,9 @@ bin/$(PLATFORM)/%.plugin: %.$(DLLEXT)
 # ah, I might be at the outer limits of what GNU make is usable for. le sigh.
 # TODO: check this again
 #  I think I can do $(patsubst %.c,%.$(DLLEXT),$(wildcard *.c)): %.$(DLLEXT): %.c  which says that for the explicitly named targets on the left, apply the pattern rule on the right, which might make make count this is a /non/ pattern rule.
-_svm.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _svm.c sttrampoline.c stutil.c stplugin.c)
-_svm.$(DLLEXT): libsvm_patches.$(OBJEXT)
-_svm.$(DLLEXT): LIBS += svm
+_svmachines.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _svmachines.c sttrampoline.c stutil.c stplugin.c)
+_svmachines.$(DLLEXT): libsvm_patches.$(OBJEXT)
+_svmachines.$(DLLEXT): LIBS += svm
 _svmlight.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _svmlight.c sttrampoline.c stutil.c stplugin.c)
 _svm_getenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _svm_getenv.c stutil.c stplugin.c)
 _svm_setenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _svm_setenv.c stutil.c stplugin.c)

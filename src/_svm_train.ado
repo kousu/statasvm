@@ -6,7 +6,7 @@
 
 /* load the C extension */
 svm_ensurelib           // check for libsvm
-program _svm, plugin    // load _svm.plugin, the wrapper for libsvm
+program _svmachines, plugin    // load the wrapper for libsvm
 
 program define _svm_train, eclass
   version 13
@@ -141,7 +141,7 @@ program define _svm_train, eclass
   /* call down into C */
   /* CAREFUL: epsilon() => svm_param->p and tol() => svm_param->epsilon */ 
   #delimit ;
-  plugin call _svm `_varlist' `_if' `_in',
+  plugin call _svmachines `_varlist' `_if' `_in',
       `verbose'  // notice: this is *not* in quotes, which means that if it's not there it's not there at all
       "train"
       "`type'" "`kernel'"

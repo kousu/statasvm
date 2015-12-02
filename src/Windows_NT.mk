@@ -41,7 +41,7 @@ SHELL := cmd
 # libsvm does not respect this convention
 # so we hack around the problem	
 # I have a patch submitted which will make the correct fix, if they ever get around to reviewing it: https://github.com/cjlin1/libsvm/pull/33.patch
-_svm.dll: FIXED_LIBS = $(patsubst svm,libsvm,$(LIBS))
+_svmachines.dll: FIXED_LIBS = $(patsubst svm,libsvm,$(LIBS))
 
 # look for a default C compiler (usually 'cc')
 # if this is found, it's probably MinGW; and if it is MinGW, this is the proper way to find it.

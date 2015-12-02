@@ -1,7 +1,7 @@
 * predict_scores_and_probability.do
 
 sysuse auto
-svm foreign price-gear_ratio if !missing(rep78), prob
+svmachines foreign price-gear_ratio if !missing(rep78), prob
 predict P1, prob
 predict P2, scores
 capture noisily predict P3, prob scores

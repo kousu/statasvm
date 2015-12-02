@@ -2,7 +2,7 @@
  *
  * Besides being usefully modular, this *must* be its own subroutine because it needs to be marked eclass.
  * This is because, due to limitations in the Stata C API, there has to be an awkward dance to get the information out:
- *   _svm.plugin writes to the (global!) scalar dictionary and then this subroutine code copies those entries to e().
+ *   _svmachines.plugin writes to the (global!) scalar dictionary and then this subroutine code copies those entries to e().
  *
  * as with svm_load, the extension function is called multiple times with sub-sub-commands, because it doesn't have permission to perform all the operations needed
 
@@ -11,7 +11,7 @@
 
 /* load the C extension */
 svm_ensurelib           // check for libsvm
-program _svm, plugin    // load _svm.plugin, the wrapper for libsvm
+program _svmachines, plugin    // load the wrapper for libsvm
 
 program define _svm_model2stata, eclass
   version 13
@@ -26,7 +26,7 @@ program define _svm_model2stata, eclass
   * Phase 1
   
   * the total number of observations
-  * this gets set by _svm.c::train(); it doesn't exist for a model loaded via import().
+  * this gets set by _svmachines.c::train(); it doesn't exist for a model loaded via import().
   * nevertheless it is in this file instead of svm_train.ado, because it is most similar here
   * but we cap { } around it so the other case is tolerable
   capture {
@@ -43,7 +43,7 @@ program define _svm_model2stata, eclass
   local labels = ""
   
   
-  plugin call _svm `if' `in', `verbose' "_model2stata" 1
+  plugin call _svmachines `if' `in', `verbose' "_model2stata" 1
   
   * the total number of (detected?) classes
   ereturn scalar N_class = _model2stata_nr_class
@@ -84,7 +84,7 @@ program define _svm_model2stata, eclass
   * TODO: also label the rows according to model->label (libsvm's "labels" are just more integers, but it helps to be consistent anyway);
   *  I can easily extract ->label with the same code, but attaching it to the rownames of the other is tricky
   capture noisily {
-    plugin call _svm `if' `in', `verbose' "_model2stata" 2
+    plugin call _svmachines `if' `in', `verbose' "_model2stata" 2
 	
     // Label the resulting matrices and vectors with the 'labels' array, if we have it
     if("`labels'"!="") {
@@ -107,7 +107,7 @@ program define _svm_model2stata, eclass
         // we want indicators, which are convenient for Stata
         // so we  *start* with all 0s (rather than missings) and overwrite with 1s as we discover SVs
         quietly generate `sv' `if' `in' = 0
-        plugin call _svm `sv' `if' `in', `verbose' "_model2stata" 3
+        plugin call _svmachines `sv' `if' `in', `verbose' "_model2stata" 3
       }
     }
   }

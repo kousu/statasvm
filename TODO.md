@@ -199,6 +199,9 @@ Documentation
 Features
 --------
 
+* [ ] Tests: sv() doesn't work on Ubuntu, which breaks several of the tests.
+  Mostly these only use sv() for coverage, not because they are testing sv() itself.
+  These should be rewritten to be tighter unit tests
 * [x] export dec_values from svm_predict_values()
   * tricky because dec_values is a lower-triangular matrix (as a list) and labelling is tricky
 * [/] svm_predict needs to take varlist optionally, because svm_import has no way to know what variables it goes with;

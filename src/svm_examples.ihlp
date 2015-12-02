@@ -23,7 +23,7 @@
 
 {pstd}Fit the classification model on the training set, with 'verbose' enabled.{p_end}
 {pstd}Training cannot handle missing data; here we elide it, but usually you should impute.{p_end}
-{phang2}{cmd:. svm foreign price-gear_ratio if !missing(rep78) in `train', v}{p_end}
+{phang2}{cmd:. svmachines foreign price-gear_ratio if !missing(rep78) in `train', v}{p_end}
 
 {pstd}Predict on the test set.{p_end}
 {pstd}Unlike training, predict can handle missing data: it simply predicts missing.{p_end}
@@ -33,7 +33,7 @@
 {phang2}{cmd:. gen err = foreign != P in `test'}{p_end}
 {phang2}{cmd:. sum err in `test'}{p_end}
 
-{pstd}{it:({stata svm_example binary_classification:click to run})}{p_end}
+{pstd}{it:({stata svmachines_example binary_classification:click to run})}{p_end}
 
 {title:Examples: multiclass classification}
 
@@ -52,7 +52,7 @@
 
 {pstd}In general, you need to do grid-search to find good tuning parameters.{p_end}
 {pstd}These values of kernel, gamma, and coef0 just happened to be good enough.{p_end}
-{phang2}{cmd:. svm attitude q* in `train', kernel(poly) gamma(0.5) coef0(7)}{p_end}
+{phang2}{cmd:. svmachines attitude q* in `train', kernel(poly) gamma(0.5) coef0(7)}{p_end}
 
 {phang2}{cmd:. predict P in `test'}{p_end}
 
@@ -63,7 +63,7 @@
 {pstd}An overly high percentage of SVs means overfitting{p_end}
 {phang2}{cmd:. di "Percentage that are support vectors: `=round(100*e(N_SV)/e(N),.3)'"}{p_end}
 
-{pstd}{it:({stata svm_example multiclass_classification:click to run})}{p_end}
+{pstd}{it:({stata svmachines_example multiclass_classification:click to run})}{p_end}
 
 {title:Examples: class probability}
 
@@ -81,7 +81,7 @@
 {phang2}{cmd:. local test = "`split'/`=_N'"}{p_end}
 
 {pstd}Model{p_end}
-{phang2}{cmd:. svm attitude q* in `train', kernel(poly) gamma(0.5) coef0(7) prob}{p_end}
+{phang2}{cmd:. svmachines attitude q* in `train', kernel(poly) gamma(0.5) coef0(7) prob}{p_end}
 {phang2}{cmd:. predict P in `test', prob}{p_end}
 
 {pstd}the value in column P matches the column P_<attitude> with the highest probability{p_end}
@@ -98,7 +98,7 @@
 {phang2}{cmd:. gen agree = P == P2 in `test'}{p_end}
 {phang2}{cmd:. sum agree in `test'}{p_end}
 
-{pstd}{it:({stata svm_example class_probability:click to run})}{p_end}
+{pstd}{it:({stata svmachines_example class_probability:click to run})}{p_end}
 
 {title:Examples: regression}
 
@@ -119,7 +119,7 @@
 {pstd}Notice that you can expand factors (categorical predictors) into sets of{p_end}
 {pstd}indicator (boolean/dummy) columns with standard i. syntax, and you can{p_end}
 {pstd}record which observations were chosen as support vectors with sv().{p_end}
-{phang2}{cmd:. svm weight height i.race i.sex in `train', type(svr) sv(Is_SV)}{p_end}
+{phang2}{cmd:. svmachines weight height i.race i.sex in `train', type(svr) sv(Is_SV)}{p_end}
 
 {pstd}Examine which observations were SVs. Ideally, a small number of SVs are enough.{p_end}
 {phang2}{cmd:. tab Is_SV in `train'}{p_end}
@@ -130,7 +130,7 @@
 {phang2}{cmd:. gen res = (weight - P) in `test'}{p_end}
 {phang2}{cmd:. sum res}{p_end}
 
-{pstd}{it:({stata svm_example regression:click to run})}{p_end}
+{pstd}{it:({stata svmachines_example regression:click to run})}{p_end}
 
 {title:Examples: oneclass}
 
@@ -152,7 +152,7 @@
 
 {pstd}We will now ask one-class SVM to detect the shape of that less varied region,{p_end}
 {pstd}to give us a sense of the black labour market in 1988.{p_end}
-{phang2}{cmd:. svm wage hours if race == 2, type(one_class) sv(SV_wage_hours)}{p_end}
+{phang2}{cmd:. svmachines wage hours if race == 2, type(one_class) sv(SV_wage_hours)}{p_end}
 
 {pstd}There is a well balanced mix of support to non-support vectors. This is a good sign.{p_end}
 {phang2}{cmd:. tab SV_wage_hours}{p_end}
@@ -184,5 +184,5 @@
 {pstd}because the training extracted the distribution of the test set. Seeing this difference{p_end}
 {pstd}supports our intution that the distribution for white respondents differs from black.{p_end}
 
-{pstd}{it:({stata svm_example oneclass:click to run})}{p_end}
+{pstd}{it:({stata svmachines_example oneclass:click to run})}{p_end}
 

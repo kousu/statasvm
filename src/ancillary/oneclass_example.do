@@ -16,7 +16,7 @@ pause "Type q to continue."
 
 // We will now ask one-class SVM to detect the shape of that less varied region,
 // to give us a sense of the black labour market in 1988.
-svm wage hours if race == 2, type(one_class) sv(SV_wage_hours)
+svmachines wage hours if race == 2, type(one_class) sv(SV_wage_hours)
 
 // There is a well balanced mix of support to non-support vectors. This is a good sign.
 tab SV_wage_hours

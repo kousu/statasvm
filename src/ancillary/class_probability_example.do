@@ -12,7 +12,7 @@ local train = "1/`=`split'-1'"
 local test = "`split'/`=_N'"
 
 // Model
-svm attitude q* in `train', kernel(poly) gamma(0.5) coef0(7) prob
+svmachines attitude q* in `train', kernel(poly) gamma(0.5) coef0(7) prob
 predict P in `test', prob
 
 // the value in column P matches the column P_<attitude> with the highest probability

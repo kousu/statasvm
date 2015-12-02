@@ -15,7 +15,7 @@ local test = "`split'/`=_N'"
 // Notice that you can expand factors (categorical predictors) into sets of
 // indicator (boolean/dummy) columns with standard i. syntax, and you can
 // record which observations were chosen as support vectors with sv().
-svm weight height i.race i.sex in `train', type(svr) sv(Is_SV)
+svmachines weight height i.race i.sex in `train', type(svr) sv(Is_SV)
 
 // Examine which observations were SVs. Ideally, a small number of SVs are enough.
 tab Is_SV in `train'

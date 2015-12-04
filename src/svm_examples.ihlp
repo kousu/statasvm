@@ -139,7 +139,8 @@
 {phang2}{cmd:. sysuse nlsw88, clear}{p_end}
 
 {pstd}This dataset has labour data: employment conditions crossed with demographic information.{p_end}
-{pstd}(for clarity, we cut out distracting observations: the small amount of respondents which answered "other" and the few rows with missing data that svm cannot tolerate){p_end}
+{pstd}(for clarity, we cut the small amount of respondents which answered "other"{p_end}
+{pstd}and the few rows with missing data that svmachines cannot tolerate){p_end}
 {pstd}(in a real analysis you should handle your missing data more thoughtfully){p_end}
 {phang2}{cmd:. drop if race == 3}{p_end}
 {phang2}{cmd:. drop if missing(wage)}{p_end}

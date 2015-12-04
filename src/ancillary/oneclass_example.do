@@ -3,7 +3,8 @@ pause on
 sysuse nlsw88, clear
 
 // This dataset has labour data: employment conditions crossed with demographic information.
-// (for clarity, we cut out distracting observations: the small amount of respondents which answered "other" and the few rows with missing data that svm cannot tolerate)
+// (for clarity, we cut the small amount of respondents which answered "other"
+//  and the few rows with missing data that svmachines cannot tolerate)
 // (in a real analysis you should handle your missing data more thoughtfully)
 drop if race == 3
 drop if missing(wage)

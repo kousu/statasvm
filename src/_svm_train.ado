@@ -163,7 +163,7 @@ program define _svm_train, eclass
   ereturn local estat = "svm_estat"     //ditto. NOT IMPLEMENTED
   
   ereturn local title = "Support Vector Machine"
-  ereturn local model = "svm"
+  ereturn local model = "svmachines"
   ereturn local svm_type = "`type'"
   ereturn local svm_kernel = "`kernel'"
   

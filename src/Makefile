@@ -202,7 +202,7 @@ _svm_setenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _svm_setenv.c stutil.c stplug
 _svm_dlopenable.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _svm_dlopenable.c stutil.c stplugin.c)
 
 
-EXAMPLES:=binary_classification multiclass_classification class_probability regression oneclass
+EXAMPLES:=binary_classification multiclass_classification class_probability regression
 EXAMPLES:=$(patsubst %,ancillary/%_example.do,$(EXAMPLES))
 ifneq ($(OS),Windows_NT)
 # example2smcl is in awk and so won't run on Windows.

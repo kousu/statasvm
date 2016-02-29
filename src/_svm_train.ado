@@ -157,7 +157,7 @@ program define _svm_train, eclass
   ereturn clear
   
   // set standard Stata estimation (e()) properties
-  ereturn local cmd = "svm_train"
+  ereturn local cmd = "svmachines"
   ereturn local cmdline = "`e(cmd)' `cmd'"
   ereturn local predict = "svm_predict" //this is a function pointer, or as close as Stata has to that: causes "predict" to run "svm_predict"
   ereturn local estat = "svm_estat"     //ditto. NOT IMPLEMENTED

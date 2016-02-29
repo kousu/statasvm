@@ -153,6 +153,13 @@ program define _svm_train, eclass
       ;
   #delimit cr
   
+  // *reparse* the command line in order to fix varlist at it's current value.
+  // If "varlist" includes tokens that get expanded to multiple variables
+  // then when svm_predict reparses it again, it will get a different set.
+  local 0 = "`cmd'"
+  syntax varlist [if] [in], [*]
+  local cmd = "`varlist' `if' `in', `options'"
+  
   /* fixup the e() dictionary */
   ereturn clear
   

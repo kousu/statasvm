@@ -695,9 +695,27 @@ ST_retcode predict(int argc, char *argv[])
     int no_levels = svm_get_nr_class(model);                 //the number of levels
     int no_vars = SF_nvars(); //the number of variables, i.e. n+1 in [y; x1; x2; ... ; xn]
     
-    
+    // array to temporarily store computed probabilities, if requested
     double *probabilities = NULL;
+
+    // we can also ask for decision values, aka "scores", what the svm evaluates to classify things
+    // NOTE: the internal libsvm API says "decision values", but for conciseness we decided the external API says "scores". Keep this in mind as you read on.
+    // (this is redundant in regression (NU/EPSILON_SVR) models, but we allow users to discover that for themselves)
+    bool decision = false;
+    double* decision_values = NULL;
+
+    // to support typechecking the consistency of the arguments, we precompute the number of class pairs 
+    int no_level_pairs = no_levels*(no_levels - 1)/2;
+    
     if(argc > 0 && strcmp(argv[0],"probability")==0) {
+        if(argc > 1 && strcmp(argv[1], "scores") == 0) {
+            sterror("svm_predict: probability and scores are mutually exclusive options.\n");
+            // they use different API calls:
+            //  probability => svm_predict_probability()
+            //  scores => svm_predict_values()
+
+            return 1;
+        }
         if(!svm_check_probability_model(model)) {
             sterror("svm_predict: active model cannot produce probabilities.\n");
             return 1;
@@ -722,27 +740,7 @@ ST_retcode predict(int argc, char *argv[])
         }
 
         argc--; argv++; //shift
-    } else {
-        if(1+model_p != no_vars) {
-            // TODO: this can be factored with the similar check above, given that we do no_vars -= no_levels; but I am worried about being too loose: if the number of levels is just a few too many it can make this code think its sucked up all the vars and then the error message will be confusing
-            sterror("svm_predict: there must be exactly %d + %d columns passed, but instead got %d columns.\n", 1, model_p, no_vars);
-        }
-    }
-
-    
-    // we can also ask for decision values (what the svm evaluates to classify things)
-    // NOTE: the internal libsvm API says "decision values", but for conciseness we decided the external API says "scores". Keep this in mind as you read on.
-    // (this is redundant in regression (NU/EPSILON_SVR) models, but we allow users to discover that for themselves)
-    int no_level_pairs = no_levels*(no_levels - 1)/2; // how many *pairs of levels* there are, which is important to figure out which in the variable list corresponds to which here
-    double* decision_values = NULL;
-    bool decision = false;
-    if(argc > 0 && strcmp(argv[0],"scores")==0) {
-        if(probabilities) {
-            sterror("svm_predict: probability and scores are mutually exclusive options.\n"); // because probability => svm_predict_probability() which uses generates predictions from the Platt-Scaled model instead of using decision values directly.
-            // now clean up and bail
-            free(probabilities);
-            return 1;
-        }
+    } else if(argc > 0 && strcmp(argv[0],"scores")==0) {
         // svm_predict.ado must pass a trailing set of variables where writeback goes
         if((1 + model_p + no_level_pairs) != SF_nvars()) {
             sterror("svm_predict: in scores mode, there must be exactly %d + %d + %d columns passed, but instead got %d columns.\n", 1, model_p, no_level_pairs, SF_nvars());
@@ -752,13 +750,23 @@ ST_retcode predict(int argc, char *argv[])
 
         decision = true;
         argc--; argv++; //shift
+    } else {
+        if(1+model_p != no_vars) {
+            // TODO: this can be factored with the similar check above, given that we do no_vars -= no_levels; but I am worried about being too loose: if the number of levels is just a few too many it can make this code think its sucked up all the vars and then the error message will be confusing
+            sterror("svm_predict: there must be exactly %d + %d columns passed, but instead got %d columns.\n", 1, model_p, no_vars);
+            return 1;
+        }
     }
-    // Allocate space for the lower-triangular matrix (compressed) that svm_predict_values() wants.
-    // NB: we do this *regardless* of if decision is passed because then we can just call svm_predict_values() in all cases anyway;
-    ///    svm_predict() internally does this allocation, so it saves no work (actually, uses a little extra CPU) to try to coordinate the right API with the given options.
+
+    
+    // Allocate space for the lower-triangular matrix (compressed by only allocating the lower triangle) that svm_predict_values() wants.
+    // Notice that we do this *regardless* of if decision is passed.
+    // This is on purpose: then we can just call svm_predict_values() in all cases anyway;
+    ///    svm_predict() internally does the same allocation, so it saves no work to do it otherwise
     // NB: svm_predict() is misleading: it special-cases the classification models to fix no_level_pairs = 1,
     //     but svm.h and experiment both show "no_levels = 2 in regression/one class svm" which implies no_level_pairs = 1, so we can drop the special case
-    //     however in EPSILON_SVR and NU_SVR, the single decision value is the same as the prediction, but redundant isn't /wrong/.
+    //     however in EPSILON_SVR and NU_SVR, the single decision value is the same as the prediction.
+    //     Redundant isn't /wrong/, just redundant, and users will figure out their mistake quickly enough.
     decision_values = calloc(no_level_pairs, sizeof(double));
     if(decision_values == NULL) {
         sterror("svm_predict: unable to allocate memory\n");
@@ -795,7 +803,7 @@ ST_retcode predict(int argc, char *argv[])
                 y = svm_predict_values(model, X, decision_values);
                 
                 if(decision) {
-                    // Export decision_values
+                    // Export decision_values, aka "scores"
                     // PRECONDITION: the variables as presented to the plugin are ordered *in the right order* for svm_predict_values (described in libsvm/README)
                     //   model->label[0] vs model->label[1], [...] model->label[0] vs model->label[no_levels], then
                     //   model->label[1] vs model->label[2] [...] model->label[1] vs model->label[no_levels], then

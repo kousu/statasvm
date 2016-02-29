@@ -70,7 +70,7 @@ INCLUDE help fvvarlist
 
 
 {p 8 16 2}
-{help svmachines##predict:predict} {newvar} {ifin}, [{cmdab:prob:ability}]
+{help svmachines##predict:predict} {newvar} {ifin} [{cmd:,} {it:options}]
 
 {synoptset 20 tabbed}{...}
 {synopthdr}

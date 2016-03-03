@@ -95,7 +95,16 @@ function example_basename(n) {
 
 ## Utilities
 function basename(n) {
-  sub("^.*/","",n)
-  sub("\\..*$","",n) #without the suffix
+  # strip everything up to the path separator
+  if(ENVIRON["OS"] == "Windows_NT") {
+    # \\\\ means "\", but it has to be escaped two-levels deep for some reason
+    sub("^.*\\\\","",n)
+  } else {
+    # assume POSIX with /
+    sub("^.*/","",n)
+  }
+  # strip the suffix
+  # \\. means a literal "."; again, there's two layers of escaping necessary
+  sub("\\..*$","",n)
   return n
 }

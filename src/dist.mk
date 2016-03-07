@@ -68,6 +68,7 @@ endif
 collect: bin/$(PLATFORM)
 	@echo 'make collect' is meant to be run VM->Mac Mini build host.
 	@echo It collects the platform-specific parts into one place.
+	-ssh 10.0.2.2 mkdir -p statasvm/src/bin/
 	scp -r bin/$(PLATFORM) 10.0.2.2:statasvm/src/bin/
 	
 # quick hack: deploy to my personal account

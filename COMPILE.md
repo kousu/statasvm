@@ -38,6 +38,7 @@ If either of these fail, you will need to install your compilers before continui
 On Windows, you can [get the gmake package](http://gnuwin32.sourceforge.net/packages/make.htm) or install it [MinGW's subproject MSYS](http://www.mingw.org/wiki/MSYS).
 In the former case, you will need to add it to your %PATH% manually, by [editing your environment variables](http://www.computerhope.com/issues/ch000549.htm) to append
 the GnuWin32 program folder, usually "C:\Program Files (x86)\GnuWin32\bin" to the PATH variable; for the latter you will have to follow their instructions.
+You will also need awk, which is [again available](http://gnuwin32.sourceforge.net/packages/gawk.htm) from GnuWin32.
 
 For a Windows compiler, you can use [MinGW](http://www.mingw.org/) or Visual Studio.
 

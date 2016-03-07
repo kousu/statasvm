@@ -13,7 +13,7 @@ local test = "`split'/`=_N'"
 
 // In general, you need to do grid-search to find good tuning parameters.
 // These values of kernel, gamma, and coef0 just happened to be good enough.
-svm attitude q* in `train', kernel(poly) gamma(0.5) coef0(7)
+svmachines attitude q* in `train', kernel(poly) gamma(0.5) coef0(7)
 
 predict P in `test'
 

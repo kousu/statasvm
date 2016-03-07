@@ -44,7 +44,7 @@ all: plugin
 
 MAKEFLAGS+=--no-print-directory
 
-PKG:=svm
+PKG:=svmachines
 
 # --- includes ---
 
@@ -201,19 +201,15 @@ _svm_getenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _svm_getenv.c stutil.c stplug
 _svm_setenv.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _svm_setenv.c stutil.c stplugin.c)
 _svm_dlopenable.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _svm_dlopenable.c stutil.c stplugin.c)
 
-
-EXAMPLES:=binary_classification multiclass_classification class_probability regression oneclass
+# Files in ancillary named *_example.do are bundled into the package and bundled into the
+# documentation with a slick "Click to Run" which downloads the examples and runs them if missing.
+# ("ancillary" is special-cased by Stata for this purpose)
+EXAMPLES:=binary_classification multiclass_classification class_probability regression
 EXAMPLES:=$(patsubst %,ancillary/%_example.do,$(EXAMPLES))
-ifneq ($(OS),Windows_NT)
-# example2smcl is in awk and so won't run on Windows.
-# Instead, a hybrid approach: on POSIX, we rebuild the examples when make detects it's necessary
-# but we also check them into the repo so that Windows can be kept in sync without awk.
-# (notice that if $(OS) is Windows then this rule simply doesn't exist: make doesn't know about examples when run on Windows)
 svm_examples.ihlp: $(EXAMPLES)
-	../scripts/example2smcl -v PKG=$(PKG) $^ > $@
+	$(call FixPath,../scripts/example2smcl) -v PKG=$(PKG) $(call FixPath,$^) > $(call FixPath,$@)
 
 all: svm_examples.ihlp
-endif
 
 # --- Cleaning ---
 

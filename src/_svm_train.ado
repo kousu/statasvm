@@ -153,17 +153,24 @@ program define _svm_train, eclass
       ;
   #delimit cr
   
+  // *reparse* the command line in order to fix varlist at it's current value.
+  // If "varlist" includes tokens that get expanded to multiple variables
+  // then when svm_predict reparses it again, it will get a different set.
+  local 0 = "`cmd'"
+  syntax varlist [if] [in], [*]
+  local cmd = "`varlist' `if' `in', `options'"
+  
   /* fixup the e() dictionary */
   ereturn clear
   
   // set standard Stata estimation (e()) properties
-  ereturn local cmd = "svm_train"
+  ereturn local cmd = "svmachines"
   ereturn local cmdline = "`e(cmd)' `cmd'"
   ereturn local predict = "svm_predict" //this is a function pointer, or as close as Stata has to that: causes "predict" to run "svm_predict"
   ereturn local estat = "svm_estat"     //ditto. NOT IMPLEMENTED
   
   ereturn local title = "Support Vector Machine"
-  ereturn local model = "svm"
+  ereturn local model = "svmachines"
   ereturn local svm_type = "`type'"
   ereturn local svm_kernel = "`kernel'"
   

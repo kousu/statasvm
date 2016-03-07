@@ -21,7 +21,7 @@ local test = "`split'/`=_N'"
 
 // Fit the classification model on the training set, with 'verbose' enabled.
 // Training cannot handle missing data; here we elide it, but usually you should impute.
-svm foreign price-gear_ratio if !missing(rep78) in `train', v
+svmachines foreign price-gear_ratio if !missing(rep78) in `train', v
 
 // Predict on the test set.
 // Unlike training, predict can handle missing data: it simply predicts missing.

@@ -76,8 +76,10 @@ To compare test results from different platforms, try this:
 make clean; make tests > `uname -s`.out
 ```
 
-Tests are only activated if they are in tests/order.lst, so that the tests can be ordered in progression by difficulty.
-TODO: replace order.lst with tests.mk, which can list explicitly the (partial) ordering.
+If some tests are failing, you can isolate them by telling make to (-k)eep going like so:
+```
+$ make -k tests | grep Error
+```
 
 
 

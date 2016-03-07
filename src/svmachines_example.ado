@@ -1,9 +1,9 @@
-/* svm_example: download and run the requested sample code from the svm package */
-/*                                                                              */
-/*              To use this with a different package, just replace every "svm". */
+/* svmacines_example: download and run the requested sample code from the svmachines package */
+/*                                                                                           */
+/*                    To use this with a different package, just replace every "svmachines". */
 
-program define svm_example
-  example svm `0'
+program define svmachines_example
+  example svmachines `0'
 end
 
 /* example: runs example in safe isolation, downloading them from your package as needed

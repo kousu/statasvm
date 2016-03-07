@@ -3,7 +3,8 @@ pause on
 sysuse nlsw88, clear
 
 // This dataset has labour data: employment conditions crossed with demographic information.
-// (for clarity, we cut out distracting observations: the small amount of respondents which answered "other" and the few rows with missing data that svm cannot tolerate)
+// (for clarity, we cut the small amount of respondents which answered "other"
+//  and the few rows with missing data that svmachines cannot tolerate)
 // (in a real analysis you should handle your missing data more thoughtfully)
 drop if race == 3
 drop if missing(wage)
@@ -16,7 +17,7 @@ pause "Type q to continue."
 
 // We will now ask one-class SVM to detect the shape of that less varied region,
 // to give us a sense of the black labour market in 1988.
-svm wage hours if race == 2, type(one_class) sv(SV_wage_hours)
+svmachines wage hours if race == 2, type(one_class) sv(SV_wage_hours)
 
 // There is a well balanced mix of support to non-support vectors. This is a good sign.
 tab SV_wage_hours

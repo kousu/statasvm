@@ -303,7 +303,9 @@ Enabling this demands a great deal of additional CPU and RAM.
 
 {phang}
 {marker sv}{...}
-{opt sv(newvarname)} records in the given variable a boolean indicating whether each observation was determined to be a support vector.
+{opt sv(newvarname)} records in the given variable a boolean indicating whether
+each observation was determined to be a support vector. On systems with an older libsvm,
+notably {it:Ubuntu up through 16.04}, this feature is {bf:not supported}.
 
 
 {* PERFORMANCE PARAMS: }

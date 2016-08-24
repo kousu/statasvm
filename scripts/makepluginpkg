@@ -1,6 +1,7 @@
 #!/bin/bash
 # generate a .pkg file
-# see Stata's [R] net for reference on this format
+# Format reference: "Stata [R] => net => Format of content and package-description files"
+# (pg 12 of http://www.stata.com/manuals13/rnet.pdf)
 
 cd $(dirname $1)
 PKG=$(basename $1 .pkg)
@@ -15,25 +16,33 @@ echo v 3
 echo d $PKG
 echo d $DESCRIPTION
 echo d $AUTHOR
-# including Distribution-Date in that format enables 'adoupdate'
-# See "[R]->net->Format of content and package-description files"
+# "including Distribution-Date in that format enables 'adoupdate'"
 echo d Distribution-Date: `date +%Y%m%d`
 echo
 
-# package contents
+# package contenst
 #
-# we blindly index all the files (-type f) in the folder
-# BUT files under bin/ are special: they are platform-specific binaries:
+# The folder structure in the package is ignored: files go "into the adopath",
+# which means everything starting with 'a' goes under %ADOPATH%/a/, everything starting 'b' goes under %ADOPATH%/b/, etc.
+# 
+# F means a regular file 
+# G means a platform-specific file: this is only installed if the platform given on the line matches
+# h doesn't declare a file to be installed; rather it asserts that a particular
+#  file should have been installed by one of the F or G lines
+#
+# So what we do is blindly index all the files (find -type f) in the folder as Fs
+# except that bin/ becomes G files, tagged with the platform that's in the subfolder of bin/
 # e.g. bin/MACINTEL64/file is written as 'g MACINTEL64 $PKG/bin/MACINTEL64/file
-# additionally, any .plugin files found under bin/ are duplicated to 'h file.plugin'
-# which tells Stata "expect file.plugin from some platform specific 'g' line".
-# (we only do 'h' for .plugins; on Windows we bundle .dlls but not on Linux or Mac)
+# and also any .plugin files found under bin/ are duplicated to 'h file.plugin'
+# because the idea is that we have three .plugin files and at install time one of
+# them is chosen to be put on the adopath.
 #
-# Capitalization (writing F instead of f or G instead of G) controls where and when files are installed.
-# Capitalized files are installed to the adopath at "net install" time;
-# Lower-case files are considered "ancillary" and only come on "net get" and end up in the current directory.
-# Most of our files are the former.
-#
+# Finally, capitalization (F vs f, or G vs g) controls if a file is "ancillary";
+# Files with a capitalized tag are installed to the adopath at "net install"
+#  time: these are part of the core package;
+# Lower-case files are considered ancillary, only get downloaded on "net get",
+#  and end up in the current directory: these are meant for datasets and examples.
+
 if [ -d "$PKG" ]; then
   find "$PKG" \( -name "bin" -prune -o -name "ancillary" -prune -o -true \) -type f | awk '{ print "F " $1 }'
   if [ -d "$PKG/bin" ]; then

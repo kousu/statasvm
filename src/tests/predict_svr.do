@@ -1,6 +1,6 @@
 * predict_svr.do
 
-quietly do tests/train_svr.do
+quietly do train_svr.do
 
 predict P in 50/70
 

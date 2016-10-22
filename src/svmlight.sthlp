@@ -17,7 +17,7 @@
 {title:Title}
 
 {p2colset 5 18 20 2}{...}
-{p2col :{cmd:svm} {hline 2}}SVM^Light data format{p_end}
+{p2col :{cmd:svm} {hline 2}}SVM-Light data format{p_end}
 {p2colreset}{...}
 
 
@@ -41,7 +41,7 @@ import_svmlight using {filename}[, clip]
 {title:Description}
 
 {pstd}
-{help svmlight##svmlight} is a SVM software which created a simple de-facto plaintext standard for medium-sized numeric datasets, which was adopted by {help svmlight##libsvm}.
+svmlight is a SVM software which created a simple de-facto plaintext standard for medium-sized numeric datasets, which was adopted by libsvm.
 The kind libsvm authors even provide a {browse "http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/":repository} of datasets in compressed svmlight format 
 (note: this module does not handle compression; you will need to use an external program for that).
 

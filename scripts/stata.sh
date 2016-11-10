@@ -20,10 +20,12 @@
 # [ ] On Windows, read the Stata install location from the registry (`reg query ...`)?
 # [ ] On Windows, handle falling back to stata-32 or the other names it gains, as well
 
-STATA=stata
+#STATA=stata
+STATA=stata-se
 if [ "$(uname)" = "Darwin" ]; then
-  PATH=/Applications/Stata/Stata.app/Contents/MacOS/:$PATH
-  # Note: Stata installs to /Applications/Stata/Stata.app/Contents/MacOS/Stata on OS X,
+  PATH=/Applications/Stata/StataSE.app/Contents/MacOS/:$PATH
+# PATH=/Applications/Stata/Stata.app/Contents/MacOS/:$PATH  
+# Note: Stata installs to /Applications/Stata/Stata.app/Contents/MacOS/Stata on OS X,
   #       but OS X is happily case-insensitive.
 fi
 

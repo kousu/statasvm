@@ -42,7 +42,7 @@ TODO
 
 On Unix, you need to have libsvm installed. Perhaps packagers will move statasvm into, though such a package would be out of places given that the Unix installer for Stata is a shell script which needs to be babied.
 
-* Debian-derivatives: `apt-get install libsvm3`
+* Debian-derivatives: `apt-get install libsvm3`  'apt-get install libsvm-dev'
 * Arch: libsvm is [in the AUR](https://aur.archlinux.org/packages/libsvm/)
 * Redhat/Fedora: `yum install libsvm` (**UNTESTED**)
 * You can manually [download](http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/libsvm.cgi?+http://www.csie.ntu.edu.tw/~cjlin/libsvm+tar.gz) and follow the [build instructions](https://github.com/cjlin1/libsvm).

@@ -12,7 +12,7 @@ REM This is a port of stata(.sh), which you should find in the same directory, a
 echo off
 
 REM Make sure Stata is findable
-set PATH=C:\Program Files (x86)\Stata14;C:\Program Files\Stata14;C:\Program Files (x86)\Stata13;C:\Program Files\Stata13;C:\Program Files (x86)\Stata12;C:\Program Files\Stata12;%PATH%
+set PATH=C:\Program Files (x86)\Stata15;C:\Program Files (x86)\Stata14;C:\Program Files\Stata14;C:\Program Files (x86)\Stata13;C:\Program Files\Stata13;C:\Program Files (x86)\Stata12;C:\Program Files\Stata12;%PATH%
 REM set STATA=stata-64
 set STATA=StataSE-64
 where "%STATA%" 2>NUL

@@ -28,7 +28,7 @@ On Windows, libsvm is bundled with this package, because dependency tracking is 
 
 ### OS X
 
-* macports: `port install libsvm` ~OR~
+* macports: `port install libsvm` _OR_
 * brew: `brew install libsvm`
 
 

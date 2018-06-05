@@ -117,8 +117,8 @@ program define _svm_train, eclass
       di as error
       di as error "         Alternately, consider SV regression: type(SVR) or type(NU_SVR)."
       di as error
-    }
-  } */
+    }*/
+  }
 
   if(`probability'==1) {
     // ensure model is a classification

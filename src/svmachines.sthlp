@@ -383,7 +383,11 @@ classes (this is expensive: k classes means k(k-1)/2 new columns!), because
 {cmd:libsvm} aggregates the basic binary-only {cmd:svmachines} algorithm into
 a multiclass algorithm with the one-against-one technique.  This option is
 incompatible with {opt probability} because, once trained, the Platt scaling
-algorithm does not directly compute scores.
+algorithm does not directly compute scores. 
+
+{phang2}
+Bug: The score has the wrong sign unless y-values are coded as -1 and 1. For example, 
+if y is coded as 0 and 1, or 10 and 20, the sign of the score should be reversed.
 
 {phang}
 {opt verbose}; see {helpb svmachines##verbose:svmachines, verbose}.

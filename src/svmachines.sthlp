@@ -54,7 +54,7 @@
 {* {synopt :{opt norm:alize}}Whether to {help svmachines##normalize:center and scale} the data. NOT IMPLEMENTED. Default: disabled{p_end} }
 {synopt :{opt prob:ability}}Whether to {help svmachines##probability:precompute} for "predict, prob" during estimation. Only applicable to classification problems. Default: disabled{p_end}
 {synopt :{opth sv:(svmachines##sv:newvarname)}}If given, an indicator variable to generate to mark each row as a support vector or not. Default: disabled{p_end}
-{synopt :{opt s:eed(int)}}Set the seed value. Default: {cmd:seed(1)} {p_end}
+{synopt :{opt seed(int)}}Set the seed value. Default: {cmd:seed(1)} {p_end}
 
 {syntab:Performance}
 {synopt :{opth tol:erance(svmachines##tolerance:#)}}The stopping tolerance used to decide convergence. Default: {cmd:epsilon(0.001)}{p_end}

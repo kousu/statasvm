@@ -46,6 +46,9 @@ program define _svm_train, eclass
            
            // turn on internal libsvm printing
            Verbose
+		   
+		   //set the C random seed
+		   seed(int 1)
          ];
   #delimit cr
   // stash because we run syntax again below, which will smash these
@@ -104,7 +107,8 @@ program define _svm_train, eclass
   if("`type'" == "SVC" | "`type'" == "NU_SVC") {
     // "ensure" type is categorical
     local T : type `depvar'
-   /* if("`T'"=="float" | "`T'"=="double") {
+	/*
+    if("`T'"=="float" | "`T'"=="double") {
       di as error "Warning: `depvar' is a `T', which is usually used for continuous variables."
       di as error "         SV classification will cast real numbers to integers before fitting." //<-- this is done by libsvm with no control from us
       di as error
@@ -117,7 +121,8 @@ program define _svm_train, eclass
       di as error
       di as error "         Alternately, consider SV regression: type(SVR) or type(NU_SVR)."
       di as error
-    }*/
+    }
+	*/
   }
 
   if(`probability'==1) {
@@ -149,7 +154,7 @@ program define _svm_train, eclass
       "`c'" "`epsilon'" "`nu'"
       "`tolerance'"
       "`shrinking'" "`probability'"
-      "`cache_size'"
+      "`cache_size'" "`seed'"
       ;
   #delimit cr
   

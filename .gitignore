@@ -8,8 +8,8 @@
 /paper
 /paper.nick
 
-# avoid committing build products
-*.plugin
+# avoid committing build products //comment out at July 2018 since we added seed and need the plugin files to build cross platform distribution file
+#*.plugin
 
 *.o
 *.obj

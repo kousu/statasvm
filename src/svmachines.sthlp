@@ -346,20 +346,27 @@ This option is not valid for other SVM types.{p_end}
 
 {phang}
 {marker scores}{...}
-{opt scores} outputs the values that {cmd:svmachines} uses to decide which side of the hyperplane a particular observation falls.
-{newvar} is used as a stem for the new columns.
-For {opt type(one_class)} and regressions, there is only one score.
-For classifications, there is one score for every pair of classes (this is expensive: k classes means k(k-1)/2 new columns!),
- because libsvm aggregates the basic binary-only svm algorithm into a multiclass algorithm with the one-against-one technique.
-This option is incompatible with {opt probability} because, once trained, the Platt Scaling algorithm does not directly compute scores.{p_end}
+{opt scores} outputs the values that {cmd:svmachines} uses to decide on which
+side of the hyperplane a particular observation falls.  {newvar} is used as a
+stem for the new columns.  For {cmd:type(one_class)} and regressions, there is
+only one score.  For classifications, there is one score for every pair of
+classes (this is expensive: k classes means k(k-1)/2 new columns!), because
+{cmd:libsvm} aggregates the basic binary-only {cmd:svmachines} algorithm into
+a multiclass algorithm with the one-against-one technique.  This option is
+incompatible with {opt probability} because, once trained, the Platt scaling
+algorithm does not directly compute scores. 
 
+{phang2}
+Bug: The score has the wrong sign unless y-values are coded as -1 and 1. For example, 
+if y is coded as 0 and 1, or 10 and 20, the sign of the score should be reversed.
 
 {phang}
-{opt verbose}: see {help svmachines##verbose:svmachines, verbose}.
+{opt verbose}; see {helpb svmachines##verbose:svmachines, verbose}.
 
 {pstd}
-Prediction implicitly uses the same {indepvars} as during estimation, so be careful about renaming or dropping variables.
-{...}
+Prediction implicitly uses the same {indepvars} as during estimation, so be
+careful about renaming or dropping variables.
+
 {...}
 
 

@@ -8,7 +8,8 @@
 /paper
 /paper.nick
 
-# avoid committing build products //comment out at July 2018 since we added seed and need the plugin files to build cross platform distribution file
+# avoid committing build products 
+# //comment out Tiancheng July 2018. This makes it easier to move plugins cross platform in a temporary directory. 
 #*.plugin
 
 *.o

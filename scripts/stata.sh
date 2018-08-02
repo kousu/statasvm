@@ -21,7 +21,8 @@
 # [ ] On Windows, handle falling back to stata-32 or the other names it gains, as well
 
 #STATA=stata
-STATA=stata-se
+#STATA=stata-se
+STATA=StataSE
 if [ "$(uname)" = "Darwin" ]; then
   PATH=/Applications/Stata/StataSE.app/Contents/MacOS/:$PATH
 # PATH=/Applications/Stata/Stata.app/Contents/MacOS/:$PATH  

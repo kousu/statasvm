@@ -1,7 +1,15 @@
 v 3
 d svmachines
 d Support Vector Machines for both Classification and Regression
+d
+d Support vector machines (SVM) refers to supervised algorithms 
+d for statistical machine learning.  This accommodates both 
+d classification and regression as well as the “nu” variant 
+d for classification and regression. This package is a thin wrapper 
+d for the widely deployed libsvm.
+d
 d Nick Guenther <nguenthe@uwaterloo.ca> and Matthias Schonlau <schonlau@uwaterloo.ca>
+d
 d Distribution-Date: 2018Nov07
 
 F svmachines/_svm_model2stata.ado

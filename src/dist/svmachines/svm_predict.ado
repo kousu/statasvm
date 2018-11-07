@@ -196,6 +196,8 @@ end
  
 
 program define clone
+  version 13
+  
   // parse once to extract the basic pieces of syntax
   syntax namelist [if] [in]
   local _if = "`if'" //save these for later; the other syntax commands will smash them

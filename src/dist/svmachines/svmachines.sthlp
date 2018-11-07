@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.2.0  01Aug2018}{...}
+{* *! version 0.3.0  07Nov2018}{...}
 {vieweralsosee "[R] regress" "mansection R regress"}{...}
 {viewerjumpto "Syntax" "svmachines##syntax"}{...}
 {viewerjumpto "Description" "svmachines##description"}{...}
@@ -281,7 +281,6 @@ setting this too high will result in overfitting.
 {opt shrink:ing} invokes the shrinkage heuristics,
 which can sometimes improve the fit by trading bias for variance.
 
-
 {* FEATURE PARAMS: }{...}
 {* {marker normalize} }{...}
 {* {phang} }{...}
@@ -416,7 +415,7 @@ If {opt e(N_SV)}/{opt e(N)} is close to 100% your fit is inefficient; perhaps yo
 {title:Remarks}
 
 {pstd}
-{bf:Memory Limits}: The cheaper versions of Stata allow only allow less variables and smaller matrices to be used.
+{bf:Memory Limits}: The cheaper versions of Stata allow only allow fewer variables and smaller matrices to be used.
 As machine learning problems typically are on very large datasets,
 it is easy to inadvertently instruct this package to construct more columns or larger matrices than you can afford.
 If you overflow {help maxvar}, you will receive an error, the operation will fail, and the dataset will be left untouched.
@@ -525,13 +524,6 @@ adventures in machine learning with Stata.{p_end}
 
 {marker references}{...}
 {title:References}
-
-{marker sourcecode}{...}
-{phang}
-Guenther, Nick and Schonlau, Matthias. 2015.
-{it:Stata-SVM}.
-{browse "https://git.uwaterloo.ca/schonlau/statasvm"}.
-{p_end}
 
 {marker svmtutorial}{...}
 {phang}

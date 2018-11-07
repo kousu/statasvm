@@ -113,6 +113,7 @@ program define ensurelib
 end
 
 program define _ensurelib
+  version 13
   gettoken libname 0 : 0
   if("`libname'"=="") {
     di as error "ensurelib: argument required"

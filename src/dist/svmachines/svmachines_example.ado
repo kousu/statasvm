@@ -3,6 +3,7 @@
 /*                    To use this with a different package, just replace every "svmachines". */
 
 program define svmachines_example
+  version 13
   example svmachines `0'
 end
 
@@ -33,6 +34,7 @@ end
  * [ ] consider making the convention `pkg'_`example'_example.do
  */
 program define example
+  version 13
   // parse arguments
   gettoken pkg 0 : 0
   gettoken example 0 : 0
@@ -71,6 +73,7 @@ end
  *
  */
 program define ado_from, rclass
+  version 13
   
   // parse arguments
   gettoken pkg 0 : 0

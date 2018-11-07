@@ -2,7 +2,7 @@ v 3
 d svmachines
 d Support Vector Machines for both Classification and Regression
 d Nick Guenther <nguenthe@uwaterloo.ca> and Matthias Schonlau <schonlau@uwaterloo.ca>
-d Distribution-Date: 20160307
+d Distribution-Date: 2018Nov07
 
 F svmachines/_svm_model2stata.ado
 F svmachines/_svm_train.ado
@@ -15,11 +15,6 @@ F svmachines/svmachines.ado
 F svmachines/svmachines.sthlp
 F svmachines/svmachines_example.ado
 F svmachines/svmlight.sthlp
-G LINUX svmachines/bin/LINUX/_svm_dlopenable.plugin
-G LINUX svmachines/bin/LINUX/_svm_getenv.plugin
-G LINUX svmachines/bin/LINUX/_svm_setenv.plugin
-G LINUX svmachines/bin/LINUX/_svmachines.plugin
-G LINUX svmachines/bin/LINUX/_svmlight.plugin
 G LINUX64 svmachines/bin/LINUX64/_svm_dlopenable.plugin
 G LINUX64 svmachines/bin/LINUX64/_svm_getenv.plugin
 G LINUX64 svmachines/bin/LINUX64/_svm_setenv.plugin
@@ -30,12 +25,6 @@ G MACINTEL64 svmachines/bin/MACINTEL64/_svm_getenv.plugin
 G MACINTEL64 svmachines/bin/MACINTEL64/_svm_setenv.plugin
 G MACINTEL64 svmachines/bin/MACINTEL64/_svmachines.plugin
 G MACINTEL64 svmachines/bin/MACINTEL64/_svmlight.plugin
-G WIN svmachines/bin/WIN/_svm_dlopenable.plugin
-G WIN svmachines/bin/WIN/_svm_getenv.plugin
-G WIN svmachines/bin/WIN/_svm_setenv.plugin
-G WIN svmachines/bin/WIN/_svmachines.plugin
-G WIN svmachines/bin/WIN/_svmlight.plugin
-G WIN svmachines/bin/WIN/libsvm.dll
 G WIN64 svmachines/bin/WIN64A/_svm_dlopenable.plugin
 G WIN64 svmachines/bin/WIN64A/_svm_getenv.plugin
 G WIN64 svmachines/bin/WIN64A/_svm_setenv.plugin
@@ -51,5 +40,4 @@ f svmachines/ancillary/attitude_indicators.dta
 f svmachines/ancillary/binary_classification_example.do
 f svmachines/ancillary/class_probability_example.do
 f svmachines/ancillary/multiclass_classification_example.do
-f svmachines/ancillary/oneclass_example.do
 f svmachines/ancillary/regression_example.do

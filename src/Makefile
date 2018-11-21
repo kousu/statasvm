@@ -205,7 +205,7 @@ _svm_dlopenable.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _svm_dlopenable.c stutil.
 # documentation with a slick "Click to Run" which downloads the examples and runs them if missing.
 # ("ancillary" is special-cased by Stata for this purpose)
 # Nov 2018: added "svm_" prefix for example names
-EXAMPLES:=svm_binary_classification svm_multiclass_classification svm_class_probability regression
+EXAMPLES:=svm_binary_classification svm_multiclass_classification svm_class_probability svm_regression
 EXAMPLES:=$(patsubst %,ancillary/%_example.do,$(EXAMPLES))
 svm_examples.ihlp: $(EXAMPLES)
 	$(call FixPath,../scripts/example2smcl) -v PKG=$(PKG) $(call FixPath,$^) > $(call FixPath,$@)

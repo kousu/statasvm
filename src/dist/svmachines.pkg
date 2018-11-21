@@ -10,7 +10,7 @@ d for the widely deployed libsvm.
 d
 d Nick Guenther <nguenthe@uwaterloo.ca> and Matthias Schonlau <schonlau@uwaterloo.ca>
 d
-d Distribution-Date: 2018Nov07
+d Distribution-Date: 20181107
 
 F svmachines/_svm_model2stata.ado
 F svmachines/_svm_train.ado

@@ -10,7 +10,7 @@ d for the widely deployed libsvm.
 d
 d Nick Guenther <nguenthe@uwaterloo.ca> and Matthias Schonlau <schonlau@uwaterloo.ca>
 d
-d Distribution-Date: 20181107
+d Distribution-Date: 20181121
 
 F svmachines/_svm_model2stata.ado
 F svmachines/_svm_train.ado
@@ -45,7 +45,7 @@ h _svm_setenv.plugin
 h _svmachines.plugin
 h _svmlight.plugin
 f svmachines/ancillary/attitude_indicators.dta
-f svmachines/ancillary/binary_classification_example.do
-f svmachines/ancillary/class_probability_example.do
-f svmachines/ancillary/multiclass_classification_example.do
-f svmachines/ancillary/regression_example.do
+f svmachines/ancillary/svm_binary_classification_example.do
+f svmachines/ancillary/svm_class_probability_example.do
+f svmachines/ancillary/svm_multiclass_classification_example.do
+f svmachines/ancillary/svm_regression_example.do

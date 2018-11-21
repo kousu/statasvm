@@ -42,7 +42,7 @@ Compute error rate: the percentage of mispredictions is the mean of {cmd:err}.{p
 {phang2}{cmd:. generate err = foreign != P in `test'}{p_end}
 {phang2}{cmd:. summarize err in `test'}{p_end}
 
-{pstd}{it:({stata svmachines_example binary_classification:click to run})}{p_end}
+{pstd}{it:({stata svmachines_example svm_binary_classification:click to run})}{p_end}
 
     {title:Multiclass classification}
 
@@ -73,7 +73,7 @@ values of {cmd:kernel()}, {cmd:gamma()}, and {cmd:coef0()} just happened to be g
 An overly high percentage of SVs means overfitting{p_end}
 {phang2}{cmd:. display "Percentage that are support vectors: `=round(100*e(N_SV)/e(N),.3)'"}{p_end}
 
-{pstd}{it:({stata svmachines_example multiclass_classification:click to run})}{p_end}
+{pstd}{it:({stata svmachines_example svm_multiclass_classification:click to run})}{p_end}
 
     {title:Class probability}
 
@@ -111,7 +111,7 @@ become absurd if combined with poor tuning.{p_end}
 {phang2}{cmd:. generate agree = P == P2 in `test'}{p_end}
 {phang2}{cmd:. summarize agree in `test'}{p_end}
 
-{pstd}{it:({stata svmachines_example class_probability:click to run})}{p_end}
+{pstd}{it:({stata svmachines_example svm_class_probability:click to run})}{p_end}
 
     {title:Regression}
 
@@ -146,5 +146,5 @@ Examine which observations were SVs. Ideally, a small number of SVs are enough.{
 {phang2}{cmd:. generate res = (weight - P) in `test'}{p_end}
 {phang2}{cmd:. summarize res}{p_end}
 
-{pstd}{it:({stata svmachines_example regression:click to run})}{p_end}
+{pstd}{it:({stata svmachines_example svm_regression:click to run})}{p_end}
 

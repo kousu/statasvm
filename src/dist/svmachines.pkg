@@ -38,7 +38,13 @@ G WIN64 svmachines/bin/WIN64A/_svm_getenv.plugin
 G WIN64 svmachines/bin/WIN64A/_svm_setenv.plugin
 G WIN64 svmachines/bin/WIN64A/_svmachines.plugin
 G WIN64 svmachines/bin/WIN64A/_svmlight.plugin
-G WIN64 svmachines/bin/WIN64A/libsvm.dll
+G WIN64A svmachines/bin/WIN64A/libsvm.dll
+G WIN64A svmachines/bin/WIN64A/_svm_dlopenable.plugin
+G WIN64A svmachines/bin/WIN64A/_svm_getenv.plugin
+G WIN64A svmachines/bin/WIN64A/_svm_setenv.plugin
+G WIN64A svmachines/bin/WIN64A/_svmachines.plugin
+G WIN64A svmachines/bin/WIN64A/_svmlight.plugin
+G WIN64A svmachines/bin/WIN64A/libsvm.dll
 h _svm_dlopenable.plugin
 h _svm_getenv.plugin
 h _svm_setenv.plugin

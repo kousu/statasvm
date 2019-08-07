@@ -12,17 +12,19 @@ d Nick Guenther <nguenthe@uwaterloo.ca> and Matthias Schonlau <schonlau@uwaterlo
 d
 d Distribution-Date: 20181121
 
-F svmachines/_svm_model2stata.ado
-F svmachines/_svm_train.ado
-F svmachines/export_svmlight.ado
-F svmachines/import_svmlight.ado
-F svmachines/svm_ensurelib.ado
-F svmachines/svm_examples.ihlp
-F svmachines/svm_predict.ado
-F svmachines/svmachines.ado
-F svmachines/svmachines.sthlp
-F svmachines/svmachines_example.ado
-F svmachines/svmlight.sthlp
+f svmachines/_svm_model2stata.ado
+f svmachines/_svm_train.ado
+f svmachines/export_svmlight.ado
+f svmachines/export_svmlight.sthlp
+f svmachines/import_svmlight.ado
+f svmachines/import_svmlight.sthlp
+f svmachines/svm_ensurelib.ado
+f svmachines/svm_examples.ihlp
+f svmachines/svm_predict.ado
+f svmachines/svmachines.ado
+f svmachines/svmachines.sthlp
+f svmachines/svmachines_example.ado
+f svmachines/svmlight.sthlp
 G LINUX64 svmachines/bin/LINUX64/_svm_dlopenable.plugin
 G LINUX64 svmachines/bin/LINUX64/_svm_getenv.plugin
 G LINUX64 svmachines/bin/LINUX64/_svm_setenv.plugin

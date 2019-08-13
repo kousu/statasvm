@@ -24,7 +24,7 @@ As it is only a wrapper, so you need to install [libsvm](http://www.csie.ntu.edu
 
 ### Windows
 
-On Windows, libsvm is bundled with this package (because Windows lacks a reliable package manager) so it should just work, but you will be using an outdated libsvm until we upgrade it.
+On Windows, libsvm is bundled with this package so installation requires no further steps.
 
 ### OS X
 

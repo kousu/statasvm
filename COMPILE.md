@@ -120,7 +120,7 @@ or maybe [chocolatey](https://chocolatey.org/packages) will get a libsvm package
 
 Debian (including Ubuntu):
 ```
-# apt-get install libsvm-3
+# apt-get install libsvm3
 # apt-get install libsvm-dev # svm.h is in a separate package
 ```
 

@@ -23,6 +23,8 @@
 #STATA=stata
 STATA=stata-se
 if [ "$(uname)" = "Darwin" ]; then
+  #Aug 2018; change STATA from stata-se to StataSE since stata-se could not recognize MAC libsvm library
+  STATA=StataSE
   PATH=/Applications/Stata/StataSE.app/Contents/MacOS/:$PATH
 # PATH=/Applications/Stata/Stata.app/Contents/MacOS/:$PATH  
 # Note: Stata installs to /Applications/Stata/Stata.app/Contents/MacOS/Stata on OS X,

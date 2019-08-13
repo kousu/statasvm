@@ -3,5 +3,8 @@
 # (we name the two versions stata.bat and stata.sh to clearly denote what language each is in)
 # (but then we need this so that on *nix you can say "$ scripts/stata" to run it; on Windows
 #  the .bat extension is found automatically so the same automatically runs "scripts\stata.bat")
+# In linux, you should first add your stata path to the $PATH
+# In MacOS, you should ensure that your stata path is in the stata.sh
+# In Windows, you should ensure that your stata path is in the stata.bat
 
 $(dirname $0)/stata.sh $@

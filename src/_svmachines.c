@@ -531,8 +531,9 @@ ST_retcode train(int argc, char *argv[])
     // corresponding to entries
     // in a VERY PARTICULAR order
     // make sure you keep svm_train.ado and this function in sync
-    if(argc != 12) {
-        sterror("_svm_train: expected exactly 12 arguments. Do not try to call the plugin's train routine directly, use svm_train.ado\n");
+    //change from 12 to 13; added one more option seed. July 2018
+    if(argc != 13) {
+        sterror("_svm_train: expected exactly 13 arguments. Do not try to call the plugin's train routine directly, use svm_train.ado\n");
         return 1;
     }
     
@@ -619,6 +620,10 @@ ST_retcode train(int argc, char *argv[])
     
     param.cache_size = atoi(argv[0]);
     argc--; argv++; //shift
+    
+    //added at July 2018
+    int randomseed = atoi(argv[0]);
+    srand(randomseed);
     
     // special case: gamma = 0 means gamma = not specified
     // default it to 1/num_features if not explicitly given

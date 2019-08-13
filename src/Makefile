@@ -204,7 +204,8 @@ _svm_dlopenable.$(DLLEXT): $(patsubst %.c,%.$(OBJEXT), _svm_dlopenable.c stutil.
 # Files in ancillary named *_example.do are bundled into the package and bundled into the
 # documentation with a slick "Click to Run" which downloads the examples and runs them if missing.
 # ("ancillary" is special-cased by Stata for this purpose)
-EXAMPLES:=binary_classification multiclass_classification class_probability regression
+# Nov 2018: added "svm_" prefix for example names
+EXAMPLES:=svm_binary_classification svm_multiclass_classification svm_class_probability svm_regression
 EXAMPLES:=$(patsubst %,ancillary/%_example.do,$(EXAMPLES))
 svm_examples.ihlp: $(EXAMPLES)
 	$(call FixPath,../scripts/example2smcl) -v PKG=$(PKG) $(call FixPath,$^) > $(call FixPath,$@)
@@ -220,7 +221,9 @@ all: svm_examples.ihlp
 # *.log *should* get cleaned up by the testing recipe, but in case it doesn't or you have made some manually we clean it again here
 clean:
 	-$(RM) *.o *.plugin *.log *.model
-	-$(RMDIR) $(call FixPath,bin/$(PLATFORM))
+	-$(RMDIR) $(call FixPath)
+# Line below from Nick: it also removes plugins  from dist/bin (including all 3 OS) which is undesirable
+#	-$(RMDIR) $(call FixPath,bin/$(PLATFORM))
 
 	
 	

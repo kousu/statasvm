@@ -1,0 +1,4 @@
+v 3
+d Stata repo
+
+p svmachines - Support Vector Machines for both Classification and Regression

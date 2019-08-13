@@ -16,25 +16,20 @@ Installation
 
 In Stata:
 ```
-. net search svmachines
+. ssc install svmachines
 ```
-will let you find this wrapper. To install the currently published copy from the Stata archive, this means doing
+will install the most recent version of this wrapper.
 
-```
-. net sj 16-4
-. net install st0461
-```
-
-But as it is only a wrapper, so you need to install [libsvm](http://www.csie.ntu.edu.tw/~cjlin/libsvm/) too:
+As it is only a wrapper, so you need to install [libsvm](http://www.csie.ntu.edu.tw/~cjlin/libsvm/) too:
 
 ### Windows
 
-On Windows, libsvm is bundled with this package, because dependency tracking is too difficult on Windows, so there should be nothing for you to do.
+On Windows, libsvm is bundled with this package (because Windows lacks a reliable package manager) so it should just work, but you will be using an outdated libsvm until we upgrade it.
 
 ### OS X
 
-* macports: `port install libsvm` _OR_
-* brew: `brew install libsvm`
+* `brew install libsvm` _OR_
+* `port install libsvm`
 
 ### Unix
 
@@ -46,12 +41,27 @@ On Windows, libsvm is bundled with this package, because dependency tracking is 
 Alternate Installation
 ----------------------
 
-If the published [Stata Journal](https://www.stata-journal.com/) [copy](https://www.stata-journal.com/software/sj16-4/st0461.pkg) isn't working for you, you can also install directly out of this repository. Get [svmachines.zip](svmachines.zip) get unzip it somewhere, say `/tmp/stata_install/` and make sure that creates `/tmp/stata_install/svmachines.pkg` as well as the folder `/tmp/stata_install/svmachines/`. Then, in Stata, do
+If the published [SSC](https://www.stata.com/support/ssc-installation/) [copy](fmwww.bc.edu/repec/bocode/s/svmachines.pkg) is not working, try the original [Stata Journal](https://www.stata-journal.com/) [copy](https://www.stata-journal.com/software/sj16-4/st0461.pkg)
 
 ```
+. net uninstall svmachines
+. net sj 16-4
+. net install st0461
+```
+
+If that still isn't working for you, you can also install directly out of this repository:
+download [svmachines.zip](svmachines.zip), unzip it somewhere, such as `/tmp/stata_install/`
+and make sure that creates `/tmp/stata_install/svmachines.pkg` as well as the folder
+`/tmp/stata_install/svmachines/`. Then, in Stata, run
+
+```
+. net uninstall svmachines
+. net uninstall st0461
 . net use /tmp/stata_install
 . net install svmachines
 ```
+
+If that still isn't working please contact us via email or Github Issues.
 
 Usage
 -----

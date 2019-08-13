@@ -16,31 +16,42 @@ Installation
 
 In Stata:
 ```
-net search svmachines
+. net search svmachines
 ```
-should find and let you install this wrapper. If this does not work for you, please file bug reports. If you need it to work RIGHT NOW, read on for more specific instructions:
+will let you find this wrapper. To install the currently published copy from the Stata archive, this means doing
 
+```
+. net sj 16-4
+. net install st0461
+```
+
+But as it is only a wrapper, so you need to install [libsvm](http://www.csie.ntu.edu.tw/~cjlin/libsvm/) too:
 
 ### Windows
 
-On Windows, libsvm is bundled with this package, because dependency tracking is too difficult on Windows.
-
+On Windows, libsvm is bundled with this package, because dependency tracking is too difficult on Windows, so there should be nothing for you to do.
 
 ### OS X
 
-* macports: `port install libsvm` ~OR~
+* macports: `port install libsvm` _OR_
 * brew: `brew install libsvm`
-
 
 ### Unix
 
-On Unix, you need to have libsvm installed. Perhaps packagers will move statasvm into, though such a package would be out of places given that the Unix installer for Stata is a shell script which needs to be babied.
-
-* Debian-derivatives: `apt-get install libsvm3`  'apt-get install libsvm-dev'
+* Debian-derivatives: `apt-get install libsvm3`
 * Arch: libsvm is [in the AUR](https://aur.archlinux.org/packages/libsvm/)
 * Redhat/Fedora: `yum install libsvm` (**UNTESTED**)
 * You can manually [download](http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/libsvm.cgi?+http://www.csie.ntu.edu.tw/~cjlin/libsvm+tar.gz) and follow the [build instructions](https://github.com/cjlin1/libsvm).
 
+Alternate Installation
+----------------------
+
+If the published [Stata Journal](https://www.stata-journal.com/) [copy](https://www.stata-journal.com/software/sj16-4/st0461.pkg) isn't working for you, you can also install directly out of this repository. Get [svmachines.zip](svmachines.zip) get unzip it somewhere, say `/tmp/stata_install/` and make sure that creates `/tmp/stata_install/svmachines.pkg` as well as the folder `/tmp/stata_install/svmachines/`. Then, in Stata, do
+
+```
+. net use /tmp/stata_install
+. net install svmachines
+```
 
 Usage
 -----
